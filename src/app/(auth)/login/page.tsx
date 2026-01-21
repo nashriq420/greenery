@@ -72,6 +72,11 @@ export default function AuthPage() {
             if (res.token) {
                 login(res.user, res.token);
                 router.push('/dashboard');
+            } else if (res.message) {
+                // Pending approval case
+                setError(res.message);
+                // Force switch to login tab to see the error? Or just show it here.
+                // Showing it here is fine.
             } else {
                 if (res.errors) {
                     // Zod errors
@@ -118,7 +123,11 @@ export default function AuthPage() {
                                     <Label htmlFor="password">Password</Label>
                                     <Input id="password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
                                 </div>
-                                {error && <p className="text-red-500 text-sm">{error}</p>}
+                                {error && (
+                                    <div className={`text-sm p-2 rounded ${error.includes('pending approval') ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                                        {error}
+                                    </div>
+                                )}
                                 <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
                                     {loading ? 'Logging in...' : 'Login'}
                                 </Button>
@@ -151,7 +160,11 @@ export default function AuthPage() {
                                     <Label htmlFor="s-password">Password</Label>
                                     <Input id="s-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
                                 </div>
-                                {error && <p className="text-red-500 text-sm">{error}</p>}
+                                {error && (
+                                    <div className={`text-sm p-2 rounded ${error.includes('pending') || error.includes('approval') ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                                        {error}
+                                    </div>
+                                )}
                                 <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
                                     {loading ? 'Creating Account...' : 'Sign Up'}
                                 </Button>
