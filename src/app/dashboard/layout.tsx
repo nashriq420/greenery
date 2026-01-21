@@ -30,8 +30,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 <nav className="flex items-center gap-4">
                     <Link href="/dashboard" className="text-sm font-medium hover:text-green-600">Dashboard</Link>
-                    <Link href="/dashboard/map" className="text-sm font-medium hover:text-green-600">Map</Link>
+                    <Link href="/dashboard" className="text-sm font-medium hover:text-green-600">Map</Link>
                     <Link href="/dashboard/chat" className="text-sm font-medium hover:text-green-600">Chat</Link>
+                    <Link href="/dashboard/profile" className="text-sm font-medium hover:text-green-600">Profile</Link>
                     {user?.role === 'ADMIN' && (
                         <Link href="/dashboard/admin" className="text-sm font-medium hover:text-green-600">Admin</Link>
                     )}

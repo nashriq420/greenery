@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
 import { useEffect, useState } from 'react';
@@ -13,15 +13,45 @@ const customIcon = new Icon({
     iconAnchor: [12, 41]
 });
 
+// Component to handle map view updates
+function RecenterMap({ lat, lng }: { lat: number, lng: number }) {
+    const map = useMap();
+    useEffect(() => {
+        if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+            // Use flyTo for smoother transition and potentially safer execution
+            map.flyTo([lat, lng], 13, {
+                animate: true,
+                duration: 1.5
+            });
+        }
+    }, [lat, lng, map]);
+    return null;
+}
+
 export default function MapComponent() {
     const [isMounted, setIsMounted] = useState(false);
-    // Default config (London) - normally get from user location
+    // Default config (London)
     const [center, setCenter] = useState({ lat: 51.505, lng: -0.09 });
     const { sellers } = useSellers(center.lat, center.lng, 50);
 
     useEffect(() => {
         setIsMounted(true);
-        // Browser geolocation could go here
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    if (latitude && longitude) {
+                        setCenter({
+                            lat: latitude,
+                            lng: longitude
+                        });
+                    }
+                },
+                (error) => {
+                    console.error("Error getting location:", error);
+                }
+            );
+        }
     }, []);
 
     if (!isMounted) {
@@ -29,14 +59,16 @@ export default function MapComponent() {
     }
 
     return (
+        // Add unique key to force cleanup if necessary, though simpler is better usually.
+        // We leave the outer div stable.
         <div className="h-[500px] w-full rounded-lg overflow-hidden border relative">
             <MapContainer
-                center={[center.lat, center.lng]}
+                center={[51.505, -0.09]} // Static initial center
                 zoom={13}
                 scrollWheelZoom={false}
                 className="h-full w-full"
             >
-                {/* Event handler to update center on drag end could be added here to re-fetch */}
+                <RecenterMap lat={center.lat} lng={center.lng} />
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
