@@ -1,5 +1,13 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
+const handleResponse = async (res: Response) => {
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || data.error || 'API request failed');
+    }
+    return res.json();
+};
+
 export const api = {
     get: async (endpoint: string, token?: string) => {
         const res = await fetch(`${API_URL}${endpoint}`, {
@@ -8,7 +16,7 @@ export const api = {
                 'Content-Type': 'application/json'
             }
         });
-        return res.json();
+        return handleResponse(res);
     },
     post: async (endpoint: string, body: any, token?: string) => {
         const res = await fetch(`${API_URL}${endpoint}`, {
@@ -19,7 +27,7 @@ export const api = {
             },
             body: JSON.stringify(body)
         });
-        return res.json();
+        return handleResponse(res);
     },
     put: async (endpoint: string, body: any, token?: string) => {
         const res = await fetch(`${API_URL}${endpoint}`, {
@@ -30,7 +38,7 @@ export const api = {
             },
             body: JSON.stringify(body)
         });
-        return res.json();
+        return handleResponse(res);
     },
     delete: async (endpoint: string, token?: string) => {
         const res = await fetch(`${API_URL}${endpoint}`, {
@@ -40,17 +48,16 @@ export const api = {
                 'Content-Type': 'application/json'
             }
         });
-        return res.json();
+        return handleResponse(res);
     },
     upload: async (endpoint: string, formData: FormData, token?: string) => {
         const res = await fetch(`${API_URL}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Authorization': token ? `Bearer ${token}` : '',
-                // Content-Type header is not needed for FormData, prompt will explain why
             },
             body: formData
         });
-        return res.json();
+        return handleResponse(res);
     }
 };

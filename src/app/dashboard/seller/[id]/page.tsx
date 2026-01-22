@@ -8,7 +8,7 @@ import { useParams } from 'next/navigation';
 export default function SellerProfilePage() {
     const params = useParams();
     const id = params?.id as string;
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
 
     const [seller, setSeller] = useState<any>(null);
     const [listings, setListings] = useState<any[]>([]);
@@ -58,25 +58,27 @@ export default function SellerProfilePage() {
 
     return (
         <div className="space-y-8">
-            <div className="bg-white p-8 rounded-lg shadow border">
+            <div className="bg-card text-card-foreground p-8 rounded-lg shadow border">
                 <h1 className="text-3xl font-bold mb-2">{seller?.name || 'Seller'}</h1>
-                <p className="text-gray-600 mb-4">{seller?.sellerProfile?.city}, {seller?.sellerProfile?.state}</p>
+                <p className="text-muted-foreground mb-4">{seller?.sellerProfile?.city}, {seller?.sellerProfile?.state}</p>
                 <div className="flex gap-4">
-                    <button
-                        onClick={async () => {
-                            if (!token) return alert('Please login to chat');
-                            try {
-                                const chat = await api.post('/chat', { participantId: id }, token);
-                                // Redirect to chat
-                                window.location.href = `/dashboard/chat/${chat.id}`;
-                            } catch (e) {
-                                alert('Failed to start chat');
-                            }
-                        }}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                        Chat with {seller?.name?.split(' ')[0]}
-                    </button>
+                    {user?.id !== id && (
+                        <button
+                            onClick={async () => {
+                                if (!token) return alert('Please login to chat');
+                                try {
+                                    const chat = await api.post('/chat', { participantId: id }, token);
+                                    // Redirect to chat
+                                    window.location.href = `/dashboard/chat/${chat.id}`;
+                                } catch (e) {
+                                    alert('Failed to start chat');
+                                }
+                            }}
+                            className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90"
+                        >
+                            Chat with {seller?.name?.split(' ')[0]}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -84,13 +86,13 @@ export default function SellerProfilePage() {
                 <h2 className="text-2xl font-bold mb-4">Active Listings</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {listings.map((listing) => (
-                        <div key={listing.id} className="bg-white border rounded-lg overflow-hidden">
-                            <div className="h-48 bg-gray-200 flex items-center justify-center">
-                                {listing.imageUrl ? <img src={listing.imageUrl} /> : 'No Image'}
+                        <div key={listing.id} className="bg-card text-card-foreground border rounded-lg overflow-hidden flex flex-col">
+                            <div className="h-48 bg-muted flex items-center justify-center">
+                                {listing.imageUrl ? <img src={listing.imageUrl} className="w-full h-full object-cover" /> : 'No Image'}
                             </div>
                             <div className="p-4">
                                 <h3 className="font-bold">{listing.title}</h3>
-                                <p className="text-green-600 font-bold">${listing.price}</p>
+                                <p className="text-green-600 font-bold dark:text-green-400">${listing.price}</p>
                             </div>
                         </div>
                     ))}

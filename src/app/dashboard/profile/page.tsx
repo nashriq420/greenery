@@ -107,6 +107,10 @@ export default function ProfilePage() {
     };
 
     const handleUpdatePassword = async () => {
+        if (!passwordData.newPassword || !passwordData.currentPassword) {
+            alert(passwordData.newPassword ? "Please enter current password" : "Please enter new password");
+            return;
+        }
         try {
             await api.put('/user/me/password', passwordData, token || undefined);
             alert("Password updated");
@@ -120,6 +124,13 @@ export default function ProfilePage() {
     const handleUpdateLocation = async () => {
         try {
             await api.put('/user/me/location', sellerProfile, token || undefined);
+
+            // Refresh user data in store to reflect changes in dashboard
+            const { refreshUser } = useAuthStore.getState();
+            if (refreshUser) {
+                await refreshUser();
+            }
+
             alert("Location updated");
         } catch (err) {
             alert("Failed to update location");
@@ -142,6 +153,9 @@ export default function ProfilePage() {
             alert("Failed to create listing");
         } finally {
             setLoading(false);
+            // Refresh listing count in dashboard
+            const { refreshUser } = useAuthStore.getState();
+            if (refreshUser) refreshUser();
         }
     };
 
@@ -151,6 +165,9 @@ export default function ProfilePage() {
             await api.delete(`/marketplace/listings/${id}`, token || undefined);
             alert("Listing deleted");
             fetchMyListings();
+            // Refresh listing count in dashboard
+            const { refreshUser } = useAuthStore.getState();
+            if (refreshUser) refreshUser();
         } catch (err) {
             alert("Failed to delete listing");
         }

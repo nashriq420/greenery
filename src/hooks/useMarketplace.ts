@@ -88,6 +88,33 @@ export function useListings() {
     return { listings, loading, refetch: fetchListings };
 }
 
+export function useMyListings() {
+    const [listings, setListings] = useState<Listing[]>([]);
+    const [loading, setLoading] = useState(false);
+    const { token } = useAuthStore();
+
+    const fetchListings = async () => {
+        if (!token) return;
+        setLoading(true);
+        try {
+            const data = await api.get('/marketplace/my-listings', token);
+            if (Array.isArray(data)) {
+                setListings(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch my listings", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchListings();
+    }, [token]);
+
+    return { listings, loading, refetch: fetchListings };
+}
+
 export const createListing = async (data: { title: string; description: string; price: number; imageUrl?: string }, token: string) => {
     return await api.post('/marketplace/listings', data, token);
 };

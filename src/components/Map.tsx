@@ -18,11 +18,7 @@ function RecenterMap({ lat, lng }: { lat: number, lng: number }) {
     const map = useMap();
     useEffect(() => {
         if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
-            // Use flyTo for smoother transition and potentially safer execution
-            map.flyTo([lat, lng], 13, {
-                animate: true,
-                duration: 1.5
-            });
+            map.setView([lat, lng], 13);
         }
     }, [lat, lng, map]);
     return null;
@@ -55,13 +51,13 @@ export default function MapComponent() {
     }, []);
 
     if (!isMounted) {
-        return <div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-lg"></div>;
+        return <div className="h-[500px] w-full bg-muted animate-pulse rounded-lg"></div>;
     }
 
     return (
         // Add unique key to force cleanup if necessary, though simpler is better usually.
         // We leave the outer div stable.
-        <div className="h-[500px] w-full rounded-lg overflow-hidden border relative">
+        <div className="h-[500px] w-full rounded-lg overflow-hidden border relative bg-muted">
             <MapContainer
                 center={[51.505, -0.09]} // Static initial center
                 zoom={13}

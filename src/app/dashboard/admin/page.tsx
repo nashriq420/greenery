@@ -15,6 +15,31 @@ export default function AdminPage() {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Warning Modal State
+    const [warningOpen, setWarningOpen] = useState(false);
+    const [warningMessage, setWarningMessage] = useState('');
+    const [selectedUserForWarning, setSelectedUserForWarning] = useState<{ userId: string, listingId?: string } | null>(null);
+
+    const handleWarnUser = (userId: string, listingId?: string) => {
+        setSelectedUserForWarning({ userId, listingId });
+        setWarningMessage('');
+        setWarningOpen(true);
+    };
+
+    const submitWarning = async () => {
+        if (!selectedUserForWarning || !warningMessage) return;
+        try {
+            await api.post(`/admin/users/${selectedUserForWarning.userId}/warn`, {
+                message: warningMessage,
+                listingId: selectedUserForWarning.listingId
+            }, token || undefined);
+            alert("Warning sent successfully");
+            setWarningOpen(false);
+        } catch (e) {
+            alert("Failed to send warning");
+        }
+    };
+
     useEffect(() => {
         if (user && user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
             router.push('/dashboard');
@@ -28,6 +53,8 @@ export default function AdminPage() {
             let res;
             if (activeTab === 'approve-listings') {
                 res = await api.get('/admin/listings?status=PENDING', token || undefined);
+            } else if (activeTab === 'manage-listings') {
+                res = await api.get('/admin/listings', token || undefined);
             } else {
                 let query = '';
                 if (activeTab === 'approve-sellers') query = 'role=SELLER&status=PENDING';
@@ -35,7 +62,7 @@ export default function AdminPage() {
                 else if (activeTab === 'customers') query = 'role=CUSTOMER';
                 else if (activeTab === 'sellers') query = 'role=SELLER';
 
-                res = await api.get(`/admin/users?${query}`, token || undefined);
+                if (query) res = await api.get(`/admin/users?${query}`, token || undefined);
             }
 
             if (Array.isArray(res)) {
@@ -83,6 +110,7 @@ export default function AdminPage() {
                     <TabsTrigger value="approve-listings">Approve Listings</TabsTrigger>
                     <TabsTrigger value="customers">All Customers</TabsTrigger>
                     <TabsTrigger value="sellers">All Sellers</TabsTrigger>
+                    <TabsTrigger value="manage-listings">Manage Listings</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="approve-sellers" className="mt-6">
@@ -116,6 +144,7 @@ export default function AdminPage() {
                         users={data}
                         roleFilter="CUSTOMER"
                         onUpdateStatus={handleUserStatusUpdate}
+                        onWarn={handleWarnUser}
                     />
                 </TabsContent>
 
@@ -124,9 +153,39 @@ export default function AdminPage() {
                         users={data}
                         roleFilter="SELLER"
                         onUpdateStatus={handleUserStatusUpdate}
+                        onWarn={handleWarnUser}
+                    />
+                </TabsContent>
+
+                <TabsContent value="manage-listings" className="mt-6">
+                    <ManageListingsList
+                        listings={data}
+                        onUpdateStatus={handleListingStatusUpdate}
+                        onWarnSeller={handleWarnUser}
+                        loading={loading}
                     />
                 </TabsContent>
             </Tabs>
+
+            {/* Warning Modal */}
+            {warningOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                        <h2 className="text-xl font-bold mb-4">Send Warning</h2>
+                        <textarea
+                            className="w-full border rounded p-2 mb-4"
+                            rows={4}
+                            placeholder="Enter warning message..."
+                            value={warningMessage}
+                            onChange={(e) => setWarningMessage(e.target.value)}
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => setWarningOpen(false)}>Cancel</Button>
+                            <Button onClick={submitWarning}>Send Warning</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -197,8 +256,48 @@ function ListingApprovalList({ listings, onUpdateStatus, loading }: any) {
     );
 }
 
+// Helper for Managing Listings
+function ManageListingsList({ listings, onUpdateStatus, onWarnSeller, loading }: any) {
+    if (loading) return <p>Loading...</p>;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Manage All Listings</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {listings.length === 0 && <p>No listings found.</p>}
+                    {listings.map((l: any) => (
+                        <div key={l.id} className="border p-4 rounded flex justify-between items-center">
+                            <div>
+                                <p className="font-bold flex items-center gap-2">
+                                    {l.title}
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${l.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        {l.status}
+                                    </span>
+                                </p>
+                                <p className="text-sm text-gray-500">{l.description.substring(0, 50)}...</p>
+                                <p className="text-xs text-gray-500 mt-1">Seller: {l.seller?.name || 'Unknown'}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button variant="outline" size="sm" onClick={() => onWarnSeller(l.seller.id, l.id)}>Warn Seller</Button>
+                                {l.status === 'ACTIVE' ? (
+                                    <Button onClick={() => onUpdateStatus(l.id, 'REJECTED')} variant="destructive" size="sm">Suspend</Button>
+                                ) : (
+                                    <Button onClick={() => onUpdateStatus(l.id, 'ACTIVE')} variant="outline" size="sm" className="text-green-600 border-green-600">Re-Activate</Button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 // Helper Component for List
-function UserList({ users, roleFilter, onUpdateStatus }: any) {
+function UserList({ users, roleFilter, onUpdateStatus, onWarn }: any) {
     return (
         <Card>
             <CardHeader>
@@ -219,8 +318,9 @@ function UserList({ users, roleFilter, onUpdateStatus }: any) {
                                 <p className="text-sm text-gray-500">{u.email}</p>
                             </div>
                             <div className="flex gap-2">
+                                <Button variant="outline" size="sm" onClick={() => onWarn(u.id)}>Warn</Button>
                                 {u.status === 'ACTIVE' ? (
-                                    <Button onClick={() => onUpdateStatus(u.id, 'SUSPENDED')} variant="outline" size="sm">Suspend</Button>
+                                    <Button onClick={() => onUpdateStatus(u.id, 'SUSPENDED')} variant="destructive" size="sm">Suspend</Button>
                                 ) : (
                                     <Button onClick={() => onUpdateStatus(u.id, 'ACTIVE')} variant="outline" size="sm" className="text-green-600 border-green-600">Re-Activate</Button>
                                 )}
