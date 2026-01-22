@@ -11,8 +11,8 @@ import { useRouter } from 'next/navigation';
 export default function AdminPage() {
     const { token, user } = useAuthStore();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState('pending');
-    const [users, setUsers] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState('approve-sellers');
+    const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -21,35 +21,52 @@ export default function AdminPage() {
         }
     }, [user]);
 
-    const fetchUsers = async () => {
+    const fetchData = async () => {
         setLoading(true);
+        setData([]); // Clear data mostly to avoid confusion
         try {
-            let query = '';
-            if (activeTab === 'pending') query = 'status=PENDING';
-            else if (activeTab === 'customers') query = 'role=CUSTOMER';
-            else if (activeTab === 'sellers') query = 'role=SELLER';
+            let res;
+            if (activeTab === 'approve-listings') {
+                res = await api.get('/admin/listings?status=PENDING', token || undefined);
+            } else {
+                let query = '';
+                if (activeTab === 'approve-sellers') query = 'role=SELLER&status=PENDING';
+                else if (activeTab === 'approve-customers') query = 'role=CUSTOMER&status=PENDING';
+                else if (activeTab === 'customers') query = 'role=CUSTOMER';
+                else if (activeTab === 'sellers') query = 'role=SELLER';
 
-            const res = await api.get(`/admin/users?${query}`, token || undefined);
+                res = await api.get(`/admin/users?${query}`, token || undefined);
+            }
+
             if (Array.isArray(res)) {
-                setUsers(res);
+                setData(res);
             }
         } catch (err) {
-            console.error("Failed to fetch users", err);
+            console.error("Failed to fetch data", err);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (token && activeTab) fetchUsers();
+        if (token && activeTab) fetchData();
     }, [token, activeTab]);
 
-    const handleStatusUpdate = async (userId: string, newStatus: string) => {
+    const handleUserStatusUpdate = async (userId: string, newStatus: string) => {
         try {
             await api.put(`/admin/users/${userId}/status`, { status: newStatus }, token || undefined);
-            fetchUsers();
+            fetchData();
         } catch (err) {
             alert("Failed to update status");
+        }
+    };
+
+    const handleListingStatusUpdate = async (listingId: string, newStatus: string) => {
+        try {
+            await api.put(`/admin/listings/${listingId}/status`, { status: newStatus }, token || undefined);
+            fetchData();
+        } catch (err) {
+            alert("Failed to update listing status");
         }
     };
 
@@ -61,59 +78,52 @@ export default function AdminPage() {
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
-                    <TabsTrigger value="pending">Pending Approvals</TabsTrigger>
-                    <TabsTrigger value="customers">Customers</TabsTrigger>
-                    <TabsTrigger value="sellers">Sellers</TabsTrigger>
+                    <TabsTrigger value="approve-sellers">Approve Sellers</TabsTrigger>
+                    <TabsTrigger value="approve-customers">Approve Customers</TabsTrigger>
+                    <TabsTrigger value="approve-listings">Approve Listings</TabsTrigger>
+                    <TabsTrigger value="customers">All Customers</TabsTrigger>
+                    <TabsTrigger value="sellers">All Sellers</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="pending" className="mt-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Pending User Approvals</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {loading ? <p>Loading...</p> : (
-                                <div className="space-y-4">
-                                    {users.filter(u => u.status === 'PENDING').length === 0 && <p>No pending approvals.</p>}
-                                    {users.filter(u => u.status === 'PENDING').map(u => (
-                                        <div key={u.id} className="border p-4 rounded flex justify-between items-center bg-yellow-50">
-                                            <div>
-                                                <p className="font-bold">{u.name} ({u.role})</p>
-                                                <p className="text-sm text-gray-500">{u.email}</p>
-                                                {u.role === 'SELLER' && u.sellerProfile && (
-                                                    <p className="text-xs text-gray-600">Location: {u.sellerProfile.city}, {u.sellerProfile.country}</p>
-                                                )}
-                                                <p className="text-xs text-gray-400">Signed up: {new Date(u.createdAt).toLocaleDateString()}</p>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <Button onClick={() => handleStatusUpdate(u.id, 'ACTIVE')} className="bg-green-600 hover:bg-green-700">Approve</Button>
-                                                <Button onClick={() => handleStatusUpdate(u.id, 'REJECTED')} variant="destructive">Reject</Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                <TabsContent value="approve-sellers" className="mt-6">
+                    <ApprovalList
+                        users={data}
+                        title="Pending Seller Approvals"
+                        onUpdateStatus={handleUserStatusUpdate}
+                        loading={loading}
+                    />
+                </TabsContent>
+
+                <TabsContent value="approve-customers" className="mt-6">
+                    <ApprovalList
+                        users={data}
+                        title="Pending Customer Approvals"
+                        onUpdateStatus={handleUserStatusUpdate}
+                        loading={loading}
+                    />
+                </TabsContent>
+
+                <TabsContent value="approve-listings" className="mt-6">
+                    <ListingApprovalList
+                        listings={data}
+                        onUpdateStatus={handleListingStatusUpdate}
+                        loading={loading}
+                    />
                 </TabsContent>
 
                 <TabsContent value="customers" className="mt-6">
                     <UserList
-                        users={users}
+                        users={data}
                         roleFilter="CUSTOMER"
-                        onUpdateStatus={handleStatusUpdate}
-                        fetchTrigger={fetchUsers} // To refresh if we reused this component properly with internal fetching, but here we pass full list. 
-                    // Actually, the main fetcher fetches based on activeTab logic which is simple status-based or all. 
-                    // Let's improve the fetch logic:
+                        onUpdateStatus={handleUserStatusUpdate}
                     />
-                    {/* Refactoring fetch logic inside Main component to handle tabs better */}
                 </TabsContent>
 
                 <TabsContent value="sellers" className="mt-6">
                     <UserList
-                        users={users}
+                        users={data}
                         roleFilter="SELLER"
-                        onUpdateStatus={handleStatusUpdate}
+                        onUpdateStatus={handleUserStatusUpdate}
                     />
                 </TabsContent>
             </Tabs>
@@ -121,15 +131,74 @@ export default function AdminPage() {
     );
 }
 
-// Helper Component
+// Helper Component for User Approvals
+function ApprovalList({ users, title, onUpdateStatus, loading }: any) {
+    if (loading) return <p>Loading...</p>;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>{title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {users.length === 0 && <p>No pending approvals found.</p>}
+                    {users.map((u: any) => (
+                        <div key={u.id} className="border p-4 rounded flex justify-between items-center bg-yellow-50">
+                            <div>
+                                <p className="font-bold">{u.name} ({u.role})</p>
+                                <p className="text-sm text-gray-500">{u.email}</p>
+                                {u.role === 'SELLER' && u.sellerProfile && (
+                                    <p className="text-xs text-gray-600">Location: {u.sellerProfile.city}, {u.sellerProfile.country}</p>
+                                )}
+                                <p className="text-xs text-gray-400">Signed up: {new Date(u.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button onClick={() => onUpdateStatus(u.id, 'ACTIVE')} className="bg-green-600 hover:bg-green-700">Approve</Button>
+                                <Button onClick={() => onUpdateStatus(u.id, 'REJECTED')} variant="destructive">Reject</Button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+// Helper Component for Listing Approvals
+function ListingApprovalList({ listings, onUpdateStatus, loading }: any) {
+    if (loading) return <p>Loading...</p>;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Pending Listing Approvals</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {listings.length === 0 && <p>No pending listings found.</p>}
+                    {listings.map((l: any) => (
+                        <div key={l.id} className="border p-4 rounded flex justify-between items-center bg-blue-50">
+                            <div>
+                                <p className="font-bold">{l.title}</p>
+                                <p className="text-sm">{l.description.substring(0, 50)}...</p>
+                                <p className="text-sm font-semibold mt-1">Price: ${l.price}</p>
+                                <p className="text-xs text-gray-500 mt-1">Seller: {l.seller?.name || 'Unknown'}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button onClick={() => onUpdateStatus(l.id, 'ACTIVE')} className="bg-green-600 hover:bg-green-700">Approve</Button>
+                                <Button onClick={() => onUpdateStatus(l.id, 'REJECTED')} variant="destructive">Reject</Button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+// Helper Component for List
 function UserList({ users, roleFilter, onUpdateStatus }: any) {
-    // API already filters by role/status based on tab, so 'users' contains correct data for the tab.
-    // However, for 'pending' tab logic was specific.
-    // For Customer/Seller tabs, we show listing. 
-
-    // Safety check just in case mixed data (though API shouldn't return mixed if filtered)
-    const displayUsers = users;
-
     return (
         <Card>
             <CardHeader>
@@ -137,8 +206,8 @@ function UserList({ users, roleFilter, onUpdateStatus }: any) {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {displayUsers.length === 0 && <p>No users found.</p>}
-                    {displayUsers.map((u: any) => (
+                    {users.length === 0 && <p>No users found.</p>}
+                    {users.map((u: any) => (
                         <div key={u.id} className="border p-4 rounded flex justify-between items-center">
                             <div>
                                 <p className="font-bold flex items-center gap-2">
@@ -163,3 +232,4 @@ function UserList({ users, roleFilter, onUpdateStatus }: any) {
         </Card>
     );
 }
+
