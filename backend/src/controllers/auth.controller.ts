@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
 import { z, ZodError } from 'zod';
 import { logger } from '../utils/logger';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 const signupSchema = z.object({
     email: z.string().email(),
@@ -104,6 +105,18 @@ export const login = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Account is suspended or rejected.' });
         }
 
+        // Fetch full user details including profile and subscription
+        const fullUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            include: {
+                sellerProfile: true,
+                subscription: true,
+                _count: {
+                    select: { listings: true }
+                }
+            }
+        });
+
         const token = jwt.sign(
             { id: user.id, role: user.role },
             process.env.JWT_SECRET as string,
@@ -113,7 +126,15 @@ export const login = async (req: Request, res: Response) => {
         console.log('[Login Debug] Login successful');
         res.json({
             token,
-            user: { id: user.id, name: user.name, email: user.email, role: user.role }
+            user: {
+                id: fullUser!.id,
+                name: fullUser!.name,
+                email: fullUser!.email,
+                role: fullUser!.role,
+                sellerProfile: fullUser!.sellerProfile,
+                subscription: fullUser!.subscription,
+                _count: fullUser!._count
+            }
         });
     } catch (error) {
         logger.error('Login error', error);
@@ -122,5 +143,36 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({ errors: (error as any).errors });
         }
         res.status(500).json({ message: 'Internal server error', error: (error as any).message });
+    }
+};
+// Get current user details
+export const getMe = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!.id; // Changed from req.user?.id. Middleware ensures it exists.
+        const fullUser = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                sellerProfile: true,
+                subscription: true,
+                _count: {
+                    select: { listings: true }
+                }
+            }
+        });
+
+        if (!fullUser) return res.status(404).json({ message: 'User not found' });
+
+        res.json({
+            id: fullUser.id,
+            name: fullUser.name,
+            email: fullUser.email,
+            role: fullUser.role,
+            sellerProfile: fullUser.sellerProfile,
+            subscription: fullUser.subscription,
+            _count: fullUser._count
+        });
+    } catch (error) {
+        logger.error('Get me error', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

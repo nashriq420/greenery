@@ -124,6 +124,10 @@ export const updatePassword = async (req: AuthRequest, res: Response) => {
         const userId = req.user!.id;
         const { currentPassword, newPassword } = updatePasswordSchema.parse(req.body);
 
+        if (currentPassword === newPassword) {
+            return res.status(400).json({ message: 'New password cannot be the same as current password' });
+        }
+
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });

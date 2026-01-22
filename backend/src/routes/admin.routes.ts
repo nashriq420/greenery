@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getUsers, updateUserStatus, getAdminListings, updateListingStatus } from '../controllers/admin.controller';
+import { getUsers, updateUserStatus, getAdminListings, updateListingStatus, warnUser } from '../controllers/admin.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 import { requireRole } from '../middlewares/role.middleware'; // Assuming this exists or I use inline check
 
@@ -13,6 +13,7 @@ router.put('/users/:id/status', authenticateToken, isAdmin, updateUserStatus);
 
 router.get('/listings', authenticateToken, isAdmin, getAdminListings);
 router.put('/listings/:id/status', authenticateToken, isAdmin, updateListingStatus);
+router.post('/users/:id/warn', authenticateToken, isAdmin, warnUser);
 
 export default router;
 

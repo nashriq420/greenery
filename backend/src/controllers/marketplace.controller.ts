@@ -66,7 +66,9 @@ export const createListing = async (req: AuthRequest, res: Response) => {
             data: {
                 ...validated,
                 sellerId: userId,
-                price: validated.price
+                price: validated.price,
+                active: true,
+                status: 'ACTIVE'
             }
         });
 

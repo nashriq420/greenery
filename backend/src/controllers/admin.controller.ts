@@ -116,3 +116,61 @@ export const updateListingStatus = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: 'Internal server error', error: (error as any).message });
     }
 };
+
+const warnUserSchema = z.object({
+    message: z.string().min(1),
+    listingId: z.string().optional()
+});
+
+// Warn User (Send Message)
+export const warnUser = async (req: AuthRequest, res: Response) => {
+    try {
+        const adminId = req.user!.id;
+        const targetUserId = req.params.id as string;
+        const { message, listingId } = warnUserSchema.parse(req.body);
+
+        // 1. Find or Create Chat
+        let chat = await prisma.chat.findFirst({
+            where: {
+                OR: [
+                    { participant1Id: adminId, participant2Id: targetUserId },
+                    { participant1Id: targetUserId, participant2Id: adminId }
+                ]
+            }
+        });
+
+        if (!chat) {
+            chat = await prisma.chat.create({
+                data: {
+                    participant1Id: adminId,
+                    participant2Id: targetUserId
+                }
+            });
+        }
+
+        // 2. Create Message
+        const warningMessage = await prisma.message.create({
+            data: {
+                chatId: chat.id,
+                senderId: adminId,
+                receiverId: targetUserId,
+                content: `⚠️ ADMIN WARNING: ${message}`,
+                listingId: listingId
+            }
+        });
+
+        // 3. Update Chat timestamp
+        await prisma.chat.update({
+            where: { id: chat.id },
+            data: { updatedAt: new Date() }
+        });
+
+        res.status(201).json(warningMessage);
+    } catch (error) {
+        logger.error('Error warning user', error);
+        if (error instanceof ZodError) {
+            return res.status(400).json({ errors: (error as any).errors });
+        }
+        res.status(500).json({ message: 'Internal server error', error: (error as any).message });
+    }
+};
