@@ -1,0 +1,153 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CUSTOMER
+  SELLER
+  ADMIN
+  SUPERADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  pending_payment // "PENDING_PAYMENT" mapped
+  SUSPENDED
+}
+
+enum ListingStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CUSTOMER)
+  status    UserStatus @default(PENDING)
+  isVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sellerProfile SellerProfile?
+  subscription  Subscription?
+  
+  auditLogs     AuditLog[]
+  listings      Listing[]
+  
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  
+  chatsAsParticipant1 Chat[] @relation("Participant1")
+  chatsAsParticipant2 Chat[] @relation("Participant2")
+}
+
+model SellerProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  
+  // Location Data
+  latitude  Float
+  longitude Float
+  address   String?
+  city      String?
+  state     String?
+  country   String?
+  
+  description String?
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  
+  status    SubscriptionStatus @default(pending_payment)
+  startDate DateTime?
+  endDate   DateTime?
+  autoRenew Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Listing {
+  id          String   @id @default(uuid())
+  sellerId    String
+  seller      User     @relation(fields: [sellerId], references: [id])
+  
+  title       String
+  description String
+  price       Decimal
+  imageUrl    String?
+  active      Boolean  @default(true)
+  status      ListingStatus @default(PENDING)
+  
+  messages    Message[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Chat {
+  id            String   @id @default(uuid())
+  participant1Id String
+  participant2Id String
+  
+  participant1  User     @relation("Participant1", fields: [participant1Id], references: [id])
+  participant2  User     @relation("Participant2", fields: [participant2Id], references: [id])
+  
+  messages      Message[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  
+  senderId  String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  
+  content   String
+  read      Boolean  @default(false)
+  
+  listingId String?
+  listing   Listing? @relation(fields: [listingId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id])
+  
+  action    String
+  details   String?   @db.Text
+  ipAddress String?
+  
+  createdAt DateTime @default(now())
+}
