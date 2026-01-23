@@ -56,6 +56,8 @@ model User {
   
   chatsAsParticipant1 Chat[] @relation("Participant1")
   chatsAsParticipant2 Chat[] @relation("Participant2")
+
+  reviews       Review[]
 }
 
 model SellerProfile {
@@ -101,6 +103,7 @@ model Listing {
   status      ListingStatus @default(PENDING)
   
   messages    Message[]
+  reviews     Review[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -150,4 +153,23 @@ model AuditLog {
   ipAddress String?
   
   createdAt DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  
+  customerId String
+  customer   User     @relation(fields: [customerId], references: [id])
+  
+  rating    Int
+  comment   String?
+  
+  reply     String?
+  repliedAt DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

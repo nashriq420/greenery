@@ -9,7 +9,8 @@ import subscriptionRoutes from './routes/subscription.routes';
 import chatRoutes from './routes/chat.routes';
 import userRoutes from './routes/user.routes';
 import uploadRoutes from './routes/upload.routes';
-import adminRoutes from './routes/admin.routes'; // Added import for adminRoutes
+import adminRoutes from './routes/admin.routes';
+import reviewRoutes from './routes/review.routes';
 
 dotenv.config();
 
@@ -33,7 +34,8 @@ app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/chat', chatRoutes);
-app.use('/api/admin', adminRoutes); // Added usage for adminRoutes
+app.use('/api/admin', adminRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Serve uploads

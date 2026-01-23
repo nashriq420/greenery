@@ -174,3 +174,52 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+// Get Listing by ID
+export const getListingById = async (req: Request, res: Response) => {
+    try {
+        const listingId = req.params.id;
+        console.log(`[DEBUG] Fetching listing ${listingId}`);
+        const listing = await prisma.listing.findUnique({
+            where: { id: listingId },
+            include: {
+                seller: {
+                    select: {
+                        name: true,
+                        id: true,
+                        sellerProfile: {
+                            select: {
+                                city: true,
+                                state: true,
+                                description: true
+                            }
+                        }
+                    }
+                },
+                reviews: {
+                    include: {
+                        customer: {
+                            select: {
+                                name: true,
+                                id: true
+                            }
+                        }
+                    },
+                    orderBy: { createdAt: 'desc' }
+                }
+            }
+        });
+
+        if (!listing) {
+            console.log(`[DEBUG] Listing ${listingId} not found`);
+            return res.status(404).json({ message: 'Listing not found' });
+        }
+
+        console.log(`[DEBUG] Found listing ${listingId}`);
+        res.json(listing);
+    } catch (error: any) {
+        console.error('[DEBUG] Error fetching listing details:', error);
+        logger.error('Error fetching listing details', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+};
