@@ -32,7 +32,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/subscription', subscriptionRoutes);
-app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);

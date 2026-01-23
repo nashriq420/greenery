@@ -178,7 +178,7 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
 // Get Listing by ID
 export const getListingById = async (req: Request, res: Response) => {
     try {
-        const listingId = req.params.id;
+        const listingId = req.params.id as string;
         console.log(`[DEBUG] Fetching listing ${listingId}`);
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },

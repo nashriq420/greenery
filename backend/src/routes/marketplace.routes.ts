@@ -7,9 +7,14 @@ import { requireRole } from '../middlewares/rbac.middleware';
 const router = Router();
 console.log('Marketplace routes loaded');
 
+router.use((req, res, next) => {
+    console.log(`[Marketplace Router] ${req.method} ${req.path}`);
+    next();
+});
+
 router.get('/sellers', authenticateToken, getSellersNearby);
 router.get('/listings', authenticateToken, getListings);
-router.get('/listings/:id', authenticateToken, getListingById);
+router.get('/listings/:id', getListingById); // Public access
 router.post('/listings', authenticateToken, requireRole(['SELLER', 'ADMIN']), createListing);
 
 // My Listings & Management
