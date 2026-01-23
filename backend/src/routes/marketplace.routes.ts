@@ -5,6 +5,7 @@ import { authenticateToken } from '../middlewares/auth.middleware';
 import { requireRole } from '../middlewares/rbac.middleware';
 
 const router = Router();
+console.log('Marketplace routes loaded');
 
 router.get('/sellers', authenticateToken, getSellersNearby);
 router.get('/listings', authenticateToken, getListings);
