@@ -91,10 +91,10 @@ export function useListings() {
 export function useMyListings() {
     const [listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(false);
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
 
     const fetchListings = async () => {
-        if (!token) return;
+        if (!token || user?.role !== 'SELLER') return;
         setLoading(true);
         try {
             const data = await api.get('/marketplace/my-listings', token);

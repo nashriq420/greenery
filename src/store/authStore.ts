@@ -51,7 +51,9 @@ export const useAuthStore = create<AuthState>()(
                     // Let's rely on component calling this with data, OR implement a simple fetch here.
                     // Actually, api.ts is safe if it just uses useAuthStore.getState().
                     // But prevent circular imports. 
-                    const res = await fetch('http://localhost:4000/auth/me', {
+                    // Use the environment variable or default to localhost
+                    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+                    const res = await fetch(`${API_URL}/auth/me`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     if (res.ok) {

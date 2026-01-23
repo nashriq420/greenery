@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 
 export default function SellerProfilePage() {
     const params = useParams();
@@ -86,15 +87,17 @@ export default function SellerProfilePage() {
                 <h2 className="text-2xl font-bold mb-4">Active Listings</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {listings.map((listing) => (
-                        <div key={listing.id} className="bg-card text-card-foreground border rounded-lg overflow-hidden flex flex-col">
-                            <div className="h-48 bg-muted flex items-center justify-center">
-                                {listing.imageUrl ? <img src={listing.imageUrl} className="w-full h-full object-cover" /> : 'No Image'}
+                        <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="block">
+                            <div className="bg-card text-card-foreground border rounded-lg overflow-hidden flex flex-col hover:shadow-lg transition">
+                                <div className="h-48 bg-muted flex items-center justify-center relative">
+                                    {listing.imageUrl ? <img src={listing.imageUrl} className="w-full h-full object-cover" /> : 'No Image'}
+                                </div>
+                                <div className="p-4">
+                                    <h3 className="font-bold">{listing.title}</h3>
+                                    <p className="text-green-600 font-bold dark:text-green-400">${listing.price}</p>
+                                </div>
                             </div>
-                            <div className="p-4">
-                                <h3 className="font-bold">{listing.title}</h3>
-                                <p className="text-green-600 font-bold dark:text-green-400">${listing.price}</p>
-                            </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>

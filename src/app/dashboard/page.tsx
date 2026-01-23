@@ -3,14 +3,18 @@
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { useMyListings } from '@/hooks/useMarketplace';
-import { useEffect } from 'react';
+import { useMyListings, Listing } from '@/hooks/useMarketplace';
+import { useEffect, useState } from 'react';
+import EditListingModal from '@/components/marketplace/EditListingModal';
+import ViewListingModal from '@/components/marketplace/ViewListingModal';
 
 const MapComponent = dynamic(() => import('@/components/Map'), { ssr: false });
 
 export default function DashboardPage() {
     const { user, refreshUser } = useAuthStore();
-    const { listings, loading } = useMyListings();
+    const { listings, loading, refetch } = useMyListings();
+    const [editingListing, setEditingListing] = useState<Listing | null>(null);
+    const [viewingListing, setViewingListing] = useState<Listing | null>(null);
 
     // Refresh user data on mount to get latest location/subscription status
     useEffect(() => {
@@ -56,7 +60,20 @@ export default function DashboardPage() {
                                                 <p className="font-medium text-sm truncate">{listing.title}</p>
                                                 <p className="text-xs text-green-600 font-bold">${listing.price}</p>
                                             </div>
-                                            <Link href={`/dashboard/seller/${user.id}`} className="text-xs text-blue-600 hover:underline">View</Link>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setEditingListing(listing)}
+                                                    className="text-xs text-blue-600 hover:underline"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => setViewingListing(listing)}
+                                                    className="text-xs text-blue-600 hover:underline"
+                                                >
+                                                    View
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -85,6 +102,21 @@ export default function DashboardPage() {
 
 
             </div>
+
+            {editingListing && (
+                <EditListingModal
+                    listing={editingListing}
+                    onClose={() => setEditingListing(null)}
+                    onUpdate={refetch}
+                />
+            )}
+
+            {viewingListing && (
+                <ViewListingModal
+                    listing={viewingListing}
+                    onClose={() => setViewingListing(null)}
+                />
+            )}
         </div>
     );
 }

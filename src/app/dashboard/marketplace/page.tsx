@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useListings, createListing } from '@/hooks/useMarketplace';
 import { useAuthStore } from '@/store/authStore';
+import Link from 'next/link';
 
 export default function MarketplacePage() {
     const { listings, loading, refetch } = useListings();
@@ -65,33 +66,35 @@ export default function MarketplacePage() {
                         <p className="col-span-full text-center text-gray-500 py-10">No active listings found.</p>
                     ) : (
                         listings.map((listing) => (
-                            <div key={listing.id} className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition">
-                                <div className="h-48 bg-gray-200 relative">
-                                    {listing.imageUrl ? (
-                                        <div className="w-full h-48 bg-gray-100 relative">
-                                            <img
-                                                src={listing.imageUrl}
-                                                alt={listing.title}
-                                                className="w-full h-full object-cover"
-                                            />
+                            <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="block">
+                                <div className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition h-full">
+                                    <div className="h-48 bg-gray-200 relative">
+                                        {listing.imageUrl ? (
+                                            <div className="w-full h-48 bg-gray-100 relative">
+                                                <img
+                                                    src={listing.imageUrl}
+                                                    alt={listing.title}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+                                        )}
+                                        <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-bold shadow">
+                                            ${listing.price}
                                         </div>
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
-                                    )}
-                                    <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-bold shadow">
-                                        ${listing.price}
+                                    </div>
+                                    <div className="p-4">
+                                        <h3 className="font-bold text-lg">{listing.title}</h3>
+                                        <p className="text-sm text-gray-500 mb-2">by {listing.seller.name}</p>
+                                        <p className="text-gray-600 line-clamp-2 text-sm">{listing.description}</p>
+                                        <div className="mt-4 flex justify-between items-center text-xs text-gray-400">
+                                            <span>{listing.seller.sellerProfile?.city || 'Unknown Location'}</span>
+                                            <span>{new Date(listing.createdAt).toLocaleDateString()}</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="p-4">
-                                    <h3 className="font-bold text-lg">{listing.title}</h3>
-                                    <p className="text-sm text-gray-500 mb-2">by {listing.seller.name}</p>
-                                    <p className="text-gray-600 line-clamp-2 text-sm">{listing.description}</p>
-                                    <div className="mt-4 flex justify-between items-center text-xs text-gray-400">
-                                        <span>{listing.seller.sellerProfile?.city || 'Unknown Location'}</span>
-                                        <span>{new Date(listing.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            </Link>
                         ))
                     )}
                 </div>
