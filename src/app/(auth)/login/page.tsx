@@ -100,95 +100,102 @@ export default function AuthPage() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-            <Card className="w-full max-w-[450px]">
-                <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-bold text-green-700">Greenery</CardTitle>
-                    <CardDescription>Welcome to your local plant marketplace.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue={defaultTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 mb-6">
-                            <TabsTrigger value="login">Login</TabsTrigger>
-                            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                        </TabsList>
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            <header className="flex w-full items-center p-6 bg-white border-b border-gray-200">
+                <Link href="/" className="flex items-center gap-2 font-bold text-xl text-green-700">
+                    <span>🌿</span> Greenery
+                </Link>
+            </header>
+            <div className="flex-1 flex items-center justify-center p-4">
+                <Card className="w-full max-w-[450px]">
+                    <CardHeader className="text-center">
+                        <CardTitle className="text-2xl font-bold text-green-700">Greenery</CardTitle>
+                        <CardDescription>Welcome to your local plant marketplace.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Tabs defaultValue={defaultTab} className="w-full">
+                            <TabsList className="grid w-full grid-cols-2 mb-6">
+                                <TabsTrigger value="login">Login</TabsTrigger>
+                                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                            </TabsList>
 
-                        <TabsContent value="login">
-                            <form onSubmit={handleLogin} className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input id="email" type="email" placeholder="m@example.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="password">Password</Label>
-                                    <Input id="password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
-                                </div>
-                                {error && (
-                                    <div className={`text-sm p-2 rounded ${error.includes('pending') ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-                                        {error}
+                            <TabsContent value="login">
+                                <form onSubmit={handleLogin} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email">Email</Label>
+                                        <Input id="email" type="email" placeholder="m@example.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
                                     </div>
-                                )}
-                                <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
-                                    {loading ? 'Logging in...' : 'Login'}
-                                </Button>
-                            </form>
-                        </TabsContent>
-
-                        <TabsContent value="signup">
-                            <form onSubmit={handleSignup} className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Full Name</Label>
-                                    <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="s-email">Email</Label>
-                                    <Input id="s-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="role">I want to</Label>
-                                    <Select value={role} onValueChange={(v: any) => setRole(v)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="CUSTOMER">Buy Products</SelectItem>
-                                            <SelectItem value="SELLER">Sell Products</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="s-password">Password</Label>
-                                    <Input id="s-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
-                                </div>
-                                {error && (
-                                    <div className={`text-sm p-2 rounded ${error.includes('pending') || error.includes('approval') ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-                                        {error}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Password</Label>
+                                        <Input id="password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
                                     </div>
-                                )}
-                                <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
-                                    {loading ? 'Creating Account...' : 'Sign Up'}
-                                </Button>
-                            </form>
-                        </TabsContent>
-                    </Tabs>
+                                    {error && (
+                                        <div className={`text-sm p-2 rounded ${error.includes('pending') ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                                            {error}
+                                        </div>
+                                    )}
+                                    <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+                                        {loading ? 'Logging in...' : 'Login'}
+                                    </Button>
+                                </form>
+                            </TabsContent>
 
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
-                        </div>
-                    </div>
+                            <TabsContent value="signup">
+                                <form onSubmit={handleSignup} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name">Full Name</Label>
+                                        <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="s-email">Email</Label>
+                                        <Input id="s-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="role">I want to</Label>
+                                        <Select value={role} onValueChange={(v: any) => setRole(v)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select role" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="CUSTOMER">Buy Products</SelectItem>
+                                                <SelectItem value="SELLER">Sell Products</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="s-password">Password</Label>
+                                        <Input id="s-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+                                    </div>
+                                    {error && (
+                                        <div className={`text-sm p-2 rounded ${error.includes('pending') || error.includes('approval') ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                                            {error}
+                                        </div>
+                                    )}
+                                    <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+                                        {loading ? 'Creating Account...' : 'Sign Up'}
+                                    </Button>
+                                </form>
+                            </TabsContent>
+                        </Tabs>
 
-                    <Button variant="outline" type="button" className="w-full" onClick={handleGoogle}>
-                        <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                            <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                        </svg>
-                        Google
-                    </Button>
-                </CardContent>
-            </Card>
+                        <div className="relative my-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+                            </div>
+                        </div>
+
+                        <Button variant="outline" type="button" className="w-full" onClick={handleGoogle}>
+                            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                                <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                            </svg>
+                            Google
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }
