@@ -106,8 +106,28 @@ export const updateListingStatus = async (req: AuthRequest, res: Response) => {
 
         const listing = await prisma.listing.update({
             where: { id: listingId },
-            data: { status: status as ListingStatus }
+            data: { status: status as ListingStatus },
+            include: { seller: true } // Fetch seller to get ID
         });
+
+        // Send Notification if status changed
+        if (status === 'ACTIVE') {
+            await createNotification(
+                listing.sellerId,
+                NotificationType.SYSTEM,
+                'Listing Approved',
+                `Your listing "${listing.title}" has been approved and is now live in the marketplace.`,
+                `/dashboard/marketplace/${listing.id}` // Link to listing if exists or marketplace
+            );
+        } else if (status === 'REJECTED') {
+            await createNotification(
+                listing.sellerId,
+                NotificationType.SYSTEM,
+                'Listing Rejected',
+                `Your listing "${listing.title}" has been rejected.`,
+                `/dashboard/seller` // Link to seller dashboard
+            );
+        }
 
         res.json({ message: `Listing status updated to ${status}`, listing });
     } catch (error) {

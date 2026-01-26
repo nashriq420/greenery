@@ -6,10 +6,10 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 
 // Schema for creating a listing
 const createListingSchema = z.object({
-    title: z.string().min(3),
-    description: z.string().min(10),
-    price: z.number().positive(),
-    imageUrl: z.string().url().optional()
+    title: z.string().min(3, "Title must be at least 3 characters long"),
+    description: z.string().min(10, "Description must be at least 10 characters long"),
+    price: z.number().min(0, "Price cannot be negative"),
+    imageUrl: z.string().url("Image URL must be a valid URL").optional().or(z.literal(''))
 });
 
 // Get sellers nearby
@@ -59,6 +59,7 @@ export const getSellersNearby = async (req: Request, res: Response) => {
 // Create a listing (Seller only)
 export const createListing = async (req: AuthRequest, res: Response) => {
     try {
+        console.log('[DEBUG] createListing body:', req.body);
         const validated = createListingSchema.parse(req.body);
         const userId = req.user!.id;
 
@@ -68,14 +69,22 @@ export const createListing = async (req: AuthRequest, res: Response) => {
                 sellerId: userId,
                 price: validated.price,
                 active: true,
-                status: 'ACTIVE'
+                status: 'PENDING'
             }
         });
 
         res.status(201).json(listing);
-    } catch (error) {
-        if (error instanceof ZodError) {
-            return res.status(400).json({ errors: (error as any).errors });
+    } catch (error: any) {
+        console.error('[DEBUG] createListing error:', error);
+        // Duck typing for ZodError or similar validation libraries
+        if (error.errors || error instanceof ZodError) {
+            const zodErrors = (error as any).errors || (error as any).issues || [];
+            const formattedErrors = zodErrors.map((e: any) => ({
+                path: e.path,
+                message: e.message
+            }));
+            console.log('[DEBUG] Formatted errors:', formattedErrors);
+            return res.status(400).json({ errors: formattedErrors });
         }
         res.status(500).json({ message: 'Internal server error' });
     }
