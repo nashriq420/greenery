@@ -18,6 +18,7 @@ export const getFeed = async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = 20;
         const skip = (page - 1) * limit;
+        const userId = (req as any).user?.id;
 
         const posts = await prisma.post.findMany({
             skip,
@@ -37,21 +38,22 @@ export const getFeed = async (req: Request, res: Response) => {
                         comments: true
                     }
                 },
-                likes: {
+                // Only fetch likes for the current user to determine 'isLiked'
+                likes: userId ? {
                     where: {
-                        userId: (req as any).user?.id // Optimization: check if current user liked it, if auth'd
+                        userId: userId
                     },
                     select: {
                         userId: true
                     }
-                }
+                } : false
             }
         });
 
         // Transform for easier frontend consumption
         const feed = posts.map(post => ({
             ...post,
-            isLiked: post.likes.length > 0, // If we filtered by current user ID
+            isLiked: userId && (post as any).likes ? (post as any).likes.length > 0 : false,
             likesCount: post._count.likes,
             commentsCount: post._count.comments,
             likes: undefined, // Remove raw likes array
@@ -94,7 +96,7 @@ export const createPost = async (req: AuthRequest, res: Response) => {
 
 export const toggleLike = async (req: AuthRequest, res: Response) => {
     try {
-        const postId = req.params.id;
+        const postId = req.params.id as string;
         const userId = req.user!.id;
 
         const existingLike = await prisma.like.findUnique({
@@ -132,7 +134,7 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
 
 export const getComments = async (req: Request, res: Response) => {
     try {
-        const postId = req.params.id;
+        const postId = String(req.params.id);
         const comments = await prisma.comment.findMany({
             where: { postId },
             include: {
@@ -153,7 +155,7 @@ export const getComments = async (req: Request, res: Response) => {
 
 export const addComment = async (req: AuthRequest, res: Response) => {
     try {
-        const postId = req.params.id;
+        const postId = req.params.id as string;
         const userId = req.user!.id;
         const { content } = createCommentSchema.parse(req.body);
 
