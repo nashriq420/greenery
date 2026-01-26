@@ -12,6 +12,7 @@ import uploadRoutes from './routes/upload.routes';
 import adminRoutes from './routes/admin.routes';
 import reviewRoutes from './routes/review.routes';
 import notificationRoutes from './routes/notification.routes';
+import { communityRoutes } from './routes/community.routes';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/community', communityRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Serve uploads

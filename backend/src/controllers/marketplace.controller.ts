@@ -93,29 +93,84 @@ export const createListing = async (req: AuthRequest, res: Response) => {
 // Get listings (with optional filters)
 export const getListings = async (req: Request, res: Response) => {
     try {
-        const listings = await prisma.listing.findMany({
-            where: {
-                active: true,
-                status: 'ACTIVE'
-            },
-            include: {
-                seller: {
-                    select: {
-                        name: true,
-                        id: true,
-                        sellerProfile: {
-                            select: {
-                                city: true,
-                                state: true
+        const lat = req.query.lat ? parseFloat(req.query.lat as string) : null;
+        const lng = req.query.lng ? parseFloat(req.query.lng as string) : null;
+        const radius = req.query.radius ? parseFloat(req.query.radius as string) : 50; // Default 50km
+
+        let listings;
+
+        if (lat && lng) {
+            // Fetch listings and filter by location
+            // Since we can't easily join and calculate distance in standard Prisma findMany without raw query or complex extensions,
+            // we will fetch active listings and filter in memory for simplicity (unless dataset is huge).
+            // ALTERNATIVE: Use raw query to get IDs first.
+
+            // For better performance with Prisma, let's use $queryRaw to find matching Listing IDs based on Seller Location
+            const nearbySellerIds = await prisma.$queryRaw<{ id: string }[]>`
+                SELECT s."userId" as id
+                FROM "SellerProfile" s
+                WHERE ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) < ${radius}
+            `;
+
+            const sellerIdList = nearbySellerIds.map((s: any) => s.id);
+
+            listings = await prisma.listing.findMany({
+                where: {
+                    active: true,
+                    status: 'ACTIVE',
+                    sellerId: {
+                        in: sellerIdList
+                    }
+                },
+                include: {
+                    seller: {
+                        select: {
+                            name: true,
+                            id: true,
+                            sellerProfile: {
+                                select: {
+                                    city: true,
+                                    state: true,
+                                    latitude: true,
+                                    longitude: true
+                                }
                             }
                         }
                     }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+        } else {
+            // Default fetch (no location filter)
+            listings = await prisma.listing.findMany({
+                where: {
+                    active: true,
+                    status: 'ACTIVE'
+                },
+                include: {
+                    seller: {
+                        select: {
+                            name: true,
+                            id: true,
+                            sellerProfile: {
+                                select: {
+                                    city: true,
+                                    state: true,
+                                    latitude: true,
+                                    longitude: true
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+        }
+
         res.json(listings);
     } catch (error) {
+        console.error("Error fetching listings:", error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

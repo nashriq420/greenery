@@ -52,18 +52,20 @@ export interface Listing {
     active?: boolean;
     status: 'PENDING' | 'ACTIVE' | 'SOLD' | 'REJECTED';
     imageUrl: string | null;
-    seller?: {
+    seller: {
         id: string;
         name: string;
         sellerProfile: {
             city: string | null;
             state: string | null;
+            latitude?: number;
+            longitude?: number;
         } | null;
     };
     createdAt?: string;
 }
 
-export function useListings() {
+export function useListings(lat?: number | null, lng?: number | null, radius?: number) {
     const [listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(false);
     const { token } = useAuthStore();
@@ -71,8 +73,20 @@ export function useListings() {
     const fetchListings = async () => {
         setLoading(true);
         try {
+            let url = '/marketplace/listings';
+            const params = new URLSearchParams();
+            if (lat && lng) {
+                params.append('lat', lat.toString());
+                params.append('lng', lng.toString());
+                if (radius) params.append('radius', radius.toString());
+            }
+
+            if (params.toString()) {
+                url += `?${params.toString()}`;
+            }
+
             // Public endpoint potentially, but using token if available is good practice generally
-            const data = await api.get('/marketplace/listings', token || undefined);
+            const data = await api.get(url, token || undefined);
             if (Array.isArray(data)) {
                 setListings(data);
             }
@@ -85,7 +99,7 @@ export function useListings() {
 
     useEffect(() => {
         fetchListings();
-    }, [token]);
+    }, [token, lat, lng, radius]);
 
     return { listings, loading, refetch: fetchListings };
 }
