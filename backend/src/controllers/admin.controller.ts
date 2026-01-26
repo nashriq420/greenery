@@ -205,3 +205,27 @@ export const warnUser = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: 'Internal server error', error: (error as any).message });
     }
 };
+
+// Get Audit Logs
+export const getLogs = async (req: AuthRequest, res: Response) => {
+    try {
+        const logs = await prisma.auditLog.findMany({
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                        role: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 100 // Limit to last 100 logs for now
+        });
+
+        res.json(logs);
+    } catch (error) {
+        logger.error('Error fetching audit logs', error);
+        res.status(500).json({ message: 'Internal server error', error: (error as any).message });
+    }
+};

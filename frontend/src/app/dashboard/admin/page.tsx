@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+// import { toast } from 'sonner';
 
 // Types
 type User = {
@@ -37,6 +37,19 @@ type Listing = {
     createdAt: string;
 }
 
+type Log = {
+    id: string;
+    action: string;
+    details: string;
+    ipAddress: string;
+    createdAt: string;
+    user?: {
+        name: string;
+        email: string;
+        role: string;
+    };
+}
+
 export default function AdminPage() {
     const { token, user } = useAuthStore();
     const router = useRouter();
@@ -46,6 +59,7 @@ export default function AdminPage() {
     const [customers, setCustomers] = useState<User[]>([]);
     const [sellers, setSellers] = useState<User[]>([]);
     const [listings, setListings] = useState<Listing[]>([]);
+    const [logs, setLogs] = useState<Log[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Warning Modal State
@@ -96,6 +110,9 @@ export default function AdminPage() {
                 // Let's assume /admin/listings returns all if no status param, based on previous analysis.
                 const res = await api.get('/admin/listings', token || undefined);
                 if (Array.isArray(res)) setListings(res);
+            } else if (mainTab === 'logs') {
+                const res = await api.get('/admin/logs', token || undefined);
+                if (Array.isArray(res)) setLogs(res);
             }
         } catch (err) {
             console.error("Failed to fetch data", err);
@@ -139,6 +156,7 @@ export default function AdminPage() {
                     <TabsTrigger value="customers">Customers</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers</TabsTrigger>
                     <TabsTrigger value="listings">Listings</TabsTrigger>
+                    <TabsTrigger value="logs">Logs</TabsTrigger>
                 </TabsList>
 
                 {/* CUSTOMERS CONTENT */}
@@ -233,6 +251,19 @@ export default function AdminPage() {
                             />
                         </TabsContent>
                     </Tabs>
+                </TabsContent>
+
+                {/* LOGS CONTENT */}
+                <TabsContent value="logs" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>System Logs</CardTitle>
+                            <CardDescription>Recent system activities and audit trails.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <LogsList logs={logs} loading={loading} />
+                        </CardContent>
+                    </Card>
                 </TabsContent>
             </Tabs>
 
@@ -418,6 +449,59 @@ function StatusBadge({ status }: { status: string }) {
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${styles[status] || defaultStyle}`}>
             {status}
         </span>
+    );
+}
+
+function LogsList({ logs, loading }: { logs: Log[], loading: boolean }) {
+    if (loading) return <div className="p-8 text-center text-gray-500 animate-pulse">Loading logs...</div>;
+
+    if (logs.length === 0) {
+        return <div className="p-8 text-center text-gray-500">No logs found.</div>;
+    }
+
+    return (
+        <div className="rounded-md border">
+            <table className="w-full text-sm text-left">
+                <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                    <tr>
+                        <th className="px-4 py-3 font-medium w-[180px]">Date</th>
+                        <th className="px-4 py-3 font-medium w-[120px]">Action</th>
+                        <th className="px-4 py-3 font-medium w-[200px]">User</th>
+                        <th className="px-4 py-3 font-medium">Details</th>
+                        <th className="px-4 py-3 font-medium w-[140px]">IP</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {logs.map((log) => (
+                        <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                            <td className="px-4 py-3 align-top text-gray-500 whitespace-nowrap">
+                                {new Date(log.createdAt).toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3 align-top font-medium text-gray-900 dark:text-white">
+                                {log.action}
+                            </td>
+                            <td className="px-4 py-3 align-top">
+                                {log.user ? (
+                                    <div className="space-y-0.5">
+                                        <div className="font-medium text-gray-900 dark:text-white">{log.user.name}</div>
+                                        <div className="text-xs text-gray-500">{log.user.email}</div>
+                                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">{log.user.role}</div>
+                                    </div>
+                                ) : (
+                                    <span className="text-gray-400 italic">System</span>
+                                )}
+                            </td>
+                            <td className="px-4 py-3 align-top text-gray-600 dark:text-gray-300 break-words">
+                                {log.details || '-'}
+                            </td>
+                            <td className="px-4 py-3 align-top text-gray-500 font-mono text-xs">
+                                {log.ipAddress || '-'}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
     );
 }
 
