@@ -44,8 +44,8 @@ export default function AuthPage() {
             } else {
                 setError(res.message || 'Login failed');
             }
-        } catch (err) {
-            setError('An error occurred during login');
+        } catch (err: any) {
+            setError(err.message || 'An error occurred during login');
         } finally {
             setLoading(false);
         }
@@ -124,7 +124,7 @@ export default function AuthPage() {
                                     <Input id="password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
                                 </div>
                                 {error && (
-                                    <div className={`text-sm p-2 rounded ${error.includes('pending approval') ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                                    <div className={`text-sm p-2 rounded ${error.includes('pending') ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
                                         {error}
                                     </div>
                                 )}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect } from 'react';
+import NotificationMenu from '@/components/NotificationMenu';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, logout } = useAuthStore();
@@ -38,6 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     )}
                 </nav>
                 <div className="flex items-center gap-4">
+                    <NotificationMenu />
                     <span className="text-sm text-gray-600">Hello, {user?.name || 'User'}</span>
                     <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
                 </div>
