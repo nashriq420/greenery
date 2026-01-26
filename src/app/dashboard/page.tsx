@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
                 {user?.role === 'SELLER' && (
                     <div className="bg-white p-6 rounded-lg shadow border h-full">
-                        <h3 className="font-bold text-lg mb-4">Active Listings</h3>
+                        <h3 className="font-bold text-lg mb-4">My Listings</h3>
                         {loading ? <p>Loading...</p> : (
                             listings.length > 0 ? (
                                 <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
@@ -57,7 +57,14 @@ export default function DashboardPage() {
                                                 {listing.imageUrl ? <img src={listing.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs">No Img</div>}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-sm truncate">{listing.title}</p>
+                                                <div className="flex justify-between items-center pr-2">
+                                                    <p className="font-medium text-sm truncate mr-2">{listing.title}</p>
+                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                                            listing.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                                                                listing.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                                                    'bg-gray-100 text-gray-800'
+                                                        }`}>{listing.status}</span>
+                                                </div>
                                                 <p className="text-xs text-green-600 font-bold">${listing.price}</p>
                                             </div>
                                             <div className="flex gap-2">

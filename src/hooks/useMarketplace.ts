@@ -49,8 +49,10 @@ export interface Listing {
     title: string;
     description: string;
     price: string;
+    active?: boolean;
+    status: 'PENDING' | 'ACTIVE' | 'SOLD' | 'REJECTED';
     imageUrl: string | null;
-    seller: {
+    seller?: {
         id: string;
         name: string;
         sellerProfile: {
@@ -58,7 +60,7 @@ export interface Listing {
             state: string | null;
         } | null;
     };
-    createdAt: string;
+    createdAt?: string;
 }
 
 export function useListings() {

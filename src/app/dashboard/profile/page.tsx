@@ -1,6 +1,8 @@
 'use client';
 
+
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
+import EditListingModal from '@/components/marketplace/EditListingModal';
+import { Listing } from '@/hooks/useMarketplace';
 
 interface UserProfile {
     name: string;
@@ -26,14 +30,12 @@ interface SellerProfile {
     description: string;
 }
 
-interface Listing {
-    id: string;
-    title: string;
-    description: string;
-    price: number;
-    active: boolean;
-    imageUrl?: string;
-}
+// Listing interface removed, using imported one
+
+const LocationPicker = dynamic(() => import('@/components/LocationPicker'), {
+    ssr: false,
+    loading: () => <div className="h-[400px] w-full bg-gray-100 animate-pulse rounded-md flex items-center justify-center">Loading Map...</div>
+});
 
 export default function ProfilePage() {
     const { user, token } = useAuthStore();
@@ -43,6 +45,7 @@ export default function ProfilePage() {
     });
     const [myListings, setMyListings] = useState<Listing[]>([]);
     const [newListing, setNewListing] = useState({ title: '', description: '', price: '', imageUrl: '' });
+    const [editingListing, setEditingListing] = useState<Listing | null>(null);
     const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '' });
     const [loading, setLoading] = useState(false);
 
@@ -143,14 +146,14 @@ export default function ProfilePage() {
             await api.post('/marketplace/listings', {
                 title: newListing.title,
                 description: newListing.description,
-                price: parseFloat(newListing.price),
-                imageUrl: newListing.imageUrl
+                price: parseFloat(newListing.price) || 0,
+                imageUrl: newListing.imageUrl || undefined
             }, token || undefined);
             alert("Listing created");
             fetchMyListings();
             setNewListing({ title: '', description: '', price: '', imageUrl: '' });
-        } catch (err) {
-            alert("Failed to create listing");
+        } catch (err: any) {
+            alert(err.message || "Failed to create listing");
         } finally {
             setLoading(false);
             // Refresh listing count in dashboard
@@ -255,22 +258,26 @@ export default function ProfilePage() {
                                 <CardDescription>Update your location to be visible on the map.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Latitude</Label>
-                                        <Input
-                                            type="number"
-                                            value={sellerProfile.lat}
-                                            onChange={(e) => setSellerProfile({ ...sellerProfile, lat: parseFloat(e.target.value) })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Longitude</Label>
-                                        <Input
-                                            type="number"
-                                            value={sellerProfile.lng}
-                                            onChange={(e) => setSellerProfile({ ...sellerProfile, lng: parseFloat(e.target.value) })}
-                                        />
+                                <div className="space-y-4 pb-4">
+                                    <Label>Location Search & Map</Label>
+                                    <LocationPicker
+                                        initialLat={sellerProfile.lat || 51.505}
+                                        initialLng={sellerProfile.lng || -0.09}
+                                        onLocationSelect={(data) => {
+                                            setSellerProfile(prev => ({
+                                                ...prev,
+                                                lat: data.lat,
+                                                lng: data.lng,
+                                                address: data.address,
+                                                city: data.city,
+                                                state: data.state,
+                                                country: data.country
+                                            }));
+                                        }}
+                                    />
+                                    <div className="text-xs text-gray-500 flex gap-4">
+                                        <span>Selected Latitude: {sellerProfile.lat.toFixed(6)}</span>
+                                        <span>Selected Longitude: {sellerProfile.lng.toFixed(6)}</span>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -381,19 +388,34 @@ export default function ProfilePage() {
                                             <h3 className="font-bold text-lg truncate" title={listing.title}>{listing.title}</h3>
                                             <p className="text-gray-600 font-medium">${listing.price}</p>
                                             <div className="mt-1">
-                                                <span className={`inline-block text-xs px-2 py-1 rounded-full ${listing.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                    {listing.active ? 'Active' : 'Inactive'}
+                                                <span className={`inline-block text-xs px-2 py-1 rounded-full font-bold ${listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                                    listing.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                                                        listing.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                    {listing.status}
                                                 </span>
                                             </div>
                                         </div>
 
                                         {/* Action Column */}
-                                        <Button variant="destructive" size="sm" onClick={() => handleDeleteListing(listing.id)}>Delete</Button>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => setEditingListing(listing)}>Edit</Button>
+                                            <Button variant="destructive" size="sm" onClick={() => handleDeleteListing(listing.id)}>Delete</Button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </CardContent>
                     </Card>
+
+                    {editingListing && (
+                        <EditListingModal
+                            listing={editingListing}
+                            onClose={() => setEditingListing(null)}
+                            onUpdate={fetchMyListings}
+                        />
+                    )}
                 </TabsContent>
             </Tabs>
         </div>
