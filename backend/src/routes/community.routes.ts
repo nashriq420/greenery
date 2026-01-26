@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticateToken } from '../middlewares/auth.middleware';
-import { getFeed, createPost, toggleLike, getComments, addComment } from '../controllers/community.controller';
+import { getFeed, createPost, toggleLike, getComments, addComment, updatePost, deletePost } from '../controllers/community.controller';
 
 const router = Router();
 
@@ -10,6 +10,8 @@ router.get('/posts/:id/comments', getComments);
 
 // Protected
 router.post('/posts', authenticateToken, createPost);
+router.put('/posts/:id', authenticateToken, updatePost);
+router.delete('/posts/:id', authenticateToken, deletePost);
 router.post('/posts/:id/like', authenticateToken, toggleLike);
 router.post('/posts/:id/comments', authenticateToken, addComment);
 

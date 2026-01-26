@@ -2,11 +2,13 @@ import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { z } from 'zod';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { createNotification } from './notification.controller';
+import { NotificationType } from '@prisma/client';
 
 //Schemas
 const createPostSchema = z.object({
     content: z.string().min(1, "Content cannot be empty"),
-    imageUrl: z.string().optional()
+    imageUrl: z.string().nullable().optional()
 });
 
 const createCommentSchema = z.object({
@@ -69,8 +71,10 @@ export const getFeed = async (req: Request, res: Response) => {
 
 export const createPost = async (req: AuthRequest, res: Response) => {
     try {
+        console.log("Creating post with body:", req.body);
         const { content, imageUrl } = createPostSchema.parse(req.body);
         const userId = req.user!.id;
+        console.log("User ID:", userId);
 
         const post = await prisma.post.create({
             data: {
@@ -87,10 +91,114 @@ export const createPost = async (req: AuthRequest, res: Response) => {
                 }
             }
         });
+        console.log("Post created:", post.id);
+
+        // Audit Log
+        await prisma.auditLog.create({
+            data: {
+                userId,
+                action: 'CREATE_POST',
+                details: `Created post ${post.id}`,
+            }
+        });
+        console.log("Audit log created");
 
         res.status(201).json(post);
     } catch (error) {
-        res.status(400).json({ message: 'Invalid input' });
+        console.error("Error creating post:", error);
+        res.status(500).json({ message: 'Internal server error', error: String(error) });
+    }
+};
+
+export const updatePost = async (req: AuthRequest, res: Response) => {
+    try {
+        const postId = req.params.id as string;
+        const userId = req.user!.id;
+        console.log(`Updating post ${postId} by user ${userId}`);
+        console.log("Update body:", req.body);
+
+        const { content, imageUrl } = createPostSchema.parse(req.body);
+
+        const post = await prisma.post.findUnique({ where: { id: postId } });
+
+        if (!post) {
+            console.log("Post not found");
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        if (post.authorId !== userId && req.user!.role !== 'ADMIN') {
+            console.log("Not authorized");
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        // Save History
+        await prisma.postHistory.create({
+            data: {
+                postId: post.id,
+                content: post.content, // Save OLD content
+                imageUrl: post.imageUrl
+            }
+        });
+        console.log("History saved");
+
+        const updatedPost = await prisma.post.update({
+            where: { id: postId },
+            data: {
+                content,
+                imageUrl: imageUrl || null,
+                isEdited: true
+            },
+            include: {
+                author: { select: { id: true, name: true, role: true } }
+            }
+        });
+        console.log("Post updated");
+
+        // Audit Log
+        await prisma.auditLog.create({
+            data: {
+                userId,
+                action: 'UPDATE_POST',
+                details: `Updated post ${postId}`,
+            }
+        });
+
+        res.json(updatedPost);
+    } catch (error) {
+        console.error("Update post error:", error);
+        res.status(400).json({ message: 'Update failed', error: String(error) });
+    }
+};
+
+export const deletePost = async (req: AuthRequest, res: Response) => {
+    try {
+        const postId = req.params.id as string;
+        const userId = req.user!.id;
+
+        const post = await prisma.post.findUnique({ where: { id: postId } });
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        if (post.authorId !== userId && req.user!.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        await prisma.post.delete({ where: { id: postId } });
+
+        // Audit Log
+        await prisma.auditLog.create({
+            data: {
+                userId,
+                action: 'DELETE_POST',
+                details: `Deleted post ${postId}`,
+            }
+        });
+
+        res.json({ message: 'Post deleted' });
+    } catch (error) {
+        res.status(500).json({ message: 'Delete failed' });
     }
 };
 
@@ -98,6 +206,9 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
     try {
         const postId = req.params.id as string;
         const userId = req.user!.id;
+
+        const post = await prisma.post.findUnique({ where: { id: postId } });
+        if (!post) return res.status(404).json({ message: 'Post not found' });
 
         const existingLike = await prisma.like.findUnique({
             where: {
@@ -125,6 +236,18 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
                     userId
                 }
             });
+
+            // Notification
+            if (post.authorId !== userId) {
+                await createNotification(
+                    post.authorId,
+                    'SOCIAL' as any, // Using as any if enum not yet fully updated in types types
+                    'New Like',
+                    'Someone liked your post',
+                    `/dashboard/community`
+                );
+            }
+
             res.json({ liked: true });
         }
     } catch (error) {
@@ -159,6 +282,9 @@ export const addComment = async (req: AuthRequest, res: Response) => {
         const userId = req.user!.id;
         const { content } = createCommentSchema.parse(req.body);
 
+        const post = await prisma.post.findUnique({ where: { id: postId } });
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
         const comment = await prisma.comment.create({
             data: {
                 content,
@@ -174,6 +300,17 @@ export const addComment = async (req: AuthRequest, res: Response) => {
                 }
             }
         });
+
+        // Notification
+        if (post.authorId !== userId) {
+            await createNotification(
+                post.authorId,
+                'SOCIAL' as any,
+                'New Comment',
+                'Someone commented on your post',
+                `/dashboard/community`
+            );
+        }
 
         res.status(201).json(comment);
     } catch (error) {

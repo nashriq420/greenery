@@ -10,6 +10,7 @@ interface Post {
     id: string;
     content: string;
     imageUrl?: string | null;
+    isEdited: boolean;
     createdAt: string;
     author: {
         id: string;
@@ -28,7 +29,8 @@ export default function CommunityPage() {
 
     // Create Post State
     const [newContent, setNewContent] = useState('');
-    const [newImageUrl, setNewImageUrl] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isPosting, setIsPosting] = useState(false);
     const [showImageInput, setShowImageInput] = useState(false);
 
@@ -49,28 +51,61 @@ export default function CommunityPage() {
         fetchFeed();
     }, [token]);
 
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
     const handleCreatePost = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newContent.trim() && !newImageUrl.trim()) return;
+        if (!newContent.trim() && !selectedFile) return;
         if (!token) return;
 
         setIsPosting(true);
         try {
+            let uploadedImageUrl = '';
+
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+
+                const uploadRes = await fetch('http://localhost:4000/api/upload/image', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (!uploadRes.ok) throw new Error('Upload failed');
+                const uploadData = await uploadRes.json();
+                uploadedImageUrl = uploadData.url;
+            }
+
             await api.post('/community/posts', {
                 content: newContent,
-                imageUrl: newImageUrl || undefined
+                imageUrl: uploadedImageUrl || undefined
             }, token);
 
             // Reset and refresh
             setNewContent('');
-            setNewImageUrl('');
+            setSelectedFile(null);
+            setPreviewUrl(null);
             setShowImageInput(false);
             fetchFeed();
         } catch (error) {
+            console.error(error);
             alert('Failed to post');
         } finally {
             setIsPosting(false);
         }
+    };
+
+    const handleDeletePost = (id: string) => {
+        setPosts(prev => prev.filter(p => p.id !== id));
     };
 
     return (
@@ -95,13 +130,35 @@ export default function CommunityPage() {
                                 />
 
                                 {showImageInput && (
-                                    <input
-                                        type="text"
-                                        placeholder="Image URL (https://...)"
-                                        value={newImageUrl}
-                                        onChange={(e) => setNewImageUrl(e.target.value)}
-                                        className="w-full text-sm border rounded p-2"
-                                    />
+                                    <div className="space-y-2">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileSelect}
+                                            className="block w-full text-sm text-gray-500
+                                                file:mr-4 file:py-2 file:px-4
+                                                file:rounded-full file:border-0
+                                                file:text-sm file:font-semibold
+                                                file:bg-green-50 file:text-green-700
+                                                hover:file:bg-green-100
+                                            "
+                                        />
+                                        {previewUrl && (
+                                            <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
+                                                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedFile(null);
+                                                        setPreviewUrl(null);
+                                                    }}
+                                                    className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
 
                                 <div className="flex justify-between items-center">
@@ -114,7 +171,7 @@ export default function CommunityPage() {
                                     </button>
                                     <button
                                         type="submit"
-                                        disabled={isPosting || (!newContent.trim() && !newImageUrl)}
+                                        disabled={isPosting || (!newContent.trim() && !selectedFile)}
                                         className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                     >
                                         <Send size={16} />
@@ -149,7 +206,8 @@ export default function CommunityPage() {
                             <PostCard
                                 key={post.id}
                                 post={post}
-                                onLikeToggle={() => { }} // Optimistic update handles generic UI, could refetch if needed
+                                onLikeToggle={() => { }} // Optimistic update handled in child
+                                onDelete={handleDeletePost}
                             />
                         ))
                     )}
