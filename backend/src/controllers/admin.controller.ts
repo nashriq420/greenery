@@ -3,7 +3,8 @@ import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { z, ZodError } from 'zod';
 import { logger } from '../utils/logger';
-import { UserStatus, ListingStatus } from '@prisma/client';
+import { UserStatus, ListingStatus, NotificationType } from '@prisma/client';
+import { createNotification } from './notification.controller';
 
 // Get Users with filtering
 export const getUsers = async (req: AuthRequest, res: Response) => {
@@ -81,6 +82,7 @@ export const getAdminListings = async (req: AuthRequest, res: Response) => {
             include: {
                 seller: {
                     select: {
+                        id: true,
                         name: true,
                         email: true
                     }
@@ -164,6 +166,15 @@ export const warnUser = async (req: AuthRequest, res: Response) => {
             where: { id: chat.id },
             data: { updatedAt: new Date() }
         });
+
+        // 4. Send System Notification
+        await createNotification(
+            targetUserId,
+            NotificationType.WARNING,
+            'Admin Warning',
+            message,
+            `/dashboard/chat/${chat.id}`
+        );
 
         res.status(201).json(warningMessage);
     } catch (error) {

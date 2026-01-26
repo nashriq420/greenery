@@ -1,0 +1,19 @@
+
+--- TEST: Unregistered Email ---
+STATUS: NotFound
+BODY: 
+
+--- TEST: Invalid Password ---
+STATUS: Unauthorized
+BODY: 
+
+--- TEST: Suspended Account ---
+STATUS: Forbidden
+BODY: 
+
+--- SETUP: Creating Pending User (pending115019@test.com) ---
+User created.
+
+--- TEST: Pending Account ---
+STATUS: Forbidden
+BODY: 

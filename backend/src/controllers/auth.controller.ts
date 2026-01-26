@@ -83,8 +83,8 @@ export const login = async (req: Request, res: Response) => {
         console.log('[Login Debug] User found:', user ? 'Yes' : 'No', user?.email);
 
         if (!user) {
-            console.log('[Login Debug] User not found returning 401');
-            return res.status(401).json({ message: 'Invalid credentials' });
+            console.log('[Login Debug] User not found returning 404');
+            return res.status(404).json({ message: 'Email has not been registered, please sign up.' });
         }
 
         const validParams = await bcrypt.compare(password, user.password);
@@ -97,12 +97,12 @@ export const login = async (req: Request, res: Response) => {
 
         if (user.status === 'PENDING') {
             console.log('[Login Debug] User pending');
-            return res.status(403).json({ message: 'Your account is pending approval by an Admin.' });
+            return res.status(403).json({ message: 'Your account is pending for activation.' });
         }
 
         if (user.status === 'SUSPENDED' || user.status === 'REJECTED') {
             console.log('[Login Debug] User suspended/rejected');
-            return res.status(403).json({ message: 'Account is suspended or rejected.' });
+            return res.status(403).json({ message: 'Your account has been suspended.' });
         }
 
         // Fetch full user details including profile and subscription

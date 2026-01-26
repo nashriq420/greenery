@@ -3,6 +3,8 @@ import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { z } from 'zod';
 import { logger } from '../utils/logger';
+import { createNotification } from './notification.controller';
+import { NotificationType } from '@prisma/client';
 
 const sendMessageSchema = z.object({
     content: z.string().min(1),
@@ -159,6 +161,15 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
             where: { id: chatId },
             data: { updatedAt: new Date() }
         });
+
+        // Send Notification to receiver
+        await createNotification(
+            receiverId,
+            NotificationType.CHAT,
+            `New message from ${req.user!.email}`, // Ideally name, but email is safer compliant with type
+            'You have a new message',
+            `/dashboard/chat/${chatId}`
+        );
 
         res.status(201).json(message);
     } catch (error) {

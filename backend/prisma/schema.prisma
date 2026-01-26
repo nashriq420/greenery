@@ -58,6 +58,7 @@ model User {
   chatsAsParticipant2 Chat[] @relation("Participant2")
 
   reviews       Review[]
+  notifications Notification[]
 }
 
 model SellerProfile {
@@ -172,4 +173,25 @@ model Review {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum NotificationType {
+  CHAT
+  REVIEW
+  WARNING
+  SYSTEM
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
 }

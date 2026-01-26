@@ -3,6 +3,8 @@ import { prisma } from '../utils/prisma';
 import { z, ZodError } from 'zod';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { logger } from '../utils/logger';
+import { createNotification } from './notification.controller';
+import { NotificationType } from '@prisma/client';
 
 const createReviewSchema = z.object({
     listingId: z.string().uuid(),
@@ -40,6 +42,15 @@ export const createReview = async (req: AuthRequest, res: Response) => {
                 customerId: userId
             }
         });
+
+        // Notify Seller
+        await createNotification(
+            listing.sellerId,
+            NotificationType.REVIEW,
+            'New Review Received',
+            `Someone reviewed your listing: ${listing.title}`,
+            `/dashboard/marketplace/${validated.listingId}` // Or manage listings page
+        );
 
         res.status(201).json(review);
     } catch (error) {
@@ -104,6 +115,15 @@ export const replyToReview = async (req: AuthRequest, res: Response) => {
                 repliedAt: new Date()
             }
         });
+
+        // Notify Customer
+        await createNotification(
+            review.customerId,
+            NotificationType.REVIEW,
+            'Seller Replied to your Review',
+            `Seller replied to your review on: ${review.listing.title}`,
+            `/dashboard/marketplace/${review.listingId}`
+        );
 
         res.json(updatedReview);
     } catch (error) {
