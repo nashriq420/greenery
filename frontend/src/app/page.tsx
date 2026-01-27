@@ -22,6 +22,10 @@ export default function Home() {
       <LandingMap />
 
       <footer className="py-12 bg-gray-900 text-white text-center">
+        <div className="flex justify-center gap-6 mb-4">
+          <a href="/terms" className="text-gray-400 hover:text-white transition-colors">Terms & Conditions</a>
+          <a href="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+        </div>
         <p className="text-gray-500">© 2026 Greenery. All rights reserved.</p>
       </footer>
     </main>
