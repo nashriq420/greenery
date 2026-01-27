@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuthStore } from '@/store/authStore';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useMyListings, Listing } from '@/hooks/useMarketplace';
@@ -12,6 +13,7 @@ const MapComponent = dynamic(() => import('@/components/Map'), { ssr: false });
 
 export default function DashboardPage() {
     const { user, refreshUser } = useAuthStore();
+    const router = useRouter();
     const { listings, loading, refetch } = useMyListings();
     const [editingListing, setEditingListing] = useState<Listing | null>(null);
     const [viewingListing, setViewingListing] = useState<Listing | null>(null);
@@ -22,7 +24,12 @@ export default function DashboardPage() {
         // Actually since we defined it, it should be there. 
         // But for safety:
         if (refreshUser) refreshUser();
-    }, []);
+
+        // Redirect Admin to Admin Dashboard
+        if (user?.role === 'ADMIN') {
+            router.push('/dashboard/admin');
+        }
+    }, [user, router]);
 
     return (
         <div className="space-y-6">
@@ -60,9 +67,9 @@ export default function DashboardPage() {
                                                 <div className="flex justify-between items-center pr-2">
                                                     <p className="font-medium text-sm truncate mr-2">{listing.title}</p>
                                                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                                            listing.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                                                                listing.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                                                    'bg-gray-100 text-gray-800'
+                                                        listing.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                                                            listing.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                                                'bg-gray-100 text-gray-800'
                                                         }`}>{listing.status}</span>
                                                 </div>
                                                 <p className="text-xs text-green-600 font-bold">${listing.price}</p>
@@ -90,17 +97,6 @@ export default function DashboardPage() {
                         )}
                     </div>
                 )}
-
-                <div className="bg-white p-6 rounded-lg shadow border">
-                    <h3 className="font-bold text-lg mb-2">Subscription</h3>
-                    <p className="text-gray-500">Status: <span className={`font-medium ${user?.subscription?.status === 'ACTIVE' ? 'text-green-600' : 'text-yellow-600'}`}>
-                        {user?.subscription?.status || 'Free Use'}
-                    </span></p>
-                    <p className="text-sm text-gray-500 mt-1">Listings: {user?._count?.listings || 0}</p>
-                    <div className="mt-4">
-                        <Link href="/dashboard/subscription" className="text-sm text-blue-600 hover:underline">Manage Subscription</Link>
-                    </div>
-                </div>
 
                 <div className="bg-white p-6 rounded-lg shadow border md:col-span-3">
                     <h3 className="font-bold text-lg mb-4">Nearby Sellers</h3>

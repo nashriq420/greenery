@@ -152,7 +152,7 @@ export default function AdminPage() {
             </div>
 
             <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-6">
-                <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+                <TabsList className="grid w-full grid-cols-4 lg:w-[540px]">
                     <TabsTrigger value="customers">Customers</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers</TabsTrigger>
                     <TabsTrigger value="listings">Listings</TabsTrigger>

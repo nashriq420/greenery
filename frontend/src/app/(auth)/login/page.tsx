@@ -40,7 +40,11 @@ export default function AuthPage() {
             const res = await api.post('/auth/login', { email: loginEmail, password: loginPassword });
             if (res.token) {
                 login(res.user, res.token);
-                router.push('/dashboard');
+                if (res.user.role === 'ADMIN') {
+                    router.push('/dashboard/admin');
+                } else {
+                    router.push('/dashboard');
+                }
             } else {
                 setError(res.message || 'Login failed');
             }
