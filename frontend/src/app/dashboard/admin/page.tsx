@@ -332,7 +332,7 @@ function UserGroupList({ users, type, isPending, onUpdateStatus, onWarn, loading
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                             {isPending ? (
                                 <>
                                     <Button onClick={() => onUpdateStatus(u.id, 'ACTIVE')} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
@@ -400,7 +400,7 @@ function ListingGroupList({ listings, isPending, onUpdateStatus, onWarnSeller, l
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                             {isPending ? (
                                 <>
                                     <Button onClick={() => onUpdateStatus(l.id, 'ACTIVE')} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
@@ -460,8 +460,8 @@ function LogsList({ logs, loading }: { logs: Log[], loading: boolean }) {
     }
 
     return (
-        <div className="rounded-md border">
-            <table className="w-full text-sm text-left">
+        <div className="rounded-md border overflow-x-auto">
+            <table className="w-full text-sm text-left min-w-[800px]">
                 <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                     <tr>
                         <th className="px-4 py-3 font-medium w-[180px]">Date</th>
@@ -491,7 +491,7 @@ function LogsList({ logs, loading }: { logs: Log[], loading: boolean }) {
                                     <span className="text-gray-400 italic">System</span>
                                 )}
                             </td>
-                            <td className="px-4 py-3 align-top text-gray-600 dark:text-gray-300 break-words">
+                            <td className="px-4 py-3 align-top text-gray-600 dark:text-gray-300 break-words min-w-[200px]">
                                 {log.details || '-'}
                             </td>
                             <td className="px-4 py-3 align-top text-gray-500 font-mono text-xs">

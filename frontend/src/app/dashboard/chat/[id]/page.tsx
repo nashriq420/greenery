@@ -161,12 +161,12 @@ export default function ChatRoomPage() {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="bg-white border rounded-b-lg p-4 flex gap-2 relative">
+            <div className="bg-white border rounded-b-lg p-4 flex gap-2 relative items-center">
                 {/* Listing Picker Button */}
                 <div className="relative">
                     <button
                         onClick={() => setShowListingPicker(!showListingPicker)}
-                        className="p-3 text-gray-500 hover:bg-gray-100 rounded-lg border"
+                        className="p-3 text-gray-500 hover:bg-gray-100 rounded-lg border flex items-center justify-center"
                         title="Attach Listing"
                     >
                         Store
@@ -200,7 +200,7 @@ export default function ChatRoomPage() {
                 </div>
 
                 <input
-                    className="flex-1 border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-[46px]" // Explicit height to match buttons if needed, or rely on padding
                     placeholder="Type a message..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
@@ -208,7 +208,7 @@ export default function ChatRoomPage() {
                 />
                 <button
                     onClick={() => handleSend()}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition"
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center h-[48px]"
                 >
                     Send
                 </button>

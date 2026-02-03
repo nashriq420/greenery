@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { api } from '@/lib/api';
 import Link from 'next/link';
 
-export default function AuthPage() {
+function AuthForm() {
     const searchParams = useSearchParams();
     const defaultTab = searchParams?.get('tab') === 'signup' ? 'signup' : 'login';
 
@@ -201,5 +201,13 @@ export default function AuthPage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+export default function AuthPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <AuthForm />
+        </Suspense>
     );
 }

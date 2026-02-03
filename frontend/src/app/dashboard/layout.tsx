@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect } from 'react';
 import NotificationMenu from '@/components/NotificationMenu';
+import MobileMenu from '@/components/MobileMenu';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, logout } = useAuthStore();
@@ -25,11 +26,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     return (
         <div className="min-h-screen flex flex-col">
-            <header className="border-b h-16 flex items-center px-6 justify-between bg-white">
+            <header className="border-b h-16 flex items-center px-6 justify-between bg-white sticky top-0 z-50">
                 <div className="font-bold text-xl text-green-700 flex items-center gap-2">
                     <span>🌿</span> Greenery
                 </div>
-                <nav className="flex items-center gap-4">
+
+                {/* Desktop Navigation */}
+                <nav className="hidden md:flex items-center gap-4">
                     <Link href="/dashboard" className="text-sm font-medium hover:text-green-600">Dashboard</Link>
                     <Link href="/dashboard/marketplace" className="text-sm font-medium hover:text-green-600">Marketplace</Link>
                     <Link href="/dashboard/community" className="text-sm font-medium hover:text-green-600">Community</Link>
@@ -39,10 +42,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <Link href="/dashboard/admin" className="text-sm font-medium hover:text-green-600">Admin</Link>
                     )}
                 </nav>
+
                 <div className="flex items-center gap-4">
                     <NotificationMenu />
-                    <span className="text-sm text-gray-600">Hello, {user?.name || 'User'}</span>
-                    <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
+                    <span className="text-sm text-gray-600 hidden md:inline">Hello, {user?.name || 'User'}</span>
+                    <Button variant="outline" size="sm" onClick={handleLogout} className="hidden md:flex">Logout</Button>
+
+                    {/* Mobile Menu Toggle */}
+                    <MobileMenu user={user} onLogout={handleLogout} />
                 </div>
             </header>
             <main className="flex-1 bg-gray-50 p-6">

@@ -1,4 +1,9 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+const defaultHeaders = {
+    'Bypass-Tunnel-Reminder': 'true',
+    'Content-Type': 'application/json'
+};
 
 const handleResponse = async (res: Response) => {
     if (!res.ok) {
@@ -20,8 +25,8 @@ export const api = {
     get: async (endpoint: string, token?: string) => {
         const res = await fetch(`${API_URL}${endpoint}`, {
             headers: {
+                ...defaultHeaders,
                 'Authorization': token ? `Bearer ${token}` : '',
-                'Content-Type': 'application/json'
             }
         });
         return handleResponse(res);
@@ -30,8 +35,8 @@ export const api = {
         const res = await fetch(`${API_URL}${endpoint}`, {
             method: 'POST',
             headers: {
+                ...defaultHeaders,
                 'Authorization': token ? `Bearer ${token}` : '',
-                'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
         });
@@ -41,8 +46,8 @@ export const api = {
         const res = await fetch(`${API_URL}${endpoint}`, {
             method: 'PUT',
             headers: {
+                ...defaultHeaders,
                 'Authorization': token ? `Bearer ${token}` : '',
-                'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
         });
@@ -52,8 +57,8 @@ export const api = {
         const res = await fetch(`${API_URL}${endpoint}`, {
             method: 'DELETE',
             headers: {
+                ...defaultHeaders,
                 'Authorization': token ? `Bearer ${token}` : '',
-                'Content-Type': 'application/json'
             }
         });
         return handleResponse(res);
@@ -62,6 +67,7 @@ export const api = {
         const res = await fetch(`${API_URL}${endpoint}`, {
             method: 'POST',
             headers: {
+                'Bypass-Tunnel-Reminder': 'true',
                 'Authorization': token ? `Bearer ${token}` : '',
             },
             body: formData
