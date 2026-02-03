@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
 import Link from 'next/link';
@@ -47,6 +47,8 @@ export default function ListingDetailsPage() {
     const [listing, setListing] = useState<ListingDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [startingChat, setStartingChat] = useState(false);
+    const router = useRouter();
 
     // Review Form State
     const [rating, setRating] = useState(5);
@@ -106,6 +108,18 @@ export default function ListingDetailsPage() {
         }
     };
 
+    const handleChat = async () => {
+        if (!token || !listing) return;
+        setStartingChat(true);
+        try {
+            const chat = await api.post('/chat', { participantId: listing.sellerId }, token);
+            router.push(`/dashboard/chat/${chat.id}`);
+        } catch (err: any) {
+            alert(err.message || 'Failed to start chat');
+            setStartingChat(false);
+        }
+    };
+
     if (loading) return <div className="p-8 text-center">Loading...</div>;
     if (error || !listing) return <div className="p-8 text-center text-red-500">{error || 'Listing not found'}</div>;
 
@@ -131,7 +145,18 @@ export default function ListingDetailsPage() {
                             <h1 className="text-3xl font-bold">{listing.title}</h1>
                             <p className="text-gray-500">by {listing.seller.name}</p>
                         </div>
-                        <div className="text-2xl font-bold text-green-700">${listing.price}</div>
+                        <div className="flex flex-col items-end gap-2">
+                            <div className="text-2xl font-bold text-green-700">${listing.price}</div>
+                            {user && !isOwner && (
+                                <button
+                                    onClick={handleChat}
+                                    disabled={startingChat}
+                                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm font-medium flex items-center gap-2"
+                                >
+                                    {startingChat ? 'Starting Chat...' : 'Chat with Seller'}
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <p className="mt-4 text-gray-700 whitespace-pre-line">{listing.description}</p>
                     <div className="mt-6 text-sm text-gray-500">

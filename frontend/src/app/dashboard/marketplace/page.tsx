@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useListings, createListing } from '@/hooks/useMarketplace';
+import { calculateDistance } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -27,6 +28,25 @@ export default function MarketplacePage() {
 
     // Pass location params to hook
     const { listings, loading, refetch } = useListings(userLocation?.lat, userLocation?.lng, 50);
+
+    // Sort listings by distance if location is available
+    const sortedListings = [...listings].sort((a, b) => {
+        if (!userLocation) return 0;
+
+        const getDist = (l: typeof a) => {
+            if (l.seller.sellerProfile?.latitude && l.seller.sellerProfile?.longitude) {
+                return calculateDistance(
+                    userLocation.lat,
+                    userLocation.lng,
+                    l.seller.sellerProfile.latitude,
+                    l.seller.sellerProfile.longitude
+                );
+            }
+            return Infinity;
+        };
+
+        return getDist(a) - getDist(b);
+    });
 
     const handleUseLocation = () => {
         if (userLocation) {
@@ -138,10 +158,10 @@ export default function MarketplacePage() {
                 <>
                     {viewMode === 'grid' ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {listings.length === 0 ? (
+                            {sortedListings.length === 0 ? (
                                 <p className="col-span-full text-center text-gray-500 py-10">No active listings found.</p>
                             ) : (
-                                listings.map((listing) => (
+                                sortedListings.map((listing) => (
                                     <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="block">
                                         <div className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition h-full">
                                             <div className="h-48 bg-gray-200 relative">
@@ -162,6 +182,19 @@ export default function MarketplacePage() {
                                             </div>
                                             <div className="p-4">
                                                 <h3 className="font-bold text-lg">{listing.title}</h3>
+                                                {userLocation && listing.seller.sellerProfile?.latitude && listing.seller.sellerProfile?.longitude && (
+                                                    <div className="flex items-center gap-1 text-green-600 text-xs font-semibold mb-1">
+                                                        <MapPin size={12} />
+                                                        <span>
+                                                            {calculateDistance(
+                                                                userLocation.lat,
+                                                                userLocation.lng,
+                                                                listing.seller.sellerProfile.latitude,
+                                                                listing.seller.sellerProfile.longitude
+                                                            )} km away
+                                                        </span>
+                                                    </div>
+                                                )}
                                                 <p className="text-sm text-gray-500 mb-2">by {listing.seller.name}</p>
                                                 <p className="text-gray-600 line-clamp-2 text-sm">{listing.description}</p>
                                                 <div className="mt-4 flex justify-between items-center text-xs text-gray-400">
@@ -175,7 +208,7 @@ export default function MarketplacePage() {
                             )}
                         </div>
                     ) : (
-                        <ListingMap listings={listings} userLocation={userLocation} />
+                        <ListingMap listings={sortedListings} userLocation={userLocation} />
                     )}
                 </>
             )}
