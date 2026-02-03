@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import { Send, Store } from 'lucide-react';
 
 export default function ChatRoomPage() {
     const params = useParams();
@@ -119,13 +120,13 @@ export default function ChatRoomPage() {
     if (loading) return <div className="p-8">Loading conversation...</div>;
 
     return (
-        <div className="h-[calc(100vh-100px)] p-6 flex flex-col relative">
-            <div className="bg-white border rounded-t-lg p-4 shadow-sm flex justify-between items-center">
+        <div className="h-[calc(100dvh-100px)] p-2 sm:p-6 flex flex-col relative">
+            <div className="bg-white border rounded-t-lg p-3 sm:p-4 shadow-sm flex justify-between items-center">
                 <h1 className="font-bold text-lg">Chat Room</h1>
                 {/* Optional: Show who you are chatting with */}
             </div>
 
-            <div className="flex-1 bg-gray-50 border-x p-4 overflow-y-auto space-y-4">
+            <div className="flex-1 bg-gray-50 border-x p-2 sm:p-4 overflow-y-auto space-y-4">
                 {messages.length === 0 && (
                     <p className="text-center text-gray-400 my-10">No messages yet. Say hello!</p>
                 )}
@@ -134,7 +135,7 @@ export default function ChatRoomPage() {
                     const isMe = msg.sender.id === user?.id;
                     return (
                         <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[70%] rounded-lg p-3 ${isMe ? 'bg-blue-600 text-white' : 'bg-white border text-gray-800'}`}>
+                            <div className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${isMe ? 'bg-blue-600 text-white' : 'bg-white border text-gray-800'}`}>
                                 {msg.listing && (
                                     <div className={`mb-2 rounded-lg overflow-hidden border ${isMe ? 'border-blue-400 bg-blue-700/50' : 'border-gray-200 bg-gray-50'} p-2 flex gap-3 items-center group cursor-pointer hover:opacity-90 transition`}>
                                         {msg.listing.imageUrl ? (
@@ -161,15 +162,16 @@ export default function ChatRoomPage() {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="bg-white border rounded-b-lg p-4 flex gap-2 relative items-center">
+            <div className="bg-white border rounded-b-lg p-2 sm:p-4 flex gap-2 relative items-center">
                 {/* Listing Picker Button */}
                 <div className="relative">
                     <button
                         onClick={() => setShowListingPicker(!showListingPicker)}
-                        className="p-3 text-gray-500 hover:bg-gray-100 rounded-lg border flex items-center justify-center"
+                        className="h-12 w-12 sm:w-auto sm:px-4 text-gray-500 hover:bg-gray-100 rounded-lg border flex items-center justify-center"
                         title="Attach Listing"
                     >
-                        Store
+                        <Store className="w-5 h-5 sm:mr-2" />
+                        <span className="hidden sm:inline">Store</span>
                     </button>
 
                     {/* Listing Picker Popover */}
@@ -200,7 +202,7 @@ export default function ChatRoomPage() {
                 </div>
 
                 <input
-                    className="flex-1 border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-[46px]" // Explicit height to match buttons if needed, or rely on padding
+                    className="flex-1 border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-12"
                     placeholder="Type a message..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
@@ -208,9 +210,11 @@ export default function ChatRoomPage() {
                 />
                 <button
                     onClick={() => handleSend()}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center h-[48px]"
+                    className="bg-blue-600 text-white w-12 sm:w-auto sm:px-6 h-12 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center"
+                    title="Send Message"
                 >
-                    Send
+                    <Send className="w-5 h-5 sm:hidden" />
+                    <span className="hidden sm:inline">Send</span>
                 </button>
             </div>
         </div>
