@@ -51,8 +51,18 @@ export default function MapComponent() {
             );
         }
 
+        // URL Construction helper
+        const getApiUrl = (endpoint: string) => {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+            // If baseUrl is '/api', avoid double prefix (e.g. /api/api/...)
+            if (baseUrl === '/api') {
+                return `/api${endpoint}`; // endpoint should start with /
+            }
+            return `${baseUrl}/api${endpoint}`;
+        };
+
         // Fetch active banner
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/banners/active`)
+        fetch(getApiUrl('/banners/active'))
             .then(res => {
                 if (res.ok) return res.json();
                 return null;
@@ -60,6 +70,16 @@ export default function MapComponent() {
             .then(data => setBanner(data))
             .catch(err => console.error("Error fetching banner:", err));
     }, []);
+
+    // Image URL helper
+    const getImageUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL === '/api'
+            ? 'http://localhost:4000'
+            : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
+        return `${baseUrl}${path}`;
+    };
 
     if (!isMounted) {
         return <div className="h-[500px] w-full bg-muted animate-pulse rounded-lg"></div>;
@@ -79,7 +99,7 @@ export default function MapComponent() {
                             <span className="mt-4 inline-block px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-full w-fit hover:bg-green-700 transition">View Deal</span>
                         </div>
                         <img
-                            src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${banner.imageUrl}`}
+                            src={getImageUrl(banner.imageUrl)}
                             alt={banner.title || "Product of the week"}
                             className="w-full h-full object-cover"
                         />

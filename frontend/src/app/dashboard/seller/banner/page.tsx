@@ -114,13 +114,21 @@ export default function SellerBannerPage() {
 
                     <div>
                         <label className="block text-sm font-medium mb-1">Banner Image *</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="w-full"
-                            onChange={(e) => setFile(e.target.files?.[0] || null)}
-                            required
-                        />
+                        <div className="flex items-center gap-3">
+                            <label className="cursor-pointer bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">
+                                <span className="text-sm font-medium">Choose File</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="sr-only"
+                                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                    required={!file} // Only required if no file selected yet
+                                />
+                            </label>
+                            <span className="text-sm text-gray-500 italic">
+                                {file ? file.name : 'No file chosen'}
+                            </span>
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">Recommended: 1200x200px</p>
                     </div>
 
@@ -134,44 +142,46 @@ export default function SellerBannerPage() {
                         {uploading ? 'Uploading...' : 'Submit Request'}
                     </button>
                 </form>
-            </div>
+            </div >
 
             {/* My Banners List */}
-            <div>
+            < div >
                 <h2 className="text-lg font-semibold mb-4">My Banner Requests</h2>
-                {loading ? <p>Loading...</p> : (
-                    banners && banners.length > 0 ? (
-                        <div className="space-y-4">
-                            {banners.map((banner) => (
-                                <div key={banner.id} className="bg-white border rounded-lg p-4 flex gap-4 items-center">
-                                    <div className="w-32 h-16 bg-gray-100 rounded overflow-hidden shrink-0">
-                                        <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${banner.imageUrl}`} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="font-bold">{banner.title || "No Title"}</h3>
-                                        <p className="text-sm text-gray-600">Listing: {banner.listing?.title}</p>
-                                        <div className="flex gap-2 mt-1 text-xs">
-                                            <span className={`px-2 py-0.5 rounded-full font-bold ${banner.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                {
+                    loading ? <p>Loading...</p> : (
+                        banners && banners.length > 0 ? (
+                            <div className="space-y-4">
+                                {banners.map((banner) => (
+                                    <div key={banner.id} className="bg-white border rounded-lg p-4 flex gap-4 items-center">
+                                        <div className="w-32 h-16 bg-gray-100 rounded overflow-hidden shrink-0">
+                                            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${banner.imageUrl}`} className="w-full h-full object-cover" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-bold">{banner.title || "No Title"}</h3>
+                                            <p className="text-sm text-gray-600">Listing: {banner.listing?.title}</p>
+                                            <div className="flex gap-2 mt-1 text-xs">
+                                                <span className={`px-2 py-0.5 rounded-full font-bold ${banner.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
                                                     banner.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
                                                         'bg-yellow-100 text-yellow-800'
-                                                }`}>
-                                                {banner.status}
-                                            </span>
-                                            {banner.startDate && (
-                                                <span className="text-gray-500">
-                                                    Running: {new Date(banner.startDate).toLocaleDateString()} - {new Date(banner.endDate).toLocaleDateString()}
+                                                    }`}>
+                                                    {banner.status}
                                                 </span>
-                                            )}
+                                                {banner.startDate && (
+                                                    <span className="text-gray-500">
+                                                        Running: {new Date(banner.startDate).toLocaleDateString()} - {new Date(banner.endDate).toLocaleDateString()}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-500">No banner requests yet.</p>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500">No banner requests yet.</p>
+                        )
                     )
-                )}
-            </div>
-        </div>
+                }
+            </div >
+        </div >
     );
 }
