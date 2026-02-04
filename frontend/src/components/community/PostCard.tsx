@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -138,12 +139,13 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border border-green-200 shrink-0">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border border-green-200 shrink-0 relative">
                         {post.author.profilePicture && !imageError ? (
-                            <img
+                            <Image
                                 src={post.author.profilePicture}
                                 alt={post.author.name}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
                                 onError={() => setImageError(true)}
                             />
                         ) : (
@@ -222,11 +224,11 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
 
             {/* Image */}
             {post.imageUrl && (
-                <div className="w-full relative bg-gray-100 aspect-video">
+                <div className="w-full bg-gray-100">
                     <img
                         src={post.imageUrl}
                         alt="Post content"
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto object-contain max-h-[500px]"
                     />
                 </div>
             )}
@@ -265,10 +267,11 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                                 <div key={comment.id} className="flex gap-2">
                                     <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden text-xs font-bold text-gray-600 relative">
                                         {comment.author.profilePicture ? (
-                                            <img
+                                            <Image
                                                 src={comment.author.profilePicture}
                                                 alt={comment.author.name}
-                                                className="w-full h-full object-cover"
+                                                fill
+                                                className="object-cover"
                                             />
                                         ) : (
                                             <span>{comment.author.name.charAt(0)}</span>

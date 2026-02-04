@@ -23,6 +23,7 @@ export function useSellers(lat: number, lng: number, radius: number = 50) {
         if (!token) return;
 
         const fetchSellers = async () => {
+            if (!lat || !lng) return; // Guard against missing/invalid coordinates
             setLoading(true);
             try {
                 const data = await api.get(`/marketplace/sellers?lat=${lat}&lng=${lng}&radius=${radius}`, token);

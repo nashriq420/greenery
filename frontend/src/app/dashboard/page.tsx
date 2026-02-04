@@ -20,12 +20,11 @@ export default function DashboardPage() {
 
     // Refresh user data on mount to get latest location/subscription status
     useEffect(() => {
-        refreshUser?.(); // Optional chain in case store isn't updated instantly? Typescript safeguards.
-        // Actually since we defined it, it should be there. 
-        // But for safety:
         if (refreshUser) refreshUser();
+    }, [refreshUser]);
 
-        // Redirect Admin to Admin Dashboard
+    // Redirect Admin to Admin Dashboard
+    useEffect(() => {
         if (user?.role === 'ADMIN') {
             router.push('/dashboard/admin');
         }

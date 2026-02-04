@@ -66,6 +66,12 @@ export const getFeed = async (req: Request, res: Response) => {
         res.json(feed);
     } catch (error) {
         console.error("Get feed error:", error);
+        try {
+            const fs = require('fs');
+            fs.appendFileSync('feed_error_log.txt', `${new Date().toISOString()} - ${String(error)}\n${(error as any).stack}\n\n`);
+        } catch (e) {
+            console.error('Failed to log error to file', e);
+        }
         res.status(500).json({ message: 'Internal server error' });
     }
 };

@@ -44,3 +44,31 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
         return res.status(403).json({ message: 'Invalid or expired token' });
     }
 };
+export const authenticateOptional = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return next();
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.id },
+            select: { id: true, role: true, email: true, status: true }
+        });
+
+        if (user && user.status !== 'SUSPENDED' && user.status !== 'REJECTED') {
+            req.user = {
+                id: user.id,
+                role: user.role,
+                email: user.email
+            };
+        }
+        next();
+    } catch (error) {
+        // If token is invalid, just proceed as guest
+        next();
+    }
+};

@@ -7,9 +7,17 @@ const defaultHeaders = {
 
 const handleResponse = async (res: Response) => {
     if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        console.log('[DEBUG] API Error Response:', JSON.stringify(data)); // Force stringify
-        let errorMessage = data.message || data.error || 'API request failed';
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = {};
+            console.error(`[DEBUG] API Failed (${res.status} ${res.statusText}):`, text);
+        }
+
+        console.log('[DEBUG] API Error Response:', JSON.stringify(data));
+        let errorMessage = data.message || data.error || `API request failed: ${res.status} ${res.statusText}`;
 
         if (data.errors && Array.isArray(data.errors)) {
             // Drop the path prefix if it's just the field name, use the custom message primarily

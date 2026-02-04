@@ -12,14 +12,26 @@ const createListingSchema = z.object({
     imageUrl: z.string().url("Image URL must be a valid URL").optional().or(z.literal(''))
 });
 
+const getSellersQuerySchema = z.object({
+    lat: z.coerce.number().min(-90).max(90),
+    lng: z.coerce.number().min(-180).max(180),
+    radius: z.coerce.number().positive().default(50)
+});
+
+const getListingsQuerySchema = z.object({
+    lat: z.coerce.number().min(-90).max(90).optional(),
+    lng: z.coerce.number().min(-180).max(180).optional(),
+    radius: z.coerce.number().positive().default(50).optional()
+});
+
 // Get sellers nearby
 export const getSellersNearby = async (req: Request, res: Response) => {
     try {
-        const lat = parseFloat(req.query.lat as string);
-        const lng = parseFloat(req.query.lng as string);
-        const radiusKm = parseFloat(req.query.radius as string) || 50;
+        const { lat, lng, radius } = getSellersQuerySchema.parse(req.query);
+        const radiusKm = radius;
 
         if (isNaN(lat) || isNaN(lng)) {
+            // Already handled by Zod but keeping for safety/logic flow if Zod fails (which it throws)
             return res.status(400).json({ message: "Invalid latitude or longitude" });
         }
 
@@ -50,7 +62,10 @@ export const getSellersNearby = async (req: Request, res: Response) => {
         // Prisma returns Decimal/Floats fine usually.
 
         res.json(sellers);
-    } catch (error) {
+    } catch (error: unknown) {
+        if (error instanceof ZodError) {
+            return res.status(400).json({ message: "Invalid query parameters", errors: (error as any).errors });
+        }
         logger.error('Error fetching nearby sellers', error);
         res.status(500).json({ message: 'Internal server error' });
     }
@@ -74,10 +89,10 @@ export const createListing = async (req: AuthRequest, res: Response) => {
         });
 
         res.status(201).json(listing);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[DEBUG] createListing error:', error);
         // Duck typing for ZodError or similar validation libraries
-        if (error.errors || error instanceof ZodError) {
+        if ((error as any).errors || error instanceof ZodError) {
             const zodErrors = (error as any).errors || (error as any).issues || [];
             const formattedErrors = zodErrors.map((e: any) => ({
                 path: e.path,
@@ -86,16 +101,15 @@ export const createListing = async (req: AuthRequest, res: Response) => {
             console.log('[DEBUG] Formatted errors:', formattedErrors);
             return res.status(400).json({ errors: formattedErrors });
         }
-        res.status(500).json({ message: `Debug Error: ${error.message || String(error)}` });
+        res.status(500).json({ message: `Debug Error: ${(error as any).message || String(error)}` });
     }
 };
 
 // Get listings (with optional filters)
 export const getListings = async (req: Request, res: Response) => {
     try {
-        const lat = req.query.lat ? parseFloat(req.query.lat as string) : null;
-        const lng = req.query.lng ? parseFloat(req.query.lng as string) : null;
-        const radius = req.query.radius ? parseFloat(req.query.radius as string) : 50; // Default 50km
+        const { lat, lng, radius } = getListingsQuerySchema.parse(req.query);
+        const radiusKm = radius || 50;
 
         let listings;
 
@@ -109,7 +123,7 @@ export const getListings = async (req: Request, res: Response) => {
             const nearbySellerIds = await prisma.$queryRaw<{ id: string }[]>`
                 SELECT s."userId" as id
                 FROM "SellerProfile" s
-                WHERE ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) < ${radius}
+                WHERE ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) < ${radiusKm}
             `;
 
             const sellerIdList = nearbySellerIds.map((s: any) => s.id);
@@ -169,7 +183,10 @@ export const getListings = async (req: Request, res: Response) => {
         }
 
         res.json(listings);
-    } catch (error) {
+    } catch (error: unknown) {
+        if (error instanceof ZodError) {
+            return res.status(400).json({ message: 'Invalid query parameters', errors: (error as any).errors });
+        }
         console.error("Error fetching listings:", error);
         res.status(500).json({ message: 'Internal server error' });
     }
