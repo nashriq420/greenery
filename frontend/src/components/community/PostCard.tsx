@@ -263,8 +263,16 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                         ) : comments.length > 0 ? (
                             comments.map((comment: any) => (
                                 <div key={comment.id} className="flex gap-2">
-                                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
-                                        {comment.author.name.charAt(0)}
+                                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden text-xs font-bold text-gray-600 relative">
+                                        {comment.author.profilePicture ? (
+                                            <img
+                                                src={comment.author.profilePicture}
+                                                alt={comment.author.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span>{comment.author.name.charAt(0)}</span>
+                                        )}
                                     </div>
                                     <div className="bg-white p-2 rounded-lg text-sm border flex-1">
                                         <div className="font-semibold text-xs text-gray-700">{comment.author.name}</div>

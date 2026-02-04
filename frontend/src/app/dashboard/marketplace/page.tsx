@@ -6,7 +6,8 @@ import { calculateDistance } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { MapPin } from 'lucide-react';
+import { MapPin, Check } from 'lucide-react';
+import { api } from '@/lib/api';
 
 export default function MarketplacePage() {
     const { user, token } = useAuthStore();
@@ -25,6 +26,9 @@ export default function MarketplacePage() {
     const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [locationError, setLocationError] = useState<string | null>(null);
+
+    // Success Message State
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
     // Pass location params to hook
     const { listings, loading, refetch } = useListings(userLocation?.lat, userLocation?.lng, 50);
@@ -90,6 +94,7 @@ export default function MarketplacePage() {
             setIsModalOpen(false);
             setFormData({ title: '', description: '', price: '', imageUrl: '' });
             refetch();
+            setShowSuccessMessage(true);
         } catch (error) {
             alert('Failed to create listing');
         } finally {
@@ -251,13 +256,59 @@ export default function MarketplacePage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Image URL (Optional)</label>
+                                <label className="block text-sm font-medium mb-1">Image</label>
                                 <input
-                                    className="w-full border rounded p-2"
-                                    value={formData.imageUrl}
-                                    onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                                    placeholder="https://..."
+                                    type="file"
+                                    accept="image/png, image/jpeg, image/gif, image/webp"
+                                    onChange={async (e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            const file = e.target.files[0];
+
+                                            // Validation
+                                            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                                            if (!validTypes.includes(file.type)) {
+                                                alert("Invalid file type. Please upload JPG, PNG, GIF, or WebP.");
+                                                return;
+                                            }
+                                            if (file.size > 5 * 1024 * 1024) {
+                                                alert("File is too large. Maximum size is 5MB.");
+                                                return;
+                                            }
+
+                                            setSubmitting(true); // Reuse submitting state to show loading
+                                            const uploadData = new FormData();
+                                            uploadData.append('image', file);
+
+                                            try {
+                                                const res = await api.upload('/upload/image', uploadData, token || undefined);
+                                                setFormData((prev) => ({ ...prev, imageUrl: res.url }));
+                                            } catch (err) {
+                                                alert("Failed to upload image");
+                                            } finally {
+                                                setSubmitting(false);
+                                            }
+                                        }
+                                    }}
+                                    className="block w-full text-sm text-gray-500
+                                        file:mr-4 file:py-2 file:px-4
+                                        file:rounded-full file:border-0
+                                        file:text-sm file:font-semibold
+                                        file:bg-green-50 file:text-green-700
+                                        hover:file:bg-green-100"
                                 />
+                                {formData.imageUrl && (
+                                    <div className="mt-2 relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border">
+                                        <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                                            className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                )}
+                                <p className="text-xs text-gray-500 mt-1">Supported: JPG, PNG, GIF (Max 5MB)</p>
                             </div>
                             <div className="flex gap-2 justify-end mt-6">
                                 <button
@@ -279,6 +330,29 @@ export default function MarketplacePage() {
                     </div>
                 </div>
             )}
+
+            {/* Success Modal */}
+            {showSuccessMessage && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-sm text-center">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+                            <MapPin size={32} className="text-green-600" />
+                            {/* Reusing MapPin for now, but really need Check icon. Importing types at top. */}
+                        </div>
+                        <h2 className="text-xl font-bold mb-2">Listing Submitted!</h2>
+                        <p className="text-gray-600 mb-6">
+                            Your listing has been submitted and is pending approval from an admin.
+                        </p>
+                        <button
+                            onClick={() => setShowSuccessMessage(false)}
+                            className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                        >
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
+
     );
 }
