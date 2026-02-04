@@ -15,6 +15,7 @@ interface Post {
         id: string;
         name: string;
         role: string;
+        profilePicture?: string | null;
     };
     likesCount: number;
     commentsCount: number;
@@ -32,6 +33,7 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
     const [isLiked, setIsLiked] = useState(post.isLiked);
     const [likesCount, setLikesCount] = useState(post.likesCount);
     const [isAnimating, setIsAnimating] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     // Edit State
     const [isEditing, setIsEditing] = useState(false);
@@ -136,8 +138,17 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold">
-                        {post.author.name.charAt(0)}
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border border-green-200 shrink-0">
+                        {post.author.profilePicture && !imageError ? (
+                            <img
+                                src={post.author.profilePicture}
+                                alt={post.author.name}
+                                className="w-full h-full object-cover"
+                                onError={() => setImageError(true)}
+                            />
+                        ) : (
+                            <span className="text-green-700 font-bold">{post.author.name.charAt(0)}</span>
+                        )}
                     </div>
                     <div>
                         <h3 className="font-semibold text-sm text-gray-900">{post.author.name}</h3>

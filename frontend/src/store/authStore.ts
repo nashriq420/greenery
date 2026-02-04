@@ -5,6 +5,8 @@ interface User {
     id: string;
     name: string;
     email: string;
+    username?: string;
+    profilePicture?: string;
     role: 'CUSTOMER' | 'SELLER' | 'ADMIN' | 'SUPERADMIN';
     sellerProfile?: {
         city: string | null;

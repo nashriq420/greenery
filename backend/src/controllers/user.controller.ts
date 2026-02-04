@@ -7,7 +7,9 @@ import bcrypt from 'bcrypt';
 
 const updateProfileSchema = z.object({
     name: z.string().min(2).optional(),
-    email: z.string().email().optional()
+    email: z.string().email().optional(),
+    username: z.string().min(3).optional(),
+    profilePicture: z.string().optional()
 });
 
 const updateLocationSchema = z.object({
@@ -29,6 +31,8 @@ export const getMe = async (req: AuthRequest, res: Response) => {
                 id: true,
                 name: true,
                 email: true,
+                username: true,
+                profilePicture: true,
                 role: true,
                 sellerProfile: true
             }
@@ -49,14 +53,43 @@ export const updateMe = async (req: AuthRequest, res: Response) => {
         const userId = req.user!.id;
         const validated = updateProfileSchema.parse(req.body);
 
+        // Fetch current user
+        const currentUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (!currentUser) return res.status(404).json({ message: 'User not found' });
+
+        const updateData: any = { ...validated };
+
+        // Handle Username Change
+        if (validated.username && validated.username !== currentUser.username) {
+            // Check restriction
+            if (currentUser.lastUsernameChange) {
+                const oneMonthAgo = new Date();
+                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                if (currentUser.lastUsernameChange > oneMonthAgo) {
+                    return res.status(400).json({ message: 'You can only change your username once a month.' });
+                }
+            }
+
+            // Check uniqueness
+            const existing = await prisma.user.findUnique({ where: { username: validated.username } });
+            if (existing) {
+                return res.status(400).json({ message: 'Username already taken.' });
+            }
+
+            updateData.lastUsernameChange = new Date();
+        }
+
         const user = await prisma.user.update({
             where: { id: userId },
-            data: validated,
+            data: updateData,
             select: {
                 id: true,
                 name: true,
                 email: true,
-                role: true
+                username: true,
+                profilePicture: true,
+                role: true,
+                lastUsernameChange: true
             }
         });
 

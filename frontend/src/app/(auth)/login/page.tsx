@@ -20,6 +20,18 @@ function AuthForm() {
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
 
+    // Forgot Password Mockup State
+    const [showForgot, setShowForgot] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotSent, setForgotSent] = useState(false);
+
+    const handleForgotSubmit = (e: any) => {
+        e.preventDefault();
+        if (!forgotEmail) return;
+        // Mock API call
+        setTimeout(() => setForgotSent(true), 1000);
+    };
+
     // Signup State
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -124,24 +136,65 @@ function AuthForm() {
                             </TabsList>
 
                             <TabsContent value="login">
-                                <form onSubmit={handleLogin} className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email">Email</Label>
-                                        <Input id="email" type="email" placeholder="m@example.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password">Password</Label>
-                                        <Input id="password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
-                                    </div>
-                                    {error && (
-                                        <div className={`text-sm p-2 rounded ${error.includes('pending') ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-                                            {error}
+                                {!showForgot ? (
+                                    <form onSubmit={handleLogin} className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">Email</Label>
+                                            <Input id="email" type="email" placeholder="m@example.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
                                         </div>
-                                    )}
-                                    <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
-                                        {loading ? 'Logging in...' : 'Login'}
-                                    </Button>
-                                </form>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="password">Password</Label>
+                                            <Input id="password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
+                                            <div className="flex justify-end">
+                                                <button type="button" onClick={() => setShowForgot(true)} className="text-sm text-green-600 hover:underline">
+                                                    Forgot Password?
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {error && (
+                                            <div className={`text-sm p-2 rounded ${error.includes('pending') ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                                                {error}
+                                            </div>
+                                        )}
+                                        <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+                                            {loading ? 'Logging in...' : 'Login'}
+                                        </Button>
+                                    </form>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {!forgotSent ? (
+                                            <>
+                                                <div className="text-center space-y-2">
+                                                    <h3 className="font-semibold text-gray-900">Reset Password</h3>
+                                                    <p className="text-sm text-gray-500">Enter your email to receive a reset link.</p>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="forgot-email">Email</Label>
+                                                    <Input id="forgot-email" type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder="m@example.com" />
+                                                </div>
+                                                <Button type="button" onClick={handleForgotSubmit} className="w-full bg-green-600 hover:bg-green-700">
+                                                    Send Reset Link
+                                                </Button>
+                                                <button type="button" onClick={() => setShowForgot(false)} className="w-full text-sm text-gray-500 hover:underline">
+                                                    Back to Login
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="text-center space-y-4 py-4">
+                                                <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-2xl">
+                                                    ✉️
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-gray-900">Check your email</h3>
+                                                    <p className="text-sm text-gray-500 mt-1">We sent a password reset link to <br /> <span className="font-medium text-gray-900">{forgotEmail}</span></p>
+                                                </div>
+                                                <Button variant="outline" onClick={() => { setShowForgot(false); setForgotSent(false); }} className="w-full">
+                                                    Back to Login
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </TabsContent>
 
                             <TabsContent value="signup">

@@ -1,0 +1,95 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { User, LogOut, Settings, UserCircle } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+interface ProfileMenuProps {
+    user: any;
+    onLogout: () => void;
+}
+
+export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [dropdownRef]);
+
+    const [imageError, setImageError] = useState(false);
+
+    const getProfileImage = () => {
+        if (user?.profilePicture && !imageError) return user.profilePicture;
+        return null;
+    };
+
+    return (
+        <div className="relative" ref={dropdownRef}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-lg transition-colors"
+            >
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center overflow-hidden border border-green-200">
+                    {getProfileImage() ? (
+                        <img
+                            src={getProfileImage()}
+                            alt={user?.name}
+                            className="w-full h-full object-cover"
+                            onError={() => setImageError(true)}
+                        />
+                    ) : (
+                        <span className="font-bold text-green-700 text-sm">
+                            {user?.name?.charAt(0).toUpperCase() || 'U'}
+                        </span>
+                    )}
+                </div>
+                <div className="text-left hidden md:block">
+                    <p className="text-sm font-medium text-gray-700 leading-none">{user?.name || 'User'}</p>
+                    <p className="text-xs text-gray-500 leading-none mt-1">@{user?.username || user?.email?.split('@')[0]}</p>
+                </div>
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden py-1">
+                    <div className="px-4 py-3 border-b border-gray-100 md:hidden">
+                        <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                    </div>
+
+                    <Link
+                        href="/dashboard/profile"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsOpen(false)}
+                    >
+                        <UserCircle className="w-4 h-4" />
+                        Profile Settings
+                    </Link>
+
+                    <div className="border-t border-gray-100 my-1"></div>
+
+                    <button
+                        onClick={() => {
+                            setIsOpen(false);
+                            onLogout();
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}

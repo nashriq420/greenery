@@ -37,6 +37,7 @@ export const signup = async (req: Request, res: Response) => {
         const user = await prisma.user.create({
             data: {
                 email: validated.email,
+                username: validated.email, // Default username is email
                 password: hashedPassword,
                 name: validated.name,
                 role: validated.role,
@@ -51,14 +52,6 @@ export const signup = async (req: Request, res: Response) => {
                 } : undefined
             }
         });
-
-        // ... (token gen removed for signup logic change? or keep it but they can't use it?)
-        // Actually, if status is PENDING, we probably SHOULD NOT return a token, 
-        // OR the middleware Blocks it.
-        // Middleware `authenticateToken` checks status. 
-        // BUT, for UX, we should tell them "Sign up successful, please wait for approval".
-        // Returning a token allows them to 'login' effectively if we don't block it.
-        // Let's NOT return a token here to force them to Login flow which will check status.
 
         res.status(201).json({
             message: "Account created successfully. Please wait for Admin approval before logging in.",
@@ -80,30 +73,59 @@ export const login = async (req: Request, res: Response) => {
         const { email, password } = loginSchema.parse(req.body);
 
         const user = await prisma.user.findUnique({ where: { email } });
-        console.log('[Login Debug] User found:', user ? 'Yes' : 'No', user?.email);
 
         if (!user) {
-            console.log('[Login Debug] User not found returning 404');
             return res.status(404).json({ message: 'Email has not been registered, please sign up.' });
         }
 
         const validParams = await bcrypt.compare(password, user.password);
-        console.log('[Login Debug] Password valid:', validParams);
 
         if (!validParams) {
-            console.log('[Login Debug] Password mismatch returning 401');
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
         if (user.status === 'PENDING') {
-            console.log('[Login Debug] User pending');
             return res.status(403).json({ message: 'Your account is pending for activation.' });
         }
 
         if (user.status === 'SUSPENDED' || user.status === 'REJECTED') {
-            console.log('[Login Debug] User suspended/rejected');
             return res.status(403).json({ message: 'Your account has been suspended.' });
         }
+
+        // --- Login History & Notification ---
+        const ip = req.ip || req.socket.remoteAddress || 'unknown';
+        const userAgent = req.headers['user-agent'] || 'unknown';
+        // Simple location mock or use an API if available (omitted for now, just storing "unknown" or doing a basic check)
+        const location = "Unknown Location";
+
+        // Check last login
+        const lastLogin = await prisma.loginHistory.findFirst({
+            where: { userId: user.id },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Record this login
+        await prisma.loginHistory.create({
+            data: {
+                userId: user.id,
+                ip: String(ip),
+                location: location,
+                device: userAgent
+            }
+        });
+
+        // Notify if IP changed (simple logic)
+        if (lastLogin && lastLogin.ip !== String(ip)) {
+            await prisma.notification.create({
+                data: {
+                    userId: user.id,
+                    type: 'WARNING',
+                    title: 'New Login Detected',
+                    message: `We detected a login from a new IP address: ${ip}. If this wasn't you, please change your password.`,
+                }
+            });
+        }
+        // ------------------------------------
 
         // Fetch full user details including profile and subscription
         const fullUser = await prisma.user.findUnique({
@@ -123,13 +145,14 @@ export const login = async (req: Request, res: Response) => {
             { expiresIn: '1d' }
         );
 
-        console.log('[Login Debug] Login successful');
         res.json({
             token,
             user: {
                 id: fullUser!.id,
                 name: fullUser!.name,
                 email: fullUser!.email,
+                username: fullUser!.username,
+                profilePicture: fullUser!.profilePicture,
                 role: fullUser!.role,
                 sellerProfile: fullUser!.sellerProfile,
                 subscription: fullUser!.subscription,
@@ -138,7 +161,6 @@ export const login = async (req: Request, res: Response) => {
         });
     } catch (error) {
         logger.error('Login error', error);
-        console.error('[Login Debug] Exception:', error);
         if (error instanceof ZodError) {
             return res.status(400).json({ errors: (error as any).errors });
         }
@@ -166,6 +188,8 @@ export const getMe = async (req: AuthRequest, res: Response) => {
             id: fullUser.id,
             name: fullUser.name,
             email: fullUser.email,
+            username: fullUser.username,
+            profilePicture: fullUser.profilePicture,
             role: fullUser.role,
             sellerProfile: fullUser.sellerProfile,
             subscription: fullUser.subscription,

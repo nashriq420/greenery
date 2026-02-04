@@ -60,10 +60,28 @@ model User {
   reviews       Review[]
   notifications Notification[]
   
+  username  String?  @unique
+  profilePicture String?
+  lastUsernameChange DateTime?
+
   // Community Relations
   posts         Post[]
   comments      Comment[]
   likes         Like[]
+  
+  loginHistory  LoginHistory[]
+}
+
+model LoginHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  ip        String
+  location  String?
+  device    String?
+  
+  createdAt DateTime @default(now())
 }
 
 // Community Models

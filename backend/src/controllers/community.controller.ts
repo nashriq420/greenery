@@ -31,7 +31,8 @@ export const getFeed = async (req: Request, res: Response) => {
                     select: {
                         id: true,
                         name: true,
-                        role: true
+                        role: true,
+                        profilePicture: true
                     }
                 },
                 _count: {
@@ -86,7 +87,8 @@ export const createPost = async (req: AuthRequest, res: Response) => {
                 author: {
                     select: {
                         id: true,
-                        name: true
+                        name: true,
+                        profilePicture: true
                     }
                 }
             }
@@ -149,7 +151,7 @@ export const updatePost = async (req: AuthRequest, res: Response) => {
                 isEdited: true
             },
             include: {
-                author: { select: { id: true, name: true, role: true } }
+                author: { select: { id: true, name: true, role: true, profilePicture: true } }
             }
         });
         console.log("Post updated");
@@ -264,7 +266,8 @@ export const getComments = async (req: Request, res: Response) => {
                 author: {
                     select: {
                         id: true,
-                        name: true
+                        name: true,
+                        profilePicture: true
                     }
                 }
             },
@@ -295,7 +298,8 @@ export const addComment = async (req: AuthRequest, res: Response) => {
                 author: {
                     select: {
                         id: true,
-                        name: true
+                        name: true,
+                        profilePicture: true
                     }
                 }
             }

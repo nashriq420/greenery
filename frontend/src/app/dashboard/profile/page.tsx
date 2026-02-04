@@ -17,6 +17,8 @@ import { Listing } from '@/hooks/useMarketplace';
 interface UserProfile {
     name: string;
     email: string;
+    username: string;
+    profilePicture?: string;
     role: string;
 }
 
@@ -39,7 +41,9 @@ const LocationPicker = dynamic(() => import('@/components/LocationPicker'), {
 
 export default function ProfilePage() {
     const { user, token } = useAuthStore();
-    const [profile, setProfile] = useState<UserProfile>({ name: '', email: '', role: '' });
+    const [profile, setProfile] = useState<UserProfile>({
+        name: '', email: '', username: '', role: '', profilePicture: ''
+    });
     const [sellerProfile, setSellerProfile] = useState<SellerProfile>({
         lat: 0, lng: 0, address: '', city: '', state: '', country: '', description: ''
     });
@@ -60,12 +64,17 @@ export default function ProfilePage() {
             fetchMyListings();
         }
     }, [token, user]);
-
     const fetchProfile = async () => {
         try {
             const res = await api.get('/user/me', token || undefined);
             if (res) {
-                setProfile({ name: res.name || '', email: res.email || '', role: res.role || '' });
+                setProfile({
+                    name: res.name || '',
+                    email: res.email || '',
+                    username: res.username || '',
+                    profilePicture: res.profilePicture || '',
+                    role: res.role || ''
+                });
                 if (res.sellerProfile) {
                     setSellerProfile({
                         lat: res.sellerProfile.latitude,
@@ -96,11 +105,22 @@ export default function ProfilePage() {
 
     const handleUpdateProfile = async () => {
         try {
-            await api.put('/user/me', { name: profile.name }, token || undefined);
+            const payload = {
+                name: profile.name,
+                username: profile.username,
+                profilePicture: profile.profilePicture
+            };
+
+            await api.put('/user/me', payload, token || undefined);
 
             // Update local auth store
             if (user && token) {
-                useAuthStore.getState().login({ ...user, name: profile.name }, token);
+                useAuthStore.getState().login({
+                    ...user,
+                    name: profile.name,
+                    username: profile.username,
+                    profilePicture: profile.profilePicture
+                }, token);
             }
 
             alert("Profile updated");
@@ -212,12 +232,75 @@ export default function ProfilePage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label>Name</Label>
-                                <Input
-                                    value={profile.name}
-                                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                />
+                                <Label>Profile Picture</Label>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-20 h-20 bg-gray-100 rounded-full border overflow-hidden flex items-center justify-center shrink-0">
+                                        {profile.profilePicture ? (
+                                            <img src={profile.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-2xl text-gray-400">?</span>
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <Input
+                                            type="file"
+                                            accept="image/png, image/jpeg, image/gif, image/webp"
+                                            onChange={async (e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    const file = e.target.files[0];
+
+                                                    // Client-side Validation
+                                                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                                                    if (!validTypes.includes(file.type)) {
+                                                        alert("Invalid file type. Please upload JPG, PNG, GIF, or WebP.");
+                                                        return;
+                                                    }
+
+                                                    const maxSize = 5 * 1024 * 1024; // 5MB
+                                                    if (file.size > maxSize) {
+                                                        alert("File is too large. Maximum size is 5MB.");
+                                                        return;
+                                                    }
+
+                                                    const formData = new FormData();
+                                                    formData.append('image', file);
+                                                    try {
+                                                        const res = await api.upload('/upload/image', formData, token || undefined);
+                                                        setProfile({ ...profile, profilePicture: res.url });
+                                                    } catch (err) {
+                                                        alert("Failed to upload image");
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Supported: JPG, PNG, GIF (Max 5MB)
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Name</Label>
+                                    <Input
+                                        value={profile.name}
+                                        onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Username</Label>
+                                    <Input
+                                        value={profile.username}
+                                        onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+                                        placeholder="Username"
+                                    />
+                                    <p className="text-xs text-yellow-600">
+                                        Note: Username can only be changed once every 30 days.
+                                    </p>
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
                                 <Label>Email</Label>
                                 <Input value={profile.email} disabled />

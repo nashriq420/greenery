@@ -11,6 +11,7 @@ async function main() {
         update: {},
         create: {
             email: 'admin@greenery.com',
+            username: 'admin',
             name: 'Admin User',
             password,
             role: 'ADMIN',
@@ -26,6 +27,7 @@ async function main() {
         update: {},
         create: {
             email: 'customer@greenery.com',
+            username: 'customer',
             name: 'John Customer',
             password: await bcrypt.hash('customer123', 10),
             role: 'CUSTOMER',
@@ -40,6 +42,7 @@ async function main() {
         update: {},
         create: {
             email: 'seller@greenery.com',
+            username: 'seller',
             name: 'Jane Seller',
             password: await bcrypt.hash('seller123', 10),
             role: 'SELLER',

@@ -16,6 +16,7 @@ interface Post {
         id: string;
         name: string;
         role: string;
+        profilePicture?: string | null;
     };
     likesCount: number;
     commentsCount: number;
@@ -33,6 +34,7 @@ export default function CommunityPage() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isPosting, setIsPosting] = useState(false);
     const [showImageInput, setShowImageInput] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     const fetchFeed = async () => {
         try {
@@ -118,8 +120,17 @@ export default function CommunityPage() {
                 {user ? (
                     <form onSubmit={handleCreatePost} className="space-y-4">
                         <div className="flex gap-3">
-                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold flex-shrink-0">
-                                {user.name.charAt(0)}
+                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold flex-shrink-0 overflow-hidden border border-green-200">
+                                {user.profilePicture && !imageError ? (
+                                    <img
+                                        src={user.profilePicture}
+                                        alt={user.name}
+                                        className="w-full h-full object-cover"
+                                        onError={() => setImageError(true)}
+                                    />
+                                ) : (
+                                    user.name.charAt(0)
+                                )}
                             </div>
                             <div className="flex-1 space-y-3">
                                 <textarea
