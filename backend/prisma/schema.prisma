@@ -34,6 +34,12 @@ enum ListingStatus {
   REJECTED
 }
 
+enum BannerStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -50,6 +56,7 @@ model User {
   
   auditLogs     AuditLog[]
   listings      Listing[]
+  banners       Banner[]
   
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
@@ -184,6 +191,7 @@ model Listing {
   
   messages    Message[]
   reviews     Review[]
+  banners     Banner[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -274,4 +282,22 @@ model Notification {
   read      Boolean  @default(false)
   
   createdAt DateTime @default(now())
+}
+
+model Banner {
+  id        String   @id @default(uuid())
+  sellerId  String
+  seller    User     @relation(fields: [sellerId], references: [id])
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  imageUrl  String
+  title     String?
+  status    BannerStatus @default(PENDING)
+
+  startDate DateTime?
+  endDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
