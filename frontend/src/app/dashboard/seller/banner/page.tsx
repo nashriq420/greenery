@@ -14,6 +14,23 @@ export default function SellerBannerPage() {
 
     const { token } = useAuthStore();
 
+    // Helper for image URLs
+    const getImageUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+
+        let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+        if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+        if (baseUrl === '/api') baseUrl = 'http://localhost:4000';
+
+        if (path.startsWith('/uploads') && baseUrl.endsWith('/api')) {
+            baseUrl = baseUrl.slice(0, -4);
+        }
+
+        return `${baseUrl}${path}`;
+    };
+
     // Form State
     const [selectedListing, setSelectedListing] = useState('');
     const [title, setTitle] = useState('');
@@ -154,7 +171,7 @@ export default function SellerBannerPage() {
                                 {banners.map((banner) => (
                                     <div key={banner.id} className="bg-white border rounded-lg p-4 flex gap-4 items-center">
                                         <div className="w-32 h-16 bg-gray-100 rounded overflow-hidden shrink-0">
-                                            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${banner.imageUrl}`} className="w-full h-full object-cover" />
+                                            <img src={getImageUrl(banner.imageUrl)} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="flex-1">
                                             <h3 className="font-bold">{banner.title || "No Title"}</h3>

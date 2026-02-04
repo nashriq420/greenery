@@ -55,6 +55,18 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error('[Global Error]', err);
+
+    if (err.name === 'MulterError') {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(413).json({ message: 'File is too large. Maximum size is 5MB.' });
+        }
+        return res.status(400).json({ message: err.message });
+    }
+
+    if (err.message === 'File too large') {
+        return res.status(413).json({ message: 'File is too large. Maximum size is 5MB.' });
+    }
+
     res.status(500).json({ message: 'Internal Server Error', error: err.message });
 });
 

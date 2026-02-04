@@ -86,7 +86,7 @@ export const createListing = async (req: AuthRequest, res: Response) => {
             console.log('[DEBUG] Formatted errors:', formattedErrors);
             return res.status(400).json({ errors: formattedErrors });
         }
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: `Debug Error: ${error.message || String(error)}` });
     }
 };
 

@@ -73,7 +73,7 @@ export const getBanners = async (req: AuthRequest, res: Response) => {
                     select: { name: true, email: true }
                 }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: status === 'APPROVED' ? { startDate: 'asc' } : { createdAt: 'desc' }
         });
 
         res.json(banners);
@@ -95,6 +95,26 @@ export const approveBanner = async (req: AuthRequest, res: Response) => {
         const start = new Date(startDate);
         const end = new Date(start);
         end.setDate(end.getDate() + 7);
+
+        // Check for overlap
+        const existing = await prisma.banner.findFirst({
+            where: {
+                status: 'APPROVED',
+                id: { not: id }, // Exclude self if re-approving (though usually pending)
+                OR: [
+                    {
+                        startDate: { lte: end },
+                        endDate: { gte: start }
+                    }
+                ]
+            }
+        });
+
+        if (existing) {
+            return res.status(400).json({
+                message: `Date overlap! Banner "${existing.title}" is scheduled from ${existing.startDate?.toLocaleDateString()} to ${existing.endDate?.toLocaleDateString()}. Please choose a different date.`
+            });
+        }
 
         const banner = await prisma.banner.update({
             where: { id },
@@ -189,6 +209,36 @@ export const updateBannerSchedule = async (req: AuthRequest, res: Response) => {
         const data: any = {};
         if (startDate) data.startDate = new Date(startDate);
         if (endDate) data.endDate = new Date(endDate);
+
+        // If dates are changing, check overlap
+        if (data.startDate || data.endDate) {
+            // We need current banner dates if only one is provided, but typically both or startDate drives endDate.
+            // For simplicity/safety, let's fetch current banner first if partial update
+            const currentBanner = await prisma.banner.findUnique({ where: { id } });
+            if (!currentBanner) return res.status(404).json({ message: 'Banner not found' });
+
+            const newStart = data.startDate || currentBanner.startDate!;
+            const newEnd = data.endDate || currentBanner.endDate!;
+
+            const existing = await prisma.banner.findFirst({
+                where: {
+                    status: 'APPROVED',
+                    id: { not: id },
+                    OR: [
+                        {
+                            startDate: { lte: newEnd },
+                            endDate: { gte: newStart }
+                        }
+                    ]
+                }
+            });
+
+            if (existing) {
+                return res.status(400).json({
+                    message: `Date overlap! Banner "${existing.title}" is scheduled from ${existing.startDate?.toLocaleDateString()} to ${existing.endDate?.toLocaleDateString()}.`
+                });
+            }
+        }
 
         const banner = await prisma.banner.update({
             where: { id },

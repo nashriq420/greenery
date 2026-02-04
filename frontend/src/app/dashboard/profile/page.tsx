@@ -1,7 +1,7 @@
 'use client';
 
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,8 @@ export default function ProfilePage() {
     const [editingListing, setEditingListing] = useState<Listing | null>(null);
     const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '' });
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (token) {
@@ -221,7 +223,10 @@ export default function ProfilePage() {
                 <TabsList>
                     <TabsTrigger value="profile">Profile & Location</TabsTrigger>
                     {profile.role === 'SELLER' && (
-                        <TabsTrigger value="listings">My Listings</TabsTrigger>
+                        <>
+                            <TabsTrigger value="listings">My Listings</TabsTrigger>
+                            <TabsTrigger value="promotions">My Promotions</TabsTrigger>
+                        </>
                     )}
                 </TabsList>
 
@@ -234,47 +239,91 @@ export default function ProfilePage() {
                             <div className="space-y-2">
                                 <Label>Profile Picture</Label>
                                 <div className="flex items-center gap-4">
-                                    <div className="w-20 h-20 bg-gray-100 rounded-full border overflow-hidden flex items-center justify-center shrink-0">
+                                    <div className="relative w-24 h-24 bg-gray-100 rounded-full border overflow-hidden flex items-center justify-center shrink-0 shadow-sm group">
                                         {profile.profilePicture ? (
-                                            <img src={profile.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                                            <img
+                                                src={profile.profilePicture}
+                                                alt="Profile"
+                                                className={`w-full h-full object-cover transition-opacity ${uploading ? 'opacity-50' : ''}`}
+                                            />
                                         ) : (
-                                            <span className="text-2xl text-gray-400">?</span>
+                                            <span className="text-4xl text-gray-300">?</span>
+                                        )}
+                                        {uploading && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                                                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                            </div>
                                         )}
                                     </div>
-                                    <div className="flex-1">
-                                        <Input
-                                            type="file"
-                                            accept="image/png, image/jpeg, image/gif, image/webp"
-                                            onChange={async (e) => {
-                                                if (e.target.files && e.target.files[0]) {
-                                                    const file = e.target.files[0];
+                                    <div className="flex-1 space-y-2">
+                                        <div className="flex flex-col gap-1">
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                className="hidden"
+                                                accept="image/png, image/jpeg, image/gif, image/webp"
+                                                onChange={async (e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        const file = e.target.files[0];
 
-                                                    // Client-side Validation
-                                                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                                                    if (!validTypes.includes(file.type)) {
-                                                        alert("Invalid file type. Please upload JPG, PNG, GIF, or WebP.");
-                                                        return;
-                                                    }
+                                                        // Client-side Validation
+                                                        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                                                        if (!validTypes.includes(file.type)) {
+                                                            alert("Invalid file type. Please upload JPG, PNG, GIF, or WebP.");
+                                                            return;
+                                                        }
 
-                                                    const maxSize = 5 * 1024 * 1024; // 5MB
-                                                    if (file.size > maxSize) {
-                                                        alert("File is too large. Maximum size is 5MB.");
-                                                        return;
-                                                    }
+                                                        const maxSize = 5 * 1024 * 1024; // 5MB
+                                                        if (file.size > maxSize) {
+                                                            alert("File is too large. Maximum size is 5MB.");
+                                                            return;
+                                                        }
 
-                                                    const formData = new FormData();
-                                                    formData.append('image', file);
-                                                    try {
-                                                        const res = await api.upload('/upload/image', formData, token || undefined);
-                                                        setProfile({ ...profile, profilePicture: res.url });
-                                                    } catch (err) {
-                                                        alert("Failed to upload image");
+                                                        setUploading(true);
+                                                        const formData = new FormData();
+                                                        formData.append('image', file);
+                                                        try {
+                                                            const res = await api.upload('/upload/image', formData, token || undefined);
+                                                            setProfile(prev => ({ ...prev, profilePicture: res.url }));
+                                                            // Also update the auth store immediately if needed, though handleUpdateProfile does it on save. 
+                                                            // For visual feedback, just local state is enough until "Update Profile" is clicked, 
+                                                            // BUT usually users expect profile pic to save immediately or at least persist.
+                                                            // The current flow suggests "Update Profile" saves everything. 
+                                                            // However, the previous code setProfile locally. We stick to that.
+                                                        } catch (err) {
+                                                            alert("Failed to upload image");
+                                                        } finally {
+                                                            setUploading(false);
+                                                            // Reset input so same file can be selected again if needed
+                                                            if (fileInputRef.current) fileInputRef.current.value = '';
+                                                        }
                                                     }
-                                                }
-                                            }}
-                                        />
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Supported: JPG, PNG, GIF (Max 5MB)
+                                                }}
+                                            />
+                                            <div className="flex items-center gap-3">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    disabled={uploading}
+                                                >
+                                                    {uploading ? 'Uploading...' : 'Change Photo'}
+                                                </Button>
+                                                {profile.profilePicture && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                        onClick={() => setProfile({ ...profile, profilePicture: '' })}
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-gray-500">
+                                            Supported: JPG, PNG, GIF, WebP (Max 5MB)
                                         </p>
                                     </div>
                                 </div>
@@ -500,7 +549,109 @@ export default function ProfilePage() {
                         />
                     )}
                 </TabsContent>
+
+                {profile.role === 'SELLER' && (
+                    <TabsContent value="promotions" className="space-y-6">
+                        <BannersTab token={token} />
+                    </TabsContent>
+                )}
             </Tabs>
+        </div>
+    );
+}
+function BannersTab({ token }: { token: string | null }) {
+    const [banners, setBanners] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!token) return;
+        api.get('/banners', token)
+            .then(res => setBanners(Array.isArray(res) ? res : []))
+            .catch(err => console.error(err))
+            .finally(() => setLoading(false));
+    }, [token]);
+
+    const pendingBanners = banners.filter(b => b.status === 'PENDING');
+    const approvedBanners = banners.filter(b => b.status === 'APPROVED');
+    const otherBanners = banners.filter(b => b.status !== 'PENDING' && b.status !== 'APPROVED');
+
+    // Image URL helper (reused logic)
+    const getImageUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+
+        let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+        // Remove trailing slash if present
+        if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+
+        // Handle case where API_URL is just '/api' (proxy)
+        if (baseUrl === '/api') baseUrl = 'http://localhost:4000';
+
+        // For uploads, we need the server root, not the API root
+        if (path.startsWith('/uploads') && baseUrl.endsWith('/api')) {
+            baseUrl = baseUrl.slice(0, -4);
+        }
+
+        return `${baseUrl}${path}`;
+    };
+
+    if (loading) return <div>Loading promotions...</div>;
+
+    const BannerList = ({ title, list }: { title: string, list: any[] }) => (
+        <Card className="mb-6">
+            <CardHeader>
+                <CardTitle className="text-lg">{title} ({list.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {list.length === 0 ? (
+                    <p className="text-gray-500 text-sm">No banners in this category.</p>
+                ) : (
+                    <div className="space-y-4">
+                        {list.map(banner => (
+                            <div key={banner.id} className="flex gap-4 border p-4 rounded-lg items-center bg-white relative overflow-hidden">
+                                <div className="w-32 h-16 bg-gray-100 rounded shrink-0 border overflow-hidden">
+                                    <img src={getImageUrl(banner.imageUrl)} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold truncate">{banner.title || "No Title"}</h4>
+                                    <p className="text-sm text-gray-500">Listing: {banner.listing?.title}</p>
+                                    <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                                        {banner.status === 'APPROVED' && (
+                                            <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded font-medium">
+                                                Runs: {new Date(banner.startDate).toLocaleDateString()} - {new Date(banner.endDate).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                        {banner.status === 'PENDING' && (
+                                            <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-medium">
+                                                Waiting for Approval
+                                            </span>
+                                        )}
+                                        {banner.status === 'REJECTED' && (
+                                            <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded font-medium">
+                                                Rejected
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+
+    return (
+        <div>
+            <div className="mb-6">
+                <h2 className="text-xl font-bold mb-2">My Promotional Banners</h2>
+                <p className="text-gray-600">Track the status of your "Product of the Week" banner requests.</p>
+            </div>
+
+            <BannerList title="Pending Requests" list={pendingBanners} />
+            <BannerList title="Approved & Scheduled" list={approvedBanners} />
+            {otherBanners.length > 0 && <BannerList title="History / Rejected" list={otherBanners} />}
         </div>
     );
 }
