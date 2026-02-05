@@ -185,7 +185,7 @@ export default function MapComponent() {
                                                 }`}></div>
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-base leading-tight text-gray-900">{seller.name}</h3>
+                                            <h3 className="font-bold text-base leading-tight text-gray-900 pr-6">{seller.name}</h3>
                                             <div className="flex items-center gap-1 text-yellow-500 text-xs mt-0.5">
                                                 <Star className="w-3 h-3 fill-current" />
                                                 <span className="font-medium text-gray-700">
