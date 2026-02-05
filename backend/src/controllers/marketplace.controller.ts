@@ -3,6 +3,7 @@ import { prisma } from '../utils/prisma';
 import { z, ZodError } from 'zod';
 import { logger } from '../utils/logger';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { logActivity } from '../utils/audit';
 
 // Schema for creating a listing
 const createListingSchema = z.object({
@@ -49,6 +50,20 @@ export const getSellersNearby = async (req: Request, res: Response) => {
                 s.city, 
                 u.name, 
                 u.email,
+                u."profilePicture",
+                (SELECT "createdAt" FROM "LoginHistory" WHERE "userId" = u.id ORDER BY "createdAt" DESC LIMIT 1) as "lastSeen",
+                (
+                    SELECT CAST(AVG(r.rating) AS DOUBLE PRECISION)
+                    FROM "Review" r
+                    JOIN "Listing" l ON r."listingId" = l.id
+                    WHERE l."sellerId" = u.id
+                ) as "averageRating",
+                (
+                    SELECT CAST(COUNT(r.id) AS INTEGER)
+                    FROM "Review" r
+                    JOIN "Listing" l ON r."listingId" = l.id
+                    WHERE l."sellerId" = u.id
+                ) as "reviewCount",
                 ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) AS distance
             FROM "SellerProfile" s
             JOIN "User" u ON s."userId" = u.id
@@ -88,6 +103,8 @@ export const createListing = async (req: AuthRequest, res: Response) => {
             }
         });
 
+        await logActivity(userId, 'CREATE_LISTING', { listingId: listing.id, title: listing.title }, req);
+
         res.status(201).json(listing);
     } catch (error: unknown) {
         console.error('[DEBUG] createListing error:', error);
@@ -101,7 +118,7 @@ export const createListing = async (req: AuthRequest, res: Response) => {
             console.log('[DEBUG] Formatted errors:', formattedErrors);
             return res.status(400).json({ errors: formattedErrors });
         }
-        res.status(500).json({ message: `Debug Error: ${(error as any).message || String(error)}` });
+        res.status(500).json({ message: `Debug Error: ${(error as any).message || String(error)} ` });
     }
 };
 
@@ -123,8 +140,8 @@ export const getListings = async (req: Request, res: Response) => {
             const nearbySellerIds = await prisma.$queryRaw<{ id: string }[]>`
                 SELECT s."userId" as id
                 FROM "SellerProfile" s
-                WHERE ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) < ${radiusKm}
-            `;
+WHERE(6371 * acos(cos(radians(${lat})) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(s.latitude)))) < ${radiusKm}
+`;
 
             const sellerIdList = nearbySellerIds.map((s: any) => s.id);
 
@@ -226,6 +243,9 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
             where: { id: listingId },
             data: validated
         });
+
+        await logActivity(userId, 'UPDATE_LISTING', { listingId, updates: validated }, req);
+
         res.json(updated);
     } catch (error) {
         if (error instanceof ZodError) {
@@ -250,6 +270,9 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
         }
 
         await prisma.listing.delete({ where: { id: listingId } });
+
+        await logActivity(userId, 'DELETE_LISTING', { listingId }, req);
+
         res.json({ message: 'Listing deleted' });
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
@@ -260,7 +283,7 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
 export const getListingById = async (req: Request, res: Response) => {
     try {
         const listingId = req.params.id as string;
-        console.log(`[DEBUG] Fetching listing ${listingId}`);
+        console.log(`[DEBUG] Fetching listing ${listingId} `);
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },
             include: {
@@ -296,7 +319,7 @@ export const getListingById = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Listing not found' });
         }
 
-        console.log(`[DEBUG] Found listing ${listingId}`);
+        console.log(`[DEBUG] Found listing ${listingId} `);
         res.json(listing);
     } catch (error: any) {
         console.error('[DEBUG] Error fetching listing details:', error);

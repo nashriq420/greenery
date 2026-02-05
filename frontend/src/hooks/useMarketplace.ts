@@ -12,6 +12,10 @@ export interface Seller {
     name: string;
     email: string;
     distance?: number;
+    profilePicture: string | null;
+    lastSeen: string | Date | null;
+    averageRating: number | null;
+    reviewCount: number | null;
 }
 
 export function useSellers(lat: number, lng: number, radius: number = 50) {

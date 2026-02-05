@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { logActivity } from '../utils/audit';
 
 export const uploadBanner = async (req: AuthRequest, res: Response) => {
     try {
@@ -38,6 +39,8 @@ export const uploadBanner = async (req: AuthRequest, res: Response) => {
                 status: 'PENDING'
             }
         });
+
+        await logActivity(sellerId, 'UPLOAD_BANNER', { bannerId: banner.id, listingId }, req);
 
         res.status(201).json(banner);
     } catch (error) {
@@ -137,6 +140,8 @@ export const approveBanner = async (req: AuthRequest, res: Response) => {
             }
         });
 
+        await logActivity(req.user?.id, 'APPROVE_BANNER', { bannerId: id, startDate: start, endDate: end }, req);
+
         res.json(banner);
     } catch (error) {
         console.error('Approve banner error:', error);
@@ -163,6 +168,8 @@ export const rejectBanner = async (req: AuthRequest, res: Response) => {
                 link: `/dashboard/seller/banners`
             }
         });
+
+        await logActivity(req.user?.id, 'REJECT_BANNER', { bannerId: id }, req);
 
         res.json(banner);
     } catch (error) {

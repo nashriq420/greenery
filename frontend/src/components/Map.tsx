@@ -2,13 +2,33 @@
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Icon } from 'leaflet';
+import { Icon, DivIcon } from 'leaflet';
 import { useEffect, useState } from 'react';
 import { useSellers } from '@/hooks/useMarketplace';
 import Link from 'next/link';
+import { Star, Clock, MapPin } from 'lucide-react';
 
-// Fix Leaflet Default Icon issue in Next.js
-const customIcon = new Icon({
+// Custom Weed/Green Theme Marker
+const createCustomIcon = () => {
+    return new DivIcon({
+        className: 'custom-marker',
+        html: `
+            <div class="relative group">
+                <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110 border-2 border-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white">
+                        <path d="M13.978 2.344a.75.75 0 01.534.821c-.247 2.274.654 4.045 2.158 5.56 1.488 1.498 3.161 2.215 5.385 1.77a.75.75 0 01.815.992c-.89 1.942-2.347 3.447-4.14 4.168 1.353 2.135 1.54 4.887.697 6.892a.75.75 0 01-1.359-.652c.655-1.558.487-3.799-.955-5.908-.344-.503-.73-.997-1.157-1.479l.542 6.649a.75.75 0 01-1.494.122l-.76-9.324a10.983 10.983 0 01-.76 9.324.75.75 0 01-1.494-.122l.542-6.649c-.427.482-.813.976-1.157 1.479-1.442 2.109-1.61 4.35-.955 5.908a.75.75 0 01-1.36.652c-.842-2.005-.655-4.757.698-6.892-1.794-.72-3.25-2.226-4.14-4.168a.75.75 0 01.815-.992c2.224.445 3.897-.272 5.385-1.77 1.504-1.515 2.405-3.286 2.158-5.56a.75.75 0 01.534-.821z" />
+                    </svg>
+                </div>
+                <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-green-600 rotate-45 border-r border-b border-white"></div>
+            </div>
+        `,
+        iconSize: [40, 40],
+        iconAnchor: [20, 42],
+        popupAnchor: [0, -42]
+    });
+};
+
+const userIcon = new Icon({
     iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
     iconSize: [25, 41],
     iconAnchor: [12, 41]
@@ -18,8 +38,14 @@ const customIcon = new Icon({
 function RecenterMap({ lat, lng }: { lat: number, lng: number }) {
     const map = useMap();
     useEffect(() => {
+        if (!map) return;
         if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
-            map.setView([lat, lng], 13);
+            // Check if map is still valid - though useMap context usually handles this
+            try {
+                map.setView([lat, lng], 13);
+            } catch (e) {
+                console.warn("Map setView error:", e);
+            }
         }
     }, [lat, lng, map]);
     return null;
@@ -81,9 +107,25 @@ export default function MapComponent() {
         return `${baseUrl}${path}`;
     };
 
+    // Helper to format last seen
+    const formatLastSeen = (dateString: string | Date | null) => {
+        if (!dateString) return 'Offline';
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
+
+        if (diffInMinutes < 5) return 'Online now';
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `${diffInHours}h ago`;
+        return `${Math.floor(diffInHours / 24)}d ago`;
+    };
+
     if (!isMounted) {
         return <div className="h-[500px] w-full bg-muted animate-pulse rounded-lg"></div>;
     }
+
+    const weedIcon = createCustomIcon();
 
     return (
         <div className="flex flex-col gap-4 w-full">
@@ -108,7 +150,7 @@ export default function MapComponent() {
             )}
 
             {/* Map Section */}
-            <div className="h-[500px] w-full rounded-lg overflow-hidden border relative bg-muted shadow-sm">
+            <div className="h-[500px] w-full rounded-lg overflow-hidden border relative bg-muted shadow-sm ring-1 ring-green-100">
                 <MapContainer
                     center={[center.lat, center.lng]}
                     zoom={13}
@@ -118,27 +160,102 @@ export default function MapComponent() {
                     <RecenterMap lat={center.lat} lng={center.lng} />
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                     />
 
                     {sellers.map((seller) => (
-                        <Marker key={seller.id} position={[seller.latitude, seller.longitude]} icon={customIcon}>
-                            <Popup>
-                                <div className="p-1">
-                                    <h3 className="font-bold">{seller.name}</h3>
-                                    <p className="text-sm text-gray-600">{seller.city}</p>
-                                    <p className="text-xs text-gray-500 mt-1">{seller.description}</p>
-                                    <a href={`/dashboard/seller/${seller.userId}`} className="block mt-2 text-green-600 text-sm hover:underline">View Profile</a>
+                        <Marker key={seller.id} position={[seller.latitude, seller.longitude]} icon={weedIcon}>
+                            <Popup className="custom-popup">
+                                <div className="p-0 min-w-[240px]">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="relative">
+                                            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-100 shadow-sm">
+                                                <img
+                                                    src={getImageUrl(seller.profilePicture || '/default-avatar.png')}
+                                                    alt={seller.name}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(seller.name);
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${seller.lastSeen && new Date(seller.lastSeen).getTime() > Date.now() - 1000 * 60 * 5 // 5 mins
+                                                ? 'bg-green-500'
+                                                : 'bg-gray-400'
+                                                }`}></div>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-base leading-tight text-gray-900">{seller.name}</h3>
+                                            <div className="flex items-center gap-1 text-yellow-500 text-xs mt-0.5">
+                                                <Star className="w-3 h-3 fill-current" />
+                                                <span className="font-medium text-gray-700">
+                                                    {seller.averageRating
+                                                        ? Number(seller.averageRating).toFixed(1)
+                                                        : 'New'}
+                                                </span>
+                                                <span className="text-gray-400">({seller.reviewCount || 0})</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2 mb-3">
+                                        <div className="flex items-center text-xs text-gray-500">
+                                            <MapPin className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
+                                            <span className="truncate max-w-[180px]">{seller.city || 'Location hidden'}</span>
+                                        </div>
+                                        <div className="flex items-center text-xs text-gray-500">
+                                            <Clock className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
+                                            <span>Seen {formatLastSeen(seller.lastSeen)}</span>
+                                        </div>
+                                    </div>
+
+                                    {seller.description && (
+                                        <p className="text-xs text-gray-600 mb-3 line-clamp-2 leading-relaxed bg-gray-50 p-2 rounded">
+                                            {seller.description}
+                                        </p>
+                                    )}
+
+                                    <Link
+                                        href={`/dashboard/seller/${seller.userId}`}
+                                        className="flex items-center justify-center w-full py-2 bg-green-600 !text-white text-sm font-semibold rounded-md hover:bg-green-700 transition shadow-sm"
+                                    >
+                                        Visit Store
+                                    </Link>
                                 </div>
                             </Popup>
                         </Marker>
                     ))}
 
-                    <Marker position={[center.lat, center.lng]} icon={customIcon} opacity={0.5}>
-                        <Popup>You are here</Popup>
+                    <Marker position={[center.lat, center.lng]} icon={userIcon} opacity={0.7}>
+                        <Popup>
+                            <span className="font-medium text-sm">You are here</span>
+                        </Popup>
                     </Marker>
                 </MapContainer>
             </div>
+
+            <style jsx global>{`
+                .leaflet-popup-content-wrapper {
+                    padding: 0;
+                    overflow: hidden;
+                    border-radius: 0.75rem;
+                    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+                }
+                .leaflet-popup-content {
+                    margin: 0;
+                    padding: 16px;
+                    width: 260px !important;
+                }
+                .leaflet-container a.leaflet-popup-close-button {
+                    top: 8px;
+                    right: 8px;
+                    color: #9ca3af;
+                    padding: 4px;
+                }
+                .leaflet-container a.leaflet-popup-close-button:hover {
+                    color: #4b5563;
+                }
+            `}</style>
         </div>
     );
 }

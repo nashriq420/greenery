@@ -3,6 +3,7 @@ import { prisma } from '../utils/prisma';
 import { z } from 'zod';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { createNotification } from './notification.controller';
+import { logActivity } from '../utils/audit';
 import { NotificationType } from '@prisma/client';
 
 //Schemas
@@ -102,13 +103,7 @@ export const createPost = async (req: AuthRequest, res: Response) => {
         console.log("Post created:", post.id);
 
         // Audit Log
-        await prisma.auditLog.create({
-            data: {
-                userId,
-                action: 'CREATE_POST',
-                details: `Created post ${post.id}`,
-            }
-        });
+        await logActivity(userId, 'CREATE_POST', { postId: post.id }, req);
         console.log("Audit log created");
 
         res.status(201).json(post);
@@ -163,13 +158,7 @@ export const updatePost = async (req: AuthRequest, res: Response) => {
         console.log("Post updated");
 
         // Audit Log
-        await prisma.auditLog.create({
-            data: {
-                userId,
-                action: 'UPDATE_POST',
-                details: `Updated post ${postId}`,
-            }
-        });
+        await logActivity(userId, 'UPDATE_POST', { postId }, req);
 
         res.json(updatedPost);
     } catch (error) {
@@ -196,13 +185,7 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
         await prisma.post.delete({ where: { id: postId } });
 
         // Audit Log
-        await prisma.auditLog.create({
-            data: {
-                userId,
-                action: 'DELETE_POST',
-                details: `Deleted post ${postId}`,
-            }
-        });
+        await logActivity(userId, 'DELETE_POST', { postId }, req);
 
         res.json({ message: 'Post deleted' });
     } catch (error) {

@@ -5,6 +5,7 @@ import { prisma } from '../utils/prisma';
 import { z, ZodError } from 'zod';
 import { logger } from '../utils/logger';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { logActivity } from '../utils/audit';
 
 const signupSchema = z.object({
     email: z.string().email(),
@@ -113,6 +114,14 @@ export const login = async (req: Request, res: Response) => {
                 device: userAgent
             }
         });
+
+        // --- Audit Log ---
+        await logActivity(user.id, 'LOGIN', {
+            ip,
+            device: userAgent,
+            location: location
+        }, req);
+        // ------------------
 
         // Notify if IP changed (simple logic)
         if (lastLogin && lastLogin.ip !== String(ip)) {

@@ -5,6 +5,7 @@ import { z, ZodError } from 'zod';
 import { logger } from '../utils/logger';
 import { UserStatus, ListingStatus, NotificationType } from '@prisma/client';
 import { createNotification } from './notification.controller';
+import { logActivity } from '../utils/audit';
 
 // Get Users with filtering
 export const getUsers = async (req: AuthRequest, res: Response) => {
@@ -55,6 +56,8 @@ export const updateUserStatus = async (req: AuthRequest, res: Response) => {
             where: { id: userId },
             data: { status: status as UserStatus }
         });
+
+        await logActivity(req.user?.id, 'UPDATE_USER_STATUS', { targetUserId: userId, status }, req);
 
         res.json({ message: `User status updated to ${status}`, user });
     } catch (error) {
@@ -129,6 +132,10 @@ export const updateListingStatus = async (req: AuthRequest, res: Response) => {
             );
         }
 
+
+
+        await logActivity(req.user?.id, 'UPDATE_LISTING_STATUS', { listingId, status }, req);
+
         res.json({ message: `Listing status updated to ${status}`, listing });
     } catch (error) {
         logger.error('Error updating listing status', error);
@@ -197,6 +204,8 @@ export const warnUser = async (req: AuthRequest, res: Response) => {
         );
 
         res.status(201).json(warningMessage);
+
+        await logActivity(adminId, 'WARN_USER', { targetUserId, message }, req);
     } catch (error) {
         logger.error('Error warning user', error);
         if (error instanceof ZodError) {
@@ -209,7 +218,41 @@ export const warnUser = async (req: AuthRequest, res: Response) => {
 // Get Audit Logs
 export const getLogs = async (req: AuthRequest, res: Response) => {
     try {
+        const { action, startDate, endDate, search } = req.query as {
+            action?: string,
+            startDate?: string,
+            endDate?: string,
+            search?: string
+        };
+
+        const where: any = {};
+
+        // Filter by Action
+        if (action && action !== 'ALL') {
+            // If comma separated? For now assume single or we can use "contains" if we want flexible matching
+            // Ideally the frontend sends specific action or "category"
+            where.action = action;
+        }
+
+        // Filter by Date
+        if (startDate || endDate) {
+            where.createdAt = {};
+            if (startDate) where.createdAt.gte = new Date(startDate);
+            if (endDate) where.createdAt.lte = new Date(endDate);
+        }
+
+        // Filter by Search (User Name or Email)
+        if (search) {
+            where.user = {
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } }
+                ]
+            };
+        }
+
         const logs = await prisma.auditLog.findMany({
+            where,
             include: {
                 user: {
                     select: {
@@ -220,7 +263,7 @@ export const getLogs = async (req: AuthRequest, res: Response) => {
                 }
             },
             orderBy: { createdAt: 'desc' },
-            take: 100 // Limit to last 100 logs for now
+            take: 200 // Increased limit
         });
 
         res.json(logs);
