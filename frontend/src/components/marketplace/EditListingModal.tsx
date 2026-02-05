@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { Listing } from '@/hooks/useMarketplace';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Upload, X, Save } from 'lucide-react';
 
 interface EditListingModalProps {
     listing: Listing | null;
@@ -15,19 +20,21 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
     const [error, setError] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         price: '',
-        imageUrl: '' // Keep this for existing or manually entered URLs
+        imageUrl: ''
     });
 
     useEffect(() => {
         if (listing) {
             setFormData({
                 title: listing.title,
-                description: listing.description,
-                price: listing.price,
+                description: listing.description || '',
+                price: listing.price.toString(),
                 imageUrl: listing.imageUrl || ''
             });
             setPreviewUrl(listing.imageUrl || '');
@@ -44,7 +51,6 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setSelectedFile(file);
-            // Create local preview
             const url = URL.createObjectURL(file);
             setPreviewUrl(url);
         }
@@ -58,7 +64,6 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
         try {
             let finalImageUrl = formData.imageUrl;
 
-            // Upload image if file selected
             if (selectedFile) {
                 const uploadData = new FormData();
                 uploadData.append('image', selectedFile);
@@ -85,102 +90,128 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-[1000] p-4 pointer-events-none">
-            {/* Invisible backdrop to position center, allowing clicks through if needed? 
-                 User said "without changing background", usually implies no dimming. 
-                 But we likely still want to block clicks or just show it floating. 
-                 I'll make the container pointer-events-none so interaction with background is possible if intended,
-                 OR if they just meant "visual" background. 
-                 Usually modals block interaction. I'll just remove the visual bg color. 
-             */}
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl border border-gray-200 pointer-events-auto">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">Edit Listing</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
+        <div className="fixed inset-0 flex items-center justify-center z-[1000] p-4 bg-black/40 backdrop-blur-sm">
+            <div className="bg-card text-card-foreground rounded-xl p-6 w-full max-w-lg shadow-2xl border animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex justify-between items-center mb-6 border-b pb-4">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">Edit Listing</h2>
+                        <p className="text-sm text-muted-foreground">Make changes to your listing details.</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-destructive/10 hover:text-destructive">
+                        <X className="w-5 h-5" />
+                    </Button>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded mb-4 text-sm">
-                        {error}
+                    <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-4 text-sm font-medium flex items-center gap-2">
+                        <X className="w-4 h-4" /> {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Title</label>
-                        <input
-                            type="text"
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="space-y-2">
+                        <Label htmlFor="title">Title</Label>
+                        <Input
+                            id="title"
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
                             required
-                            className="mt-1 w-full border rounded p-2 focus:ring-green-500 focus:border-green-500"
+                            placeholder="Listing title"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Price ($)</label>
-                        <input
-                            type="number"
-                            name="price"
-                            value={formData.price}
-                            onChange={handleChange}
-                            required
-                            step="0.01"
-                            min="0"
-                            className="mt-1 w-full border rounded p-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            required
-                            rows={3}
-                            className="mt-1 w-full border rounded p-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Image</label>
-
-                        {previewUrl && (
-                            <div className="mb-2 h-32 w-full bg-gray-100 rounded overflow-hidden relative group">
-                                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                            </div>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileChange}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="price">Price ($)</Label>
+                            <Input
+                                id="price"
+                                type="number"
+                                name="price"
+                                value={formData.price}
+                                onChange={handleChange}
+                                required
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
                             />
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 mt-6">
-                        <button
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            required
+                            rows={4}
+                            placeholder="Describe your item..."
+                            className="resize-none"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Listing Image</Label>
+                        <div className="flex items-start gap-4">
+                            <div className="relative w-24 h-24 bg-muted rounded-lg border overflow-hidden shrink-0 shadow-sm group">
+                                {previewUrl ? (
+                                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                                ) : (
+                                    <div className="flex items-center justify-center w-full h-full text-muted-foreground">
+                                        <Upload className="w-8 h-8 opacity-20" />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex-1 space-y-2">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                />
+                                <div className="flex flex-col gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-fit"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <Upload className="w-4 h-4 mr-2" />
+                                        {previewUrl ? 'Change Image' : 'Upload Image'}
+                                    </Button>
+                                    <p className="text-xs text-muted-foreground">
+                                        Supported formats: JPG, PNG, WebP.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                        <Button
                             type="button"
+                            variant="outline"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800"
                             disabled={loading}
                         >
                             Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
-                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                             disabled={loading}
+                            className="min-w-[120px]"
                         >
-                            {loading ? 'Saving...' : 'Save Changes'}
-                        </button>
+                            {loading ? (
+                                <>Saving...</>
+                            ) : (
+                                <><Save className="w-4 h-4 mr-2" /> Save Changes</>
+                            )}
+                        </Button>
                     </div>
                 </form>
             </div>

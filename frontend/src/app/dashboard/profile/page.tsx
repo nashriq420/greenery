@@ -239,24 +239,24 @@ export default function ProfilePage() {
                             <div className="space-y-2">
                                 <Label>Profile Picture</Label>
                                 <div className="flex items-center gap-4">
-                                    <div className="relative w-24 h-24 bg-gray-100 rounded-full border overflow-hidden flex items-center justify-center shrink-0 shadow-sm group">
+                                    <div className="relative w-24 h-24 bg-muted rounded-full border overflow-hidden flex items-center justify-center shrink-0 shadow-sm group ring-2 ring-transparent hover:ring-primary/20 transition-all">
                                         {profile.profilePicture ? (
                                             <img
                                                 src={profile.profilePicture}
                                                 alt="Profile"
-                                                className={`w-full h-full object-cover transition-opacity ${uploading ? 'opacity-50' : ''}`}
+                                                className={`w-full h-full object-cover transition-opacity duration-300 ${uploading ? 'opacity-30 blur-sm' : ''}`}
                                             />
                                         ) : (
-                                            <span className="text-4xl text-gray-300">?</span>
+                                            <span className="text-4xl text-muted-foreground/30 font-light">?</span>
                                         )}
                                         {uploading && (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/10 z-10">
                                                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex-1 space-y-2">
-                                        <div className="flex flex-col gap-1">
+                                    <div className="flex-1 space-y-3">
+                                        <div className="flex flex-col gap-2">
                                             <input
                                                 type="file"
                                                 ref={fileInputRef}
@@ -284,12 +284,8 @@ export default function ProfilePage() {
                                                         formData.append('image', file);
                                                         try {
                                                             const res = await api.upload('/upload/image', formData, token || undefined);
+                                                            // Set local state immediately for fast feedback
                                                             setProfile(prev => ({ ...prev, profilePicture: res.url }));
-                                                            // Also update the auth store immediately if needed, though handleUpdateProfile does it on save. 
-                                                            // For visual feedback, just local state is enough until "Update Profile" is clicked, 
-                                                            // BUT usually users expect profile pic to save immediately or at least persist.
-                                                            // The current flow suggests "Update Profile" saves everything. 
-                                                            // However, the previous code setProfile locally. We stick to that.
                                                         } catch (err) {
                                                             alert("Failed to upload image");
                                                         } finally {
@@ -304,6 +300,7 @@ export default function ProfilePage() {
                                                 <Button
                                                     type="button"
                                                     variant="outline"
+                                                    size="sm"
                                                     onClick={() => fileInputRef.current?.click()}
                                                     disabled={uploading}
                                                 >
@@ -314,7 +311,7 @@ export default function ProfilePage() {
                                                         type="button"
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                                         onClick={() => setProfile({ ...profile, profilePicture: '' })}
                                                     >
                                                         Remove
@@ -322,7 +319,7 @@ export default function ProfilePage() {
                                                 )}
                                             </div>
                                         </div>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
                                             Supported: JPG, PNG, GIF, WebP (Max 5MB)
                                         </p>
                                     </div>

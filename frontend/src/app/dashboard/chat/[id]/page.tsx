@@ -1,13 +1,15 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import { Send, Store } from 'lucide-react';
+import { Send, Store, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function ChatRoomPage() {
     const params = useParams();
+    const router = useRouter();
     const id = params?.id as string;
     const { token, user } = useAuthStore();
 
@@ -121,7 +123,16 @@ export default function ChatRoomPage() {
 
     return (
         <div className="h-[calc(100dvh-100px)] p-2 sm:p-6 flex flex-col relative">
-            <div className="bg-white border rounded-t-lg p-3 sm:p-4 shadow-sm flex justify-between items-center">
+            <div className="bg-white border rounded-t-lg p-3 sm:p-4 shadow-sm flex items-center gap-3">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 -ml-2"
+                    onClick={() => router.push('/dashboard/chat')}
+                    title="Back to Chats"
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                </Button>
                 <h1 className="font-bold text-lg">Chat Room</h1>
                 {/* Optional: Show who you are chatting with */}
             </div>
