@@ -74,6 +74,77 @@ export default function ActivityLogs({ token }: { token: string | null }) {
 
     const displayLogs = getFilteredLogs();
 
+    const renderDetails = (detailsRaw: string) => {
+        let details: any;
+        try {
+            details = typeof detailsRaw === 'string' ? JSON.parse(detailsRaw) : detailsRaw;
+        } catch {
+            return <span className="text-gray-500">{String(detailsRaw)}</span>;
+        }
+
+        if (typeof details !== 'object' || details === null) return <span>{String(details)}</span>;
+
+        // Rich Listing Preview (Snapshot)
+        if (details.listingTitle || details.listingImage) {
+            return (
+                <div className="flex items-start gap-3 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-gray-100 dark:border-gray-700">
+                    {details.listingImage ? (
+                        <img
+                            src={details.listingImage}
+                            alt="Preview"
+                            className="w-12 h-12 rounded object-cover border"
+                        />
+                    ) : (
+                        <div className="w-12 h-12 rounded bg-gray-200 flex items-center justify-center text-xs text-gray-500">No Img</div>
+                    )}
+                    <div className="min-w-0">
+                        <div className="font-medium text-sm truncate max-w-[200px]" title={details.listingTitle}>
+                            {details.listingTitle || 'Untitled Listing'}
+                        </div>
+                        <div className="text-xs text-gray-400 font-mono truncate max-w-[150px]">
+                            ID: {details.listingId}
+                        </div>
+                        {details.status && (
+                            <div className={`text-xs font-medium mt-0.5 ${details.status === 'ACTIVE' || details.status === 'APPROVED' ? 'text-green-600' :
+                                    details.status === 'REJECTED' ? 'text-red-600' : 'text-gray-500'
+                                }`}>
+                                Status: {
+                                    details.status === 'ACTIVE' ? 'Approved' :
+                                        details.status === 'REJECTED' ? 'Rejected' :
+                                            details.status
+                                }
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Generic Key-Value rendering for other logs
+        return (
+            <div className="space-y-1">
+                {Object.entries(details).map(([key, value]) => {
+                    if (key === 'ip' || key === 'device' || key === 'location') return null; // Skip technical fields if they clutter
+
+                    let displayValue = String(value);
+                    let displayKey = key;
+
+                    if (key === 'status') {
+                        if (displayValue === 'ACTIVE') displayValue = 'Approved';
+                        if (displayValue === 'REJECTED') displayValue = 'Rejected';
+                    }
+
+                    return (
+                        <div key={key} className="text-xs break-words">
+                            <span className="font-semibold text-gray-600 dark:text-gray-400 capitalize">{displayKey.replace(/([A-Z])/g, ' $1').trim()}: </span>
+                            <span className="text-gray-800 dark:text-gray-200">{displayValue}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -133,7 +204,7 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                                     <th className="px-4 py-3 font-medium whitespace-nowrap">Date & Time</th>
                                     <th className="px-4 py-3 font-medium">Action</th>
                                     <th className="px-4 py-3 font-medium">User</th>
-                                    <th className="px-4 py-3 font-medium">Details</th>
+                                    <th className="px-4 py-3 font-medium w-[300px]">Details</th>
                                     <th className="px-4 py-3 font-medium">IP Address</th>
                                 </tr>
                             </thead>
@@ -145,9 +216,9 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                                         </td>
                                         <td className="px-4 py-3 font-medium">
                                             <span className={`px-2 py-1 rounded text-xs font-bold ${log.action.includes('REJECT') || log.action.includes('DELETE') ? 'bg-red-100 text-red-800' :
-                                                log.action.includes('APPROVE') || log.action.includes('CREATE') ? 'bg-green-100 text-green-800' :
-                                                    log.action.includes('WARN') ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-blue-100 text-blue-800'
+                                                    log.action.includes('APPROVE') || log.action.includes('CREATE') ? 'bg-green-100 text-green-800' :
+                                                        log.action.includes('WARN') ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-blue-100 text-blue-800'
                                                 }`}>
                                                 {log.action}
                                             </span>
@@ -162,8 +233,8 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                                                 <span className="italic text-gray-400">System</span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 max-w-[300px] break-words text-gray-600">
-                                            {log.details}
+                                        <td className="px-4 py-3">
+                                            {renderDetails(log.details)}
                                         </td>
                                         <td className="px-4 py-3 font-mono text-xs text-gray-500">
                                             {log.ipAddress}

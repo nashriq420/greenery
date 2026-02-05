@@ -75,16 +75,16 @@ export default function DashboardPage() {
                                             </div>
                                             <div className="flex gap-2">
                                                 <button
-                                                    onClick={() => setEditingListing(listing)}
-                                                    className="text-xs text-blue-600 hover:underline"
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
                                                     onClick={() => setViewingListing(listing)}
-                                                    className="text-xs text-blue-600 hover:underline"
+                                                    className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
                                                 >
                                                     View
+                                                </button>
+                                                <button
+                                                    onClick={() => setEditingListing(listing)}
+                                                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded hover:bg-gray-200 transition-colors"
+                                                >
+                                                    Edit
                                                 </button>
                                             </div>
                                         </div>

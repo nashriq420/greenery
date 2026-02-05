@@ -134,7 +134,12 @@ export const updateListingStatus = async (req: AuthRequest, res: Response) => {
 
 
 
-        await logActivity(req.user?.id, 'UPDATE_LISTING_STATUS', { listingId, status }, req);
+        await logActivity(req.user?.id, 'UPDATE_LISTING_STATUS', {
+            listingId,
+            status,
+            listingTitle: listing.title,
+            listingImage: listing.imageUrl
+        }, req);
 
         res.json({ message: `Listing status updated to ${status}`, listing });
     } catch (error) {
@@ -242,13 +247,14 @@ export const getLogs = async (req: AuthRequest, res: Response) => {
         }
 
         // Filter by Search (User Name or Email)
+        // Filter by Search (User Name, Email, Action, or Details)
         if (search) {
-            where.user = {
-                OR: [
-                    { name: { contains: search, mode: 'insensitive' } },
-                    { email: { contains: search, mode: 'insensitive' } }
-                ]
-            };
+            where.OR = [
+                { user: { name: { contains: search, mode: 'insensitive' } } },
+                { user: { email: { contains: search, mode: 'insensitive' } } },
+                { action: { contains: search, mode: 'insensitive' } },
+                { details: { contains: search, mode: 'insensitive' } }
+            ];
         }
 
         const logs = await prisma.auditLog.findMany({

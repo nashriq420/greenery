@@ -103,7 +103,12 @@ export const createListing = async (req: AuthRequest, res: Response) => {
             }
         });
 
-        await logActivity(userId, 'CREATE_LISTING', { listingId: listing.id, title: listing.title }, req);
+        await logActivity(userId, 'CREATE_LISTING', {
+            listingId: listing.id,
+            title: listing.title,
+            listingTitle: listing.title, // standardized key
+            listingImage: listing.imageUrl
+        }, req);
 
         res.status(201).json(listing);
     } catch (error: unknown) {
@@ -244,7 +249,12 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
             data: validated
         });
 
-        await logActivity(userId, 'UPDATE_LISTING', { listingId, updates: validated }, req);
+        await logActivity(userId, 'UPDATE_LISTING', {
+            listingId,
+            updates: validated,
+            listingTitle: updated.title,
+            listingImage: updated.imageUrl
+        }, req);
 
         res.json(updated);
     } catch (error) {
