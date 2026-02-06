@@ -34,7 +34,14 @@ const getSellersQuerySchema = z.object({
 const getListingsQuerySchema = z.object({
     lat: z.coerce.number().min(-90).max(90).optional(),
     lng: z.coerce.number().min(-180).max(180).optional(),
-    radius: z.coerce.number().positive().default(50).optional()
+    radius: z.coerce.number().positive().default(50).optional(),
+    search: z.string().optional(),
+    minPrice: z.coerce.number().min(0).optional(),
+    maxPrice: z.coerce.number().min(0).optional(),
+    strainType: z.string().optional(),
+    deliveryAvailable: z.enum(['true', 'false']).transform((val) => val === 'true').optional(),
+    thcMin: z.coerce.number().min(0).max(100).optional(),
+    cbdMin: z.coerce.number().min(0).max(100).optional(),
 });
 
 // Get sellers nearby
@@ -142,79 +149,89 @@ export const createListing = async (req: AuthRequest, res: Response) => {
 // Get listings (with optional filters)
 export const getListings = async (req: Request, res: Response) => {
     try {
-        const { lat, lng, radius } = getListingsQuerySchema.parse(req.query);
+        const {
+            lat, lng, radius, search,
+            minPrice, maxPrice, strainType,
+            deliveryAvailable, thcMin, cbdMin
+        } = getListingsQuerySchema.parse(req.query);
+
         const radiusKm = radius || 50;
 
-        let listings;
+        // Base Where Clause
+        const whereClause: any = {
+            active: true,
+            status: 'ACTIVE'
+        };
 
+        // Text Search
+        if (search) {
+            whereClause.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { strainType: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+
+        // Filters
+        if (minPrice !== undefined || maxPrice !== undefined) {
+            whereClause.price = {};
+            if (minPrice !== undefined) whereClause.price.gte = minPrice;
+            if (maxPrice !== undefined) whereClause.price.lte = maxPrice;
+        }
+
+        if (strainType) {
+            whereClause.strainType = strainType;
+        }
+
+        // deliveryAvailable is a boolean after transform
+        if (deliveryAvailable !== undefined) {
+            whereClause.deliveryAvailable = deliveryAvailable;
+        }
+
+        if (thcMin !== undefined) {
+            whereClause.thcContent = { gte: thcMin };
+        }
+
+        if (cbdMin !== undefined) {
+            whereClause.cbdContent = { gte: cbdMin };
+        }
+
+
+        // Location Filtering
         if (lat && lng) {
-            // Fetch listings and filter by location
-            // Since we can't easily join and calculate distance in standard Prisma findMany without raw query or complex extensions,
-            // we will fetch active listings and filter in memory for simplicity (unless dataset is huge).
-            // ALTERNATIVE: Use raw query to get IDs first.
-
-            // For better performance with Prisma, let's use $queryRaw to find matching Listing IDs based on Seller Location
+            // Get sellers within radius first
             const nearbySellerIds = await prisma.$queryRaw<{ id: string }[]>`
                 SELECT s."userId" as id
                 FROM "SellerProfile" s
-WHERE(6371 * acos(cos(radians(${lat})) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(s.latitude)))) < ${radiusKm}
-`;
+                WHERE(6371 * acos(cos(radians(${lat})) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(s.latitude)))) < ${radiusKm}
+             `;
 
             const sellerIdList = nearbySellerIds.map((s: any) => s.id);
 
-            listings = await prisma.listing.findMany({
-                where: {
-                    active: true,
-                    status: 'ACTIVE',
-                    sellerId: {
-                        in: sellerIdList
-                    }
-                },
-                include: {
-                    seller: {
-                        select: {
-                            name: true,
-                            id: true,
-                            sellerProfile: {
-                                select: {
-                                    city: true,
-                                    state: true,
-                                    latitude: true,
-                                    longitude: true
-                                }
-                            }
-                        }
-                    }
-                },
-                orderBy: { createdAt: 'desc' }
-            });
-
-        } else {
-            // Default fetch (no location filter)
-            listings = await prisma.listing.findMany({
-                where: {
-                    active: true,
-                    status: 'ACTIVE'
-                },
-                include: {
-                    seller: {
-                        select: {
-                            name: true,
-                            id: true,
-                            sellerProfile: {
-                                select: {
-                                    city: true,
-                                    state: true,
-                                    latitude: true,
-                                    longitude: true
-                                }
-                            }
-                        }
-                    }
-                },
-                orderBy: { createdAt: 'desc' }
-            });
+            // Add location constraint
+            whereClause.sellerId = { in: sellerIdList };
         }
+
+        const listings = await prisma.listing.findMany({
+            where: whereClause,
+            include: {
+                seller: {
+                    select: {
+                        name: true,
+                        id: true,
+                        sellerProfile: {
+                            select: {
+                                city: true,
+                                state: true,
+                                latitude: true,
+                                longitude: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
 
         res.json(listings);
     } catch (error: unknown) {

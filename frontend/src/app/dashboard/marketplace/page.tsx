@@ -6,8 +6,10 @@ import { calculateDistance } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { MapPin, Check } from 'lucide-react';
+import { MapPin, Check, Search, Filter, X } from 'lucide-react';
 import { api } from '@/lib/api';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function MarketplacePage() {
     const { user, token } = useAuthStore();
@@ -38,8 +40,25 @@ export default function MarketplacePage() {
     // Success Message State
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
+    // Valid Filter State
+    const [filters, setFilters] = useState({
+        search: '',
+        minPrice: '',
+        maxPrice: '',
+        strainType: '',
+        deliveryAvailable: false,
+        thcMin: '',
+        cbdMin: ''
+    });
+    const [showFilters, setShowFilters] = useState(false);
+
     // Pass location params to hook
-    const { listings, loading, refetch } = useListings(userLocation?.lat, userLocation?.lng, 50);
+    const { listings, loading, refetch } = useListings({
+        ...filters,
+        lat: userLocation?.lat,
+        lng: userLocation?.lng,
+        radius: 50
+    });
 
     // Sort listings by distance if location is available
     const sortedListings = [...listings].sort((a, b) => {
@@ -128,41 +147,137 @@ export default function MarketplacePage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                <h1 className="text-2xl font-bold">Marketplace</h1>
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <h1 className="text-2xl font-bold">Marketplace</h1>
 
-                <div className="flex gap-2 items-center">
-                    <button
-                        onClick={handleUseLocation}
-                        className={`px-3 py-1.5 rounded-lg text-sm border flex items-center gap-2 ${userLocation ? 'bg-green-100 border-green-500 text-green-700' : 'bg-white border-gray-300 hover:bg-gray-50'
-                            }`}
-                    >
-                        <MapPin size={16} />
-                        {userLocation ? 'Nearby (50km)' : 'Use My Location'}
-                    </button>
+                    <div className="flex gap-2 items-center flex-wrap">
+                        <button
+                            onClick={handleUseLocation}
+                            className={`px-3 py-1.5 rounded-lg text-sm border flex items-center gap-2 ${userLocation ? 'bg-green-100 border-green-500 text-green-700' : 'bg-white border-gray-300 hover:bg-gray-50'
+                                }`}
+                        >
+                            <MapPin size={16} />
+                            {userLocation ? 'Nearby (50km)' : 'My Location'}
+                        </button>
 
-                    <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`px-3 py-1.5 rounded-md text-sm transition ${viewMode === 'grid' ? 'bg-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+                        <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className={`px-3 py-1.5 rounded-md text-sm transition ${viewMode === 'grid' ? 'bg-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Grid
+                            </button>
+                            <button
+                                onClick={() => setViewMode('map')}
+                                className={`px-3 py-1.5 rounded-md text-sm transition ${viewMode === 'map' ? 'bg-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Map
+                            </button>
+                        </div>
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={`gap-2 ${showFilters ? 'bg-gray-100' : ''}`}
                         >
-                            Grid
-                        </button>
-                        <button
-                            onClick={() => setViewMode('map')}
-                            className={`px-3 py-1.5 rounded-md text-sm transition ${viewMode === 'map' ? 'bg-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            Map
-                        </button>
+                            <Filter size={16} />
+                            Filters
+                        </Button>
+
+                        {user?.role === 'SELLER' && (
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm"
+                            >
+                                + Listing
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Search & Filter Panel */}
+                <div className="space-y-4">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Input
+                            placeholder="Search listings..."
+                            className="pl-10 bg-white"
+                            value={filters.search}
+                            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                        />
                     </div>
 
-                    {user?.role === 'SELLER' && (
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                        >
-                            Create Listing
-                        </button>
+                    {showFilters && (
+                        <div className="p-4 bg-gray-50 rounded-lg border grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2">
+                            <div>
+                                <label className="text-xs font-semibold mb-1.5 block">Price Range</label>
+                                <div className="flex gap-2 items-center">
+                                    <Input
+                                        placeholder="Min"
+                                        className="h-8 bg-white"
+                                        type="number"
+                                        value={filters.minPrice}
+                                        onChange={e => setFilters({ ...filters, minPrice: e.target.value })}
+                                    />
+                                    <span className="text-gray-400">-</span>
+                                    <Input
+                                        placeholder="Max"
+                                        className="h-8 bg-white"
+                                        type="number"
+                                        value={filters.maxPrice}
+                                        onChange={e => setFilters({ ...filters, maxPrice: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-semibold mb-1.5 block">Strain Type</label>
+                                <select
+                                    className="w-full h-8 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    value={filters.strainType}
+                                    onChange={e => setFilters({ ...filters, strainType: e.target.value })}
+                                >
+                                    <option value="">Any</option>
+                                    <option value="Indica">Indica</option>
+                                    <option value="Sativa">Sativa</option>
+                                    <option value="Hybrid">Hybrid</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-semibold mb-1.5 block">Potency (Min %)</label>
+                                <div className="flex gap-2 items-center">
+                                    <Input
+                                        placeholder="THC"
+                                        className="h-8 bg-white"
+                                        type="number"
+                                        value={filters.thcMin}
+                                        onChange={e => setFilters({ ...filters, thcMin: e.target.value })}
+                                    />
+                                    <Input
+                                        placeholder="CBD"
+                                        className="h-8 bg-white"
+                                        type="number"
+                                        value={filters.cbdMin}
+                                        onChange={e => setFilters({ ...filters, cbdMin: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-end">
+                                <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 border rounded-md w-full h-8 justify-center hover:bg-gray-50">
+                                    <input
+                                        type="checkbox"
+                                        checked={filters.deliveryAvailable}
+                                        onChange={e => setFilters({ ...filters, deliveryAvailable: e.target.checked })}
+                                        className="w-4 h-4 text-green-600 rounded"
+                                    />
+                                    <span className="text-sm font-medium">Delivery Only</span>
+                                </label>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>

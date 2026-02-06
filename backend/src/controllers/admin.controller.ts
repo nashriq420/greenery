@@ -10,11 +10,18 @@ import { logActivity } from '../utils/audit';
 // Get Users with filtering
 export const getUsers = async (req: AuthRequest, res: Response) => {
     try {
-        const { role, status } = req.query as { role?: string, status?: string };
+        const { role, status, search } = req.query as { role?: string, status?: string, search?: string };
 
         const whereClause: any = {};
         if (role) whereClause.role = role;
         if (status) whereClause.status = status;
+
+        if (search) {
+            whereClause.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } }
+            ];
+        }
 
         const users = await prisma.user.findMany({
             where: whereClause,
@@ -76,9 +83,18 @@ const updateListingStatusSchema = z.object({
 // Get Listings (Admin)
 export const getAdminListings = async (req: AuthRequest, res: Response) => {
     try {
-        const { status } = req.query as { status?: string };
+        const { status, search } = req.query as { status?: string, search?: string };
         const whereClause: any = {};
         if (status) whereClause.status = status;
+
+        if (search) {
+            whereClause.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { seller: { name: { contains: search, mode: 'insensitive' } } },
+                { seller: { email: { contains: search, mode: 'insensitive' } } }
+            ];
+        }
 
         const listings = await prisma.listing.findMany({
             where: whereClause,

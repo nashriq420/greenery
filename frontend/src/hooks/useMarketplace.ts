@@ -81,28 +81,54 @@ export interface Listing {
     createdAt?: string;
 }
 
-export function useListings(lat?: number | null, lng?: number | null, radius?: number) {
+export interface ListingFilters {
+    lat?: number | null;
+    lng?: number | null;
+    radius?: number;
+    search?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    strainType?: string;
+    deliveryAvailable?: boolean;
+    thcMin?: string;
+    cbdMin?: string;
+}
+
+export function useListings(filters: ListingFilters = {}) {
     const [listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(false);
     const { token } = useAuthStore();
 
     const fetchListings = async () => {
-        if (!token) return;
         setLoading(true);
         try {
             let url = '/marketplace/listings';
             const params = new URLSearchParams();
-            if (lat && lng) {
-                params.append('lat', lat.toString());
-                params.append('lng', lng.toString());
-                if (radius) params.append('radius', radius.toString());
+
+            // Location
+            if (filters.lat && filters.lng) {
+                params.append('lat', filters.lat.toString());
+                params.append('lng', filters.lng.toString());
+                if (filters.radius) params.append('radius', filters.radius.toString());
             }
+
+            // Text Search
+            if (filters.search) params.append('search', filters.search);
+
+            // Filters
+            if (filters.minPrice) params.append('minPrice', filters.minPrice);
+            if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+            if (filters.strainType) params.append('strainType', filters.strainType);
+            if (filters.deliveryAvailable !== undefined) params.append('deliveryAvailable', String(filters.deliveryAvailable));
+            if (filters.thcMin) params.append('thcMin', filters.thcMin);
+            if (filters.cbdMin) params.append('cbdMin', filters.cbdMin);
+
 
             if (params.toString()) {
                 url += `?${params.toString()}`;
             }
 
-            // Public endpoint potentially, but using token if available is good practice generally
+            // Public endpoint, but allows token usage
             const data = await api.get(url, token || undefined);
             if (Array.isArray(data)) {
                 setListings(data);
@@ -115,8 +141,10 @@ export function useListings(lat?: number | null, lng?: number | null, radius?: n
     };
 
     useEffect(() => {
-        fetchListings();
-    }, [token, lat, lng, radius]);
+        // Debounce fetching if needed, but for now simple effect
+        const timeout = setTimeout(fetchListings, 500);
+        return () => clearTimeout(timeout);
+    }, [token, JSON.stringify(filters)]);
 
     return { listings, loading, refetch: fetchListings };
 }

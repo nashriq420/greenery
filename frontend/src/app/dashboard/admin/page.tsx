@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 // import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 // Types
 type User = {
@@ -42,8 +43,12 @@ type Listing = {
 
 export default function AdminPage() {
     const { token, user } = useAuthStore();
+
     const router = useRouter();
+
+    // ... inside component
     const [mainTab, setMainTab] = useState('customers');
+    const [search, setSearch] = useState(''); // Added Search State
 
     // Data States
     const [customers, setCustomers] = useState<User[]>([]);
@@ -89,16 +94,16 @@ export default function AdminPage() {
             // Fetch everything in parallel or smart fetch based on tab?
             // For simplicity and small scale, let's fetch based on group
             if (mainTab === 'customers') {
-                const res = await api.get('/admin/users?role=CUSTOMER', token || undefined);
+                const url = `/admin/users?role=CUSTOMER${search ? `&search=${search}` : ''}`;
+                const res = await api.get(url, token || undefined);
                 if (Array.isArray(res)) setCustomers(res);
             } else if (mainTab === 'sellers') {
-                const res = await api.get('/admin/users?role=SELLER', token || undefined);
+                const url = `/admin/users?role=SELLER${search ? `&search=${search}` : ''}`;
+                const res = await api.get(url, token || undefined);
                 if (Array.isArray(res)) setSellers(res);
             } else if (mainTab === 'listings') {
-                // Ensure backend supports getting all listings or we might need to filter client side if API is limited?
-                // The current controller supports ?status=... but maybe not all. 
-                // Let's assume /admin/listings returns all if no status param, based on previous analysis.
-                const res = await api.get('/admin/listings', token || undefined);
+                const url = `/admin/listings?${search ? `search=${search}` : ''}`;
+                const res = await api.get(url, token || undefined);
                 if (Array.isArray(res)) setListings(res);
             }
         } catch (err) {
@@ -109,8 +114,11 @@ export default function AdminPage() {
     };
 
     useEffect(() => {
-        if (token && mainTab) fetchData();
-    }, [token, mainTab]);
+        if (token && mainTab) {
+            const timeout = setTimeout(fetchData, 500); // Debounce
+            return () => clearTimeout(timeout);
+        }
+    }, [token, mainTab, search]);
 
     const handleUserStatusUpdate = async (userId: string, newStatus: string) => {
         try {
@@ -134,8 +142,18 @@ export default function AdminPage() {
 
     return (
         <div className="container mx-auto py-10 space-y-8">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+                {mainTab !== 'logs' && (
+                    <div className="w-full md:w-auto">
+                        <Input
+                            placeholder="Search..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full md:w-[300px]"
+                        />
+                    </div>
+                )}
             </div>
 
             <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-6">
