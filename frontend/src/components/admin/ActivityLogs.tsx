@@ -18,6 +18,7 @@ type Log = {
         name: string;
         email: string;
         role: string;
+        profilePicture?: string;
     };
 }
 
@@ -106,7 +107,7 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                         </div>
                         {details.status && (
                             <div className={`text-xs font-medium mt-0.5 ${details.status === 'ACTIVE' || details.status === 'APPROVED' ? 'text-green-600' :
-                                    details.status === 'REJECTED' ? 'text-red-600' : 'text-gray-500'
+                                details.status === 'REJECTED' ? 'text-red-600' : 'text-gray-500'
                                 }`}>
                                 Status: {
                                     details.status === 'ACTIVE' ? 'Approved' :
@@ -156,40 +157,42 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
-                    <div className="flex-1">
+                    <div className="flex-1 w-full">
                         <Input
                             placeholder="Search by user name or email..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="max-w-sm"
+                            className="w-full md:max-w-sm"
                         />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                         <Input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="w-auto"
+                            className="w-full sm:w-auto"
                         />
-                        <span className="self-center text-gray-500">to</span>
+                        <span className="self-center text-gray-500 text-center sm:text-left">to</span>
                         <Input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="w-auto"
+                            className="w-full sm:w-auto"
                         />
                     </div>
                 </div>
 
-                <Tabs defaultValue="ALL" onValueChange={setCategory} className="mt-4">
-                    <TabsList>
-                        <TabsTrigger value="ALL">All Activities</TabsTrigger>
-                        <TabsTrigger value="AUTH">Authentication</TabsTrigger>
-                        <TabsTrigger value="MARKETPLACE">Marketplace</TabsTrigger>
-                        <TabsTrigger value="COMMUNITY">Community</TabsTrigger>
-                        <TabsTrigger value="ADMIN">Admin Actions</TabsTrigger>
-                    </TabsList>
-                </Tabs>
+                <div className="mt-4 -mx-6 px-6 overflow-x-auto">
+                    <Tabs defaultValue="ALL" onValueChange={setCategory} className="w-full">
+                        <TabsList className="w-full justify-start inline-flex min-w-full sm:min-w-0">
+                            <TabsTrigger value="ALL">All Activities</TabsTrigger>
+                            <TabsTrigger value="AUTH">Authentication</TabsTrigger>
+                            <TabsTrigger value="MARKETPLACE">Marketplace</TabsTrigger>
+                            <TabsTrigger value="COMMUNITY">Community</TabsTrigger>
+                            <TabsTrigger value="ADMIN">Admin Actions</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
             </CardHeader>
             <CardContent>
                 {loading ? (
@@ -197,55 +200,124 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                 ) : displayLogs.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">No logs found matching your criteria.</div>
                 ) : (
-                    <div className="rounded-md border overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                                <tr>
-                                    <th className="px-4 py-3 font-medium whitespace-nowrap">Date & Time</th>
-                                    <th className="px-4 py-3 font-medium">Action</th>
-                                    <th className="px-4 py-3 font-medium">User</th>
-                                    <th className="px-4 py-3 font-medium w-[300px]">Details</th>
-                                    <th className="px-4 py-3 font-medium">IP Address</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {displayLogs.map((log) => (
-                                    <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                        <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                                            {new Date(log.createdAt).toLocaleString()}
-                                        </td>
-                                        <td className="px-4 py-3 font-medium">
-                                            <span className={`px-2 py-1 rounded text-xs font-bold ${log.action.includes('REJECT') || log.action.includes('DELETE') ? 'bg-red-100 text-red-800' :
+                    <>
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block rounded-md border overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                                    <tr>
+                                        <th className="px-4 py-3 font-medium whitespace-nowrap">Date & Time</th>
+                                        <th className="px-4 py-3 font-medium">Action</th>
+                                        <th className="px-4 py-3 font-medium">User</th>
+                                        <th className="px-4 py-3 font-medium w-[300px]">Details</th>
+                                        <th className="px-4 py-3 font-medium">IP Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                    {displayLogs.map((log) => (
+                                        <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                            <td className="px-4 py-3 whitespace-nowrap text-gray-500">
+                                                {new Date(log.createdAt).toLocaleString()}
+                                            </td>
+                                            <td className="px-4 py-3 font-medium">
+                                                <span className={`px-2 py-1 rounded text-xs font-bold ${log.action.includes('REJECT') || log.action.includes('DELETE') ? 'bg-red-100 text-red-800' :
                                                     log.action.includes('APPROVE') || log.action.includes('CREATE') ? 'bg-green-100 text-green-800' :
                                                         log.action.includes('WARN') ? 'bg-yellow-100 text-yellow-800' :
                                                             'bg-blue-100 text-blue-800'
-                                                }`}>
-                                                {log.action}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            {log.user ? (
+                                                    }`}>
+                                                    {log.action}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {log.user ? (
+                                                    <div className="flex items-center gap-2">
+                                                        {log.user.profilePicture ? (
+                                                            <img
+                                                                src={log.user.profilePicture}
+                                                                alt={log.user.name}
+                                                                className="w-6 h-6 rounded-full object-cover border"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                                                                {log.user.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <div className="font-medium">{log.user.name}</div>
+                                                            <div className="text-xs text-gray-500">{log.user.email}</div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <span className="italic text-gray-400">System</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {renderDetails(log.details)}
+                                            </td>
+                                            <td className="px-4 py-3 font-mono text-xs text-gray-500">
+                                                {log.ipAddress}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
+                            {displayLogs.map((log) => (
+                                <div key={log.id} className="border rounded-lg p-4 space-y-3 bg-white dark:bg-gray-900 shadow-sm">
+                                    <div className="flex justify-between items-start">
+                                        <span className={`px-2 py-1 rounded text-xs font-bold ${log.action.includes('REJECT') || log.action.includes('DELETE') ? 'bg-red-100 text-red-800' :
+                                            log.action.includes('APPROVE') || log.action.includes('CREATE') ? 'bg-green-100 text-green-800' :
+                                                log.action.includes('WARN') ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-blue-100 text-blue-800'
+                                            }`}>
+                                            {log.action}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            {new Date(log.createdAt).toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500 uppercase font-semibold mb-1">User</div>
+                                        {log.user ? (
+                                            <div className="flex items-center gap-2">
+                                                {log.user.profilePicture ? (
+                                                    <img
+                                                        src={log.user.profilePicture}
+                                                        alt={log.user.name}
+                                                        className="w-6 h-6 rounded-full object-cover border"
+                                                    />
+                                                ) : (
+                                                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                                                        {log.user.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
                                                 <div>
-                                                    <div className="font-medium">{log.user.name}</div>
+                                                    <div className="text-sm font-medium">{log.user.name}</div>
                                                     <div className="text-xs text-gray-500">{log.user.email}</div>
                                                 </div>
-                                            ) : (
-                                                <span className="italic text-gray-400">System</span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3">
+                                            </div>
+                                        ) : (
+                                            <span className="italic text-gray-400 text-sm">System</span>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Details</div>
+                                        <div className="bg-gray-50 dark:bg-gray-800/50 p-2 rounded text-sm">
                                             {renderDetails(log.details)}
-                                        </td>
-                                        <td className="px-4 py-3 font-mono text-xs text-gray-500">
-                                            {log.ipAddress}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                        </div>
+                                    </div>
+                                    <div className="pt-2 border-t flex justify-end">
+                                        <span className="text-xs font-mono text-gray-400">IP: {log.ipAddress}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 )}
             </CardContent>
-        </Card>
+        </Card >
     );
 }
