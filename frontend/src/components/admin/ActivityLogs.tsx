@@ -182,14 +182,14 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                     </div>
                 </div>
 
-                <div className="mt-4 -mx-6 px-6 overflow-x-auto">
+                <div className="mt-4">
                     <Tabs defaultValue="ALL" onValueChange={setCategory} className="w-full">
-                        <TabsList className="w-full justify-start inline-flex min-w-full sm:min-w-0">
-                            <TabsTrigger value="ALL">All Activities</TabsTrigger>
-                            <TabsTrigger value="AUTH">Authentication</TabsTrigger>
-                            <TabsTrigger value="MARKETPLACE">Marketplace</TabsTrigger>
-                            <TabsTrigger value="COMMUNITY">Community</TabsTrigger>
-                            <TabsTrigger value="ADMIN">Admin Actions</TabsTrigger>
+                        <TabsList className="w-full h-auto flex flex-wrap justify-start gap-1 p-1 bg-muted/50">
+                            <TabsTrigger value="ALL" className="flex-grow sm:flex-grow-0">All Activities</TabsTrigger>
+                            <TabsTrigger value="AUTH" className="flex-grow sm:flex-grow-0">Authentication</TabsTrigger>
+                            <TabsTrigger value="MARKETPLACE" className="flex-grow sm:flex-grow-0">Marketplace</TabsTrigger>
+                            <TabsTrigger value="COMMUNITY" className="flex-grow sm:flex-grow-0">Community</TabsTrigger>
+                            <TabsTrigger value="ADMIN" className="flex-grow sm:flex-grow-0">Admin Actions</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>

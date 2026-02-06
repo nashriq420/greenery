@@ -264,7 +264,8 @@ export const getLogs = async (req: AuthRequest, res: Response) => {
                     select: {
                         name: true,
                         email: true,
-                        role: true
+                        role: true,
+                        profilePicture: true
                     }
                 }
             },
