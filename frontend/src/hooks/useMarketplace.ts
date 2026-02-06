@@ -57,6 +57,17 @@ export interface Listing {
     active?: boolean;
     status: 'PENDING' | 'ACTIVE' | 'SOLD' | 'REJECTED';
     imageUrl: string | null;
+
+    // New Fields
+    discountPrice?: string | number | null;
+    promotionStart?: string | Date | null;
+    promotionEnd?: string | Date | null;
+    deliveryAvailable?: boolean;
+    minQuantity?: number;
+    strainType?: 'Indica' | 'Sativa' | 'Hybrid' | null | string;
+    thcContent?: number | null;
+    cbdContent?: number | null;
+
     seller: {
         id: string;
         name: string;
@@ -137,6 +148,19 @@ export function useMyListings() {
     return { listings, loading, refetch: fetchListings };
 }
 
-export const createListing = async (data: { title: string; description: string; price: number; imageUrl?: string }, token: string) => {
+export const createListing = async (data: {
+    title: string;
+    description: string;
+    price: number;
+    imageUrl?: string;
+    discountPrice?: number;
+    promotionStart?: Date;
+    promotionEnd?: Date;
+    deliveryAvailable?: boolean;
+    minQuantity?: number;
+    strainType?: string;
+    thcContent?: number;
+    cbdContent?: number;
+}, token: string) => {
     return await api.post('/marketplace/listings', data, token);
 };

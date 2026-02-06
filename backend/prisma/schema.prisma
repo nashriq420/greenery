@@ -195,6 +195,18 @@ model Listing {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Promotion & Requirements
+  discountPrice   Decimal?
+  promotionStart  DateTime?
+  promotionEnd    DateTime?
+  deliveryAvailable Boolean @default(false)
+  minQuantity     Int       @default(1)
+
+  // Cannabis Metadata
+  strainType      String?  // Indica, Sativa, Hybrid
+  thcContent      Float?
+  cbdContent      Float?
 }
 
 model Chat {

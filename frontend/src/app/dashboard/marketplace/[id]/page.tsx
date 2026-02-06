@@ -28,6 +28,14 @@ interface ListingDetails {
     description: string;
     price: string;
     imageUrl: string | null;
+    discountPrice?: string | number | null;
+    promotionStart?: string | Date | null;
+    promotionEnd?: string | Date | null;
+    deliveryAvailable?: boolean;
+    minQuantity?: number;
+    strainType?: string | null;
+    thcContent?: number | null;
+    cbdContent?: number | null;
     sellerId: string;
     seller: {
         id: string;
@@ -109,7 +117,11 @@ export default function ListingDetailsPage() {
     };
 
     const handleChat = async () => {
-        if (!token || !listing) return;
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+        if (!listing) return;
         setStartingChat(true);
         try {
             const chat = await api.post('/chat', { participantId: listing.sellerId }, token);
@@ -146,8 +158,20 @@ export default function ListingDetailsPage() {
                             <p className="text-gray-500">by {listing.seller.name}</p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                            <div className="text-2xl font-bold text-green-700">${listing.price}</div>
-                            {user && !isOwner && (
+                            {listing.discountPrice ? (
+                                <div className="text-right">
+                                    <div className="text-2xl font-bold text-red-600">RM {listing.discountPrice}</div>
+                                    <div className="text-sm text-gray-400 line-through">RM {listing.price}</div>
+                                    {listing.promotionEnd && (
+                                        <div className="text-xs text-red-500 font-medium mt-1">
+                                            Ends {new Date(listing.promotionEnd).toLocaleDateString()}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-2xl font-bold text-green-700">RM {listing.price}</div>
+                            )}
+                            {!isOwner && (
                                 <button
                                     onClick={handleChat}
                                     disabled={startingChat}
@@ -158,7 +182,25 @@ export default function ListingDetailsPage() {
                             )}
                         </div>
                     </div>
-                    <p className="mt-4 text-gray-700 whitespace-pre-line">{listing.description}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        {listing.deliveryAvailable && (
+                            <span className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-semibold">Delivery Available</span>
+                        )}
+                        {listing.minQuantity && listing.minQuantity > 1 && (
+                            <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full font-semibold">Min Qty: {listing.minQuantity}</span>
+                        )}
+                        {listing.strainType && (
+                            <span className="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full font-semibold">{listing.strainType}</span>
+                        )}
+                        {(listing.thcContent || listing.cbdContent) && (
+                            <span className="bg-blue-50 text-blue-800 text-sm px-3 py-1 rounded-full font-semibold border border-blue-100">
+                                {listing.thcContent ? `THC: ${listing.thcContent}%` : ''}
+                                {listing.thcContent && listing.cbdContent ? ' • ' : ''}
+                                {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}
+                            </span>
+                        )}
+                    </div>
+                    <p className="mt-6 text-gray-700 whitespace-pre-line">{listing.description}</p>
                     <div className="mt-6 text-sm text-gray-500">
                         {listing.seller.sellerProfile?.city}, {listing.seller.sellerProfile?.state}
                     </div>

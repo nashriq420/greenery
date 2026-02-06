@@ -10,7 +10,19 @@ const createListingSchema = z.object({
     title: z.string().min(3, "Title must be at least 3 characters long"),
     description: z.string().min(10, "Description must be at least 10 characters long"),
     price: z.number().min(0, "Price cannot be negative"),
-    imageUrl: z.string().url("Image URL must be a valid URL").optional().or(z.literal(''))
+    imageUrl: z.string().url("Image URL must be a valid URL").optional().or(z.literal('')),
+
+    // Promotion & Requirements
+    discountPrice: z.number().min(0).optional(),
+    promotionStart: z.coerce.date().optional(),
+    promotionEnd: z.coerce.date().optional(),
+    deliveryAvailable: z.boolean().default(false),
+    minQuantity: z.number().int().min(1).default(1),
+
+    // Cannabis Metadata
+    strainType: z.enum(['Indica', 'Sativa', 'Hybrid']).optional(),
+    thcContent: z.number().min(0).max(100).optional(),
+    cbdContent: z.number().min(0).max(100).optional(),
 });
 
 const getSellersQuerySchema = z.object({

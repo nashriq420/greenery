@@ -26,7 +26,15 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
         title: '',
         description: '',
         price: '',
-        imageUrl: ''
+        imageUrl: '',
+        discountPrice: '',
+        promotionStart: '',
+        promotionEnd: '',
+        deliveryAvailable: false,
+        minQuantity: '1',
+        strainType: '',
+        thcContent: '',
+        cbdContent: ''
     });
 
     useEffect(() => {
@@ -35,7 +43,15 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                 title: listing.title,
                 description: listing.description || '',
                 price: listing.price.toString(),
-                imageUrl: listing.imageUrl || ''
+                imageUrl: listing.imageUrl || '',
+                discountPrice: listing.discountPrice?.toString() || '',
+                promotionStart: listing.promotionStart ? new Date(listing.promotionStart).toISOString().split('T')[0] : '',
+                promotionEnd: listing.promotionEnd ? new Date(listing.promotionEnd).toISOString().split('T')[0] : '',
+                deliveryAvailable: listing.deliveryAvailable || false,
+                minQuantity: listing.minQuantity?.toString() || '1',
+                strainType: listing.strainType || '',
+                thcContent: listing.thcContent?.toString() || '',
+                cbdContent: listing.cbdContent?.toString() || ''
             });
             setPreviewUrl(listing.imageUrl || '');
         }
@@ -43,8 +59,13 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
 
     if (!listing) return null;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        if (type === 'checkbox') {
+            setFormData({ ...formData, [name]: (e.target as HTMLInputElement).checked });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,6 +98,12 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
             await api.put(`/marketplace/listings/${listing.id}`, {
                 ...formData,
                 price: parseFloat(formData.price),
+                discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : undefined,
+                promotionStart: formData.promotionStart ? new Date(formData.promotionStart) : undefined,
+                promotionEnd: formData.promotionEnd ? new Date(formData.promotionEnd) : undefined,
+                minQuantity: parseInt(formData.minQuantity) || 1,
+                thcContent: formData.thcContent ? parseFloat(formData.thcContent) : undefined,
+                cbdContent: formData.cbdContent ? parseFloat(formData.cbdContent) : undefined,
                 imageUrl: finalImageUrl
             }, token!);
 
@@ -134,6 +161,111 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                                 step="0.01"
                                 min="0"
                                 placeholder="0.00"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="discountPrice">Discount Price ($)</Label>
+                            <Input
+                                id="discountPrice"
+                                type="number"
+                                name="discountPrice"
+                                value={formData.discountPrice}
+                                onChange={handleChange}
+                                step="0.01"
+                                min="0"
+                                placeholder="Optional"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="promotionStart">Promotion Start</Label>
+                            <Input
+                                id="promotionStart"
+                                type="date"
+                                name="promotionStart"
+                                value={formData.promotionStart}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="promotionEnd">Promotion End</Label>
+                            <Input
+                                id="promotionEnd"
+                                type="date"
+                                name="promotionEnd"
+                                value={formData.promotionEnd}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="minQuantity">Min Quantity</Label>
+                            <Input
+                                id="minQuantity"
+                                type="number"
+                                name="minQuantity"
+                                value={formData.minQuantity}
+                                onChange={handleChange}
+                                min="1"
+                            />
+                        </div>
+                        <div className="flex items-center space-x-2 pt-8">
+                            <input
+                                type="checkbox"
+                                id="deliveryAvailable"
+                                name="deliveryAvailable"
+                                checked={formData.deliveryAvailable}
+                                onChange={handleChange}
+                                className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
+                            />
+                            <Label htmlFor="deliveryAvailable">Delivery Available</Label>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="strainType">Strain Type</Label>
+                            <select
+                                id="strainType"
+                                name="strainType"
+                                value={formData.strainType}
+                                onChange={handleChange}
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <option value="">Select...</option>
+                                <option value="Indica">Indica</option>
+                                <option value="Sativa">Sativa</option>
+                                <option value="Hybrid">Hybrid</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="thcContent">THC (%)</Label>
+                            <Input
+                                id="thcContent"
+                                type="number"
+                                name="thcContent"
+                                value={formData.thcContent}
+                                onChange={handleChange}
+                                step="0.1"
+                                min="0"
+                                max="100"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="cbdContent">CBD (%)</Label>
+                            <Input
+                                id="cbdContent"
+                                type="number"
+                                name="cbdContent"
+                                value={formData.cbdContent}
+                                onChange={handleChange}
+                                step="0.1"
+                                min="0"
+                                max="100"
                             />
                         </div>
                     </div>

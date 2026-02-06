@@ -31,7 +31,40 @@ export default function ViewListingModal({ listing, onClose }: ViewListingModalP
 
                     <div>
                         <h3 className="text-lg font-semibold text-gray-900">{listing.title}</h3>
-                        <p className="text-xl font-bold text-green-600 mt-1">${listing.price}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                            {listing.discountPrice ? (
+                                <div className="flex items-end gap-2">
+                                    <span className="text-xl font-bold text-red-600">RM {listing.discountPrice}</span>
+                                    <span className="text-sm text-gray-400 line-through mb-1">RM {listing.price}</span>
+                                    {listing.promotionEnd && (
+                                        <span className="text-xs text-red-500 mb-1 ml-1 bg-red-50 px-2 py-0.5 rounded-full">
+                                            Ends {new Date(listing.promotionEnd).toLocaleDateString()}
+                                        </span>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-xl font-bold text-green-600">RM {listing.price}</p>
+                            )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mt-3">
+                            {listing.deliveryAvailable && (
+                                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold">Delivery Available</span>
+                            )}
+                            {listing.minQuantity && listing.minQuantity > 1 && (
+                                <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full font-semibold">Min Qty: {listing.minQuantity}</span>
+                            )}
+                            {listing.strainType && (
+                                <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-semibold">{listing.strainType}</span>
+                            )}
+                            {(listing.thcContent || listing.cbdContent) && (
+                                <span className="bg-blue-50 text-blue-800 text-xs px-2 py-1 rounded-full font-semibold border border-blue-100">
+                                    {listing.thcContent ? `THC: ${listing.thcContent}%` : ''}
+                                    {listing.thcContent && listing.cbdContent ? ' • ' : ''}
+                                    {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}
+                                </span>
+                            )}
+                        </div>
                     </div>
 
                     <div>

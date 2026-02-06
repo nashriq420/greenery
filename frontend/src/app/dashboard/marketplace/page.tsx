@@ -18,7 +18,15 @@ export default function MarketplacePage() {
         title: '',
         description: '',
         price: '',
-        imageUrl: ''
+        imageUrl: '',
+        discountPrice: '',
+        promotionStart: '',
+        promotionEnd: '',
+        deliveryAvailable: false,
+        minQuantity: '1',
+        strainType: '',
+        thcContent: '',
+        cbdContent: ''
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -88,11 +96,21 @@ export default function MarketplacePage() {
                 title: formData.title,
                 description: formData.description,
                 price: parseFloat(formData.price),
+                deliveryAvailable: formData.deliveryAvailable,
+                minQuantity: parseInt(formData.minQuantity) || 1,
+                strainType: formData.strainType || undefined,
+                thcContent: formData.thcContent ? parseFloat(formData.thcContent) : undefined,
+                cbdContent: formData.cbdContent ? parseFloat(formData.cbdContent) : undefined,
                 imageUrl: formData.imageUrl || undefined
             }, token);
 
             setIsModalOpen(false);
-            setFormData({ title: '', description: '', price: '', imageUrl: '' });
+            setFormData({
+                title: '', description: '', price: '', imageUrl: '',
+                discountPrice: '', promotionStart: '', promotionEnd: '',
+                deliveryAvailable: false, minQuantity: '1',
+                strainType: '', thcContent: '', cbdContent: ''
+            });
             refetch();
             setShowSuccessMessage(true);
         } catch (error) {
@@ -182,8 +200,23 @@ export default function MarketplacePage() {
                                                     <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                                                 )}
                                                 <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-bold shadow">
-                                                    RM {listing.price}
+                                                    {listing.discountPrice ? (
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-gray-400 line-through text-xs">RM {listing.price}</span>
+                                                            <span className="text-red-600">RM {listing.discountPrice}</span>
+                                                            {listing.promotionEnd && (
+                                                                <span className="text-[10px] text-red-500 font-normal">Ends {new Date(listing.promotionEnd).toLocaleDateString()}</span>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span>RM {listing.price}</span>
+                                                    )}
                                                 </div>
+                                                {listing.deliveryAvailable && (
+                                                    <div className="absolute top-2 left-2 bg-green-100 text-green-800 px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase">
+                                                        Delivery
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="p-4">
                                                 <h3 className="font-bold text-lg">{listing.title}</h3>
@@ -205,6 +238,21 @@ export default function MarketplacePage() {
                                                 <div className="mt-4 flex justify-between items-center text-xs text-gray-400">
                                                     <span>{listing.seller.sellerProfile?.city || 'Unknown Location'}</span>
                                                     <span>{new Date(listing.createdAt || Date.now()).toLocaleDateString()}</span>
+                                                </div>
+                                                <div className="mt-2 flex flex-wrap gap-1">
+                                                    {listing.minQuantity && listing.minQuantity > 1 && (
+                                                        <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border">Min Qty: {listing.minQuantity}</span>
+                                                    )}
+                                                    {listing.strainType && (
+                                                        <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded border border-purple-200">{listing.strainType}</span>
+                                                    )}
+                                                    {(listing.thcContent || listing.cbdContent) && (
+                                                        <span className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded border border-green-200">
+                                                            {listing.thcContent ? `THC: ${listing.thcContent}%` : ''}
+                                                            {listing.thcContent && listing.cbdContent ? ' • ' : ''}
+                                                            {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -244,6 +292,71 @@ export default function MarketplacePage() {
                                     value={formData.price}
                                     onChange={e => setFormData({ ...formData, price: e.target.value })}
                                 />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Min Qty</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        className="w-full border rounded p-2"
+                                        value={formData.minQuantity}
+                                        onChange={e => setFormData({ ...formData, minQuantity: e.target.value })}
+                                    />
+                                </div>
+                                <div className="flex items-center pt-6">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.deliveryAvailable}
+                                            onChange={e => setFormData({ ...formData, deliveryAvailable: e.target.checked })}
+                                            className="w-4 h-4 text-green-600 rounded"
+                                        />
+                                        <span className="text-sm font-medium">Delivery Available</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="space-y-3 pt-2 border-t">
+                                <h3 className="text-sm font-semibold text-gray-700">Product Details</h3>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Strain Type</label>
+                                    <select
+                                        className="w-full border rounded p-2"
+                                        value={formData.strainType}
+                                        onChange={e => setFormData({ ...formData, strainType: e.target.value })}
+                                    >
+                                        <option value="">Select...</option>
+                                        <option value="Indica">Indica</option>
+                                        <option value="Sativa">Sativa</option>
+                                        <option value="Hybrid">Hybrid</option>
+                                    </select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">THC (%)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.1"
+                                            className="w-full border rounded p-2"
+                                            value={formData.thcContent}
+                                            onChange={e => setFormData({ ...formData, thcContent: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">CBD (%)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.1"
+                                            className="w-full border rounded p-2"
+                                            value={formData.cbdContent}
+                                            onChange={e => setFormData({ ...formData, cbdContent: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">Description</label>
