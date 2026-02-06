@@ -175,7 +175,9 @@ export default function MapComponent() {
                                                     alt={seller.name}
                                                     className="w-full h-full object-cover"
                                                     onError={(e) => {
-                                                        (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(seller.name);
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.onerror = null;
+                                                        target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(seller.name);
                                                     }}
                                                 />
                                             </div>

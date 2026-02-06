@@ -20,7 +20,10 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
+                // Defer closing to allow click events on outside targets to register first
+                setTimeout(() => {
+                    setIsOpen(false);
+                }, 10);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);

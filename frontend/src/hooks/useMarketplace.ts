@@ -76,6 +76,7 @@ export function useListings(lat?: number | null, lng?: number | null, radius?: n
     const { token } = useAuthStore();
 
     const fetchListings = async () => {
+        if (!token) return;
         setLoading(true);
         try {
             let url = '/marketplace/listings';
