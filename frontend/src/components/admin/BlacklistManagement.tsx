@@ -150,7 +150,50 @@ export default function BlacklistManagement() {
 
             <section>
                 <h2 className="text-xl font-semibold mb-4">History</h2>
-                <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+
+                {/* Mobile View - Cards */}
+                <div className="md:hidden space-y-4">
+                    {historyReports.length === 0 ? (
+                        <Card><CardContent className="py-8 text-center text-gray-500">No history found.</CardContent></Card>
+                    ) : (
+                        historyReports.map((report) => (
+                            <Card key={report.id}>
+                                <CardHeader className="pb-2">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <CardTitle className="text-lg">{report.username}</CardTitle>
+                                            <CardDescription className="text-sm">
+                                                {new Date(report.createdAt).toLocaleDateString()}
+                                            </CardDescription>
+                                        </div>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${report.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {report.status}
+                                        </span>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><span className="font-semibold">Region:</span> {report.region}</div>
+                                        <div><span className="font-semibold">Reporter:</span> {report.reporter?.name || 'Anonymous'}</div>
+                                    </div>
+                                    <div className="pt-2 flex justify-end">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            disabled={processing === report.id}
+                                            onClick={() => handleUpdateStatus(report.id, report.status === 'APPROVED' ? 'REJECTED' : 'APPROVED')}
+                                        >
+                                            {report.status === 'APPROVED' ? 'Revoke' : 'Re-Approve'}
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
+
+                {/* Desktop View - Table */}
+                <div className="hidden md:block bg-white rounded-lg border shadow-sm overflow-hidden">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 border-b">
                             <tr>
@@ -179,6 +222,7 @@ export default function BlacklistManagement() {
                                         <Button
                                             variant="ghost"
                                             size="sm"
+                                            disabled={processing === report.id}
                                             onClick={() => handleUpdateStatus(report.id, report.status === 'APPROVED' ? 'REJECTED' : 'APPROVED')}
                                         >
                                             {report.status === 'APPROVED' ? 'Revoke' : 'Re-Approve'}
