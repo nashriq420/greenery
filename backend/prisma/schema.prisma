@@ -163,6 +163,8 @@ model SellerProfile {
   country   String?
   
   description String?
+  openingHours String?
+  bannerUrl    String?
 }
 
 model Subscription {

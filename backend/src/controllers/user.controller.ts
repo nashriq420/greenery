@@ -19,7 +19,10 @@ const updateLocationSchema = z.object({
     city: z.string().optional(),
     state: z.string().optional(),
     country: z.string().optional(),
-    description: z.string().optional()
+
+    description: z.string().optional(),
+    openingHours: z.string().optional(),
+    bannerUrl: z.string().optional()
 });
 
 export const getMe = async (req: AuthRequest, res: Response) => {
@@ -113,6 +116,7 @@ export const updateLocation = async (req: AuthRequest, res: Response) => {
         }
 
         const validated = updateLocationSchema.parse(req.body);
+        logger.info('Updating location for user ' + userId, validated);
 
         const sellerProfile = await prisma.sellerProfile.upsert({
             where: { userId },
@@ -124,7 +128,9 @@ export const updateLocation = async (req: AuthRequest, res: Response) => {
                 city: validated.city,
                 state: validated.state,
                 country: validated.country,
-                description: validated.description
+                description: validated.description,
+                openingHours: validated.openingHours,
+                bannerUrl: validated.bannerUrl
             },
             update: {
                 latitude: validated.lat,
@@ -133,7 +139,9 @@ export const updateLocation = async (req: AuthRequest, res: Response) => {
                 city: validated.city,
                 state: validated.state,
                 country: validated.country,
-                description: validated.description
+                description: validated.description,
+                openingHours: validated.openingHours,
+                bannerUrl: validated.bannerUrl
             }
         });
 

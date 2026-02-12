@@ -418,7 +418,9 @@ export const getSellerById = async (req: Request, res: Response) => {
                         description: true,
                         address: true,
                         latitude: true,
-                        longitude: true
+                        longitude: true,
+                        openingHours: true,
+                        bannerUrl: true
                     }
                 },
                 loginHistory: {

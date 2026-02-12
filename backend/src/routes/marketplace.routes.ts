@@ -13,7 +13,7 @@ router.use((req, res, next) => {
 });
 
 router.get('/sellers', authenticateToken, getSellersNearby);
-router.get('/listings', authenticateToken, getListings);
+router.get('/listings', getListings); // Public access
 router.get('/listings/:id', getListingById); // Public access
 router.get('/sellers/:id', getSellerById); // Public access
 router.post('/listings', authenticateToken, requireRole(['SELLER', 'ADMIN']), createListing);

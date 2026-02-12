@@ -6,15 +6,11 @@ import { useAuthStore } from '@/store/authStore';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Star, MapPin, Calendar, MessageCircle, Clock, Search } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { Icon } from 'leaflet';
+import dynamic from 'next/dynamic';
 
-// Fix Leaflet marker icon
-const icon = new Icon({
-    iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
+const SellerLocationMap = dynamic(() => import('@/components/SellerLocationMap'), {
+    ssr: false,
+    loading: () => <div className="h-[400px] w-full bg-gray-100 animate-pulse" />
 });
 
 export default function SellerProfilePage() {
@@ -25,26 +21,17 @@ export default function SellerProfilePage() {
     const [seller, setSeller] = useState<any>(null);
     const [listings, setListings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('Menus'); // Default to Menus as per request imply "current listing... leave as it is" inside tab
+    const [activeTab, setActiveTab] = useState('Menus');
 
     useEffect(() => {
         if (!id) return;
-
         const fetchData = async () => {
             try {
                 setLoading(true);
-                // Fetch Seller Details
-                // If token is available, use it (though endpoint is public, might be useful later)
                 const sellerData = await api.get(`/marketplace/sellers/${id}`, token || undefined);
                 setSeller(sellerData);
-
-                // Fetch Listings
                 const allListings = await api.get('/marketplace/listings', token || undefined);
                 if (Array.isArray(allListings)) {
-                    // Filter by sellerId
-                    // Note: Backend getListings doesn't strictly support filtering by sellerId in query yet for public (only my-listings), 
-                    // so we filter client side as before or we could update backend to support ?sellerId=... 
-                    // For now, client side filtering to match previous logic safely.
                     const sellerListings = allListings.filter((l: any) => l.seller.id === id);
                     setListings(sellerListings);
                 }
@@ -58,7 +45,17 @@ export default function SellerProfilePage() {
         fetchData();
     }, [id, token]);
 
+    // ...
+
+    // Helper to safety check banner url or use default
+    const bannerUrl = seller?.sellerProfile?.bannerUrl || "https://images.unsplash.com/photo-1603569283847-aa295f0d016a?q=80&w=1000&auto=format&fit=crop";
+
+    // Helper to parse Opening Hours
+    const openingHours = seller?.sellerProfile?.openingHours || "";
+    const [days, timeRange] = openingHours.split('|').map((s: string) => s.trim());
+
     if (loading) return (
+        // ...
         <div className="flex justify-center items-center min-h-[500px]">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
         </div>
@@ -75,9 +72,13 @@ export default function SellerProfilePage() {
             {/* Banner Area */}
             <div className="relative w-full h-48 md:h-64 bg-gray-200 overflow-hidden">
                 <img
-                    src="https://images.unsplash.com/photo-1603569283847-aa295f0d016a?q=80&w=1000&auto=format&fit=crop"
+                    src={bannerUrl}
                     alt="Cover Banner"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                        // Fallback if image fails
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1603569283847-aa295f0d016a?q=80&w=1000&auto=format&fit=crop";
+                    }}
                 />
             </div>
 
@@ -106,12 +107,23 @@ export default function SellerProfilePage() {
                     {/* Info Section */}
                     <div className="mt-6 space-y-4">
                         {/* Status / Hours */}
-                        <div className="flex items-center gap-2 text-gray-700 font-medium">
-                            <span className="text-red-500 text-lg">💈</span>
-                            <span>OPEN 7Days</span>
-                            <span className="text-red-500 text-lg">💈</span>
-                            <span>10am-10pm</span>
-                        </div>
+                        {openingHours ? (
+                            <div className="flex items-center gap-2 text-gray-700 font-medium">
+                                <span className="text-red-500 text-lg">💈</span>
+                                <span>{days}</span>
+                                <span className="text-red-500 text-lg">💈</span>
+                                <span>{timeRange}</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 text-gray-500 font-medium italic">
+                                <Clock className="w-4 h-4" />
+                                <span>Hours not set</span>
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        {/* ... */}
+
 
                         {/* Action Buttons */}
                         <div className="flex flex-wrap gap-3">
@@ -263,23 +275,11 @@ export default function SellerProfilePage() {
                     {activeTab === 'Show on Map' && (
                         <div className="h-[400px] rounded-xl overflow-hidden border shadow-inner">
                             {typeof window !== 'undefined' && seller.sellerProfile?.latitude && (
-                                <MapContainer
-                                    center={[seller.sellerProfile.latitude, seller.sellerProfile.longitude]}
-                                    zoom={14}
-                                    scrollWheelZoom={false}
-                                    className="h-full w-full"
-                                >
-                                    <TileLayer
-                                        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                    />
-                                    <Marker
-                                        position={[seller.sellerProfile.latitude, seller.sellerProfile.longitude]}
-                                        icon={icon}
-                                    >
-                                        <Popup>{seller.name}'s Location</Popup>
-                                    </Marker>
-                                </MapContainer>
+                                <SellerLocationMap
+                                    latitude={seller.sellerProfile.latitude}
+                                    longitude={seller.sellerProfile.longitude}
+                                    sellerName={seller.name}
+                                />
                             )}
                         </div>
                     )}

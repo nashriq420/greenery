@@ -3,17 +3,9 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Icon } from 'leaflet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-// Fix Leaflet Default Icon issue
-const customIcon = new Icon({
-    iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-});
 
 interface LocationPickerProps {
     initialLat?: number;
@@ -28,10 +20,11 @@ interface LocationPickerProps {
     }) => void;
 }
 
-function LocationMarker({ position, setPosition, onDragEnd }: {
+function LocationMarker({ position, setPosition, onDragEnd, icon }: {
     position: { lat: number; lng: number };
     setPosition: (pos: { lat: number; lng: number }) => void;
     onDragEnd: (lat: number, lng: number) => void;
+    icon: any;
 }) {
     const markerRef = useRef<any>(null);
     const map = useMap();
@@ -70,7 +63,7 @@ function LocationMarker({ position, setPosition, onDragEnd }: {
             eventHandlers={eventHandlers}
             position={position}
             ref={markerRef}
-            icon={customIcon}
+            icon={icon}
         >
             <Popup>Selected Location</Popup>
         </Marker>
@@ -85,12 +78,25 @@ export default function LocationPicker({ initialLat, initialLng, onLocationSelec
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
+    const [customIcon, setCustomIcon] = useState<any>(null);
 
     useEffect(() => {
         setIsMounted(true);
         if (initialLat && initialLng) {
             setPosition({ lat: initialLat, lng: initialLng });
         }
+
+        // Dynamically load Leaflet to avoid SSR window error
+        (async () => {
+            const L = (await import('leaflet')).default;
+            const icon = new L.Icon({
+                iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            });
+            setCustomIcon(icon);
+        })();
+
     }, [initialLat, initialLng]);
 
     const handleSearch = async () => {
@@ -147,7 +153,7 @@ export default function LocationPicker({ initialLat, initialLng, onLocationSelec
         }
     };
 
-    if (!isMounted) return <div className="h-[400px] w-full bg-gray-100 animate-pulse rounded-md" />;
+    if (!isMounted || !customIcon) return <div className="h-[400px] w-full bg-gray-100 animate-pulse rounded-md" />;
 
     return (
         <div className="space-y-4">
@@ -177,6 +183,7 @@ export default function LocationPicker({ initialLat, initialLng, onLocationSelec
                         position={position}
                         setPosition={setPosition}
                         onDragEnd={fetchAddressDetails}
+                        icon={customIcon}
                     />
                 </MapContainer>
             </div>
@@ -186,3 +193,5 @@ export default function LocationPicker({ initialLat, initialLng, onLocationSelec
         </div>
     );
 }
+
+// Add empty export to make it a module if needed, though 'export default' is enough.
