@@ -45,8 +45,14 @@ interface ListingDetails {
             state: string | null;
             description: string | null;
         } | null;
-    };
+    } | null;
     reviews: Review[];
+
+    // New Fields
+    type?: string | null;
+    flavors?: string | null;
+    effects?: string | null;
+    sku?: string | null;
 }
 
 export default function ListingDetailsPage() {
@@ -161,7 +167,7 @@ export default function ListingDetailsPage() {
                         <div>
                             <h1 className="text-3xl font-bold">{listing.title}</h1>
                             <p className="text-gray-500">
-                                by <Link href={`/dashboard/seller/${listing.sellerId}`} className="hover:text-green-600 hover:underline">{listing.seller.name}</Link>
+                                by <Link href={`/dashboard/seller/${listing.sellerId}`} className="hover:text-green-600 hover:underline">{listing.seller?.name || 'Unknown Seller'}</Link>
                             </p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
@@ -207,9 +213,35 @@ export default function ListingDetailsPage() {
                             </span>
                         )}
                     </div>
+                    <div className="mt-4 text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-2">
+                        {listing.type && (
+                            <div className="flex">
+                                <span className="font-semibold w-24 text-gray-900">Type:</span>
+                                <span>{listing.type}</span>
+                            </div>
+                        )}
+                        {listing.flavors && (
+                            <div className="flex">
+                                <span className="font-semibold w-24 text-gray-900">Flavor:</span>
+                                <span>{listing.flavors}</span>
+                            </div>
+                        )}
+                        {listing.effects && (
+                            <div className="flex">
+                                <span className="font-semibold w-24 text-gray-900">Effect:</span>
+                                <span>{listing.effects}</span>
+                            </div>
+                        )}
+                        {listing.sku && (
+                            <div className="flex">
+                                <span className="font-semibold w-24 text-gray-900">SKU:</span>
+                                <span>{listing.sku}</span>
+                            </div>
+                        )}
+                    </div>
                     <p className="mt-6 text-gray-700 whitespace-pre-line">{listing.description}</p>
                     <div className="mt-6 text-sm text-gray-500">
-                        {listing.seller.sellerProfile?.city}, {listing.seller.sellerProfile?.state}
+                        {listing.seller?.sellerProfile?.city}, {listing.seller?.sellerProfile?.state}
                     </div>
                 </div>
             </div>
@@ -327,6 +359,6 @@ export default function ListingDetailsPage() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

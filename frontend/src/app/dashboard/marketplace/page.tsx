@@ -11,6 +11,12 @@ import { api } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
+const PRODUCT_TYPES = [
+    "Concentrates", "Clones", "Extract", "Edible", "Flower",
+    "Topicals", "Grow", "Gear", "Preroll", "Smoking",
+    "Tinctures", "Vaporizers", "Unidentified", "Others"
+];
+
 export default function MarketplacePage() {
     const { user, token } = useAuthStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,9 +32,14 @@ export default function MarketplacePage() {
         promotionEnd: '',
         deliveryAvailable: false,
         minQuantity: '1',
+
         strainType: '',
         thcContent: '',
-        cbdContent: ''
+        cbdContent: '',
+        type: '',
+        flavors: '',
+        effects: '',
+        sku: ''
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -46,6 +57,7 @@ export default function MarketplacePage() {
         minPrice: '',
         maxPrice: '',
         strainType: '',
+        type: '',
         deliveryAvailable: false,
         thcMin: '',
         cbdMin: ''
@@ -120,7 +132,11 @@ export default function MarketplacePage() {
                 strainType: formData.strainType || undefined,
                 thcContent: formData.thcContent ? parseFloat(formData.thcContent) : undefined,
                 cbdContent: formData.cbdContent ? parseFloat(formData.cbdContent) : undefined,
-                imageUrl: formData.imageUrl || undefined
+                imageUrl: formData.imageUrl || undefined,
+                type: formData.type || undefined,
+                flavors: formData.flavors || undefined,
+                effects: formData.effects || undefined,
+                sku: formData.sku || undefined
             }, token);
 
             setIsModalOpen(false);
@@ -128,7 +144,8 @@ export default function MarketplacePage() {
                 title: '', description: '', price: '', imageUrl: '',
                 discountPrice: '', promotionStart: '', promotionEnd: '',
                 deliveryAvailable: false, minQuantity: '1',
-                strainType: '', thcContent: '', cbdContent: ''
+                strainType: '', thcContent: '', cbdContent: '',
+                type: '', flavors: '', effects: '', sku: ''
             });
             refetch();
             setShowSuccessMessage(true);
@@ -247,6 +264,20 @@ export default function MarketplacePage() {
                             </div>
 
                             <div>
+                                <label className="text-xs font-semibold mb-1.5 block">Type</label>
+                                <select
+                                    className="w-full h-8 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    value={filters.type || ''}
+                                    onChange={e => setFilters({ ...filters, type: e.target.value })}
+                                >
+                                    <option value="">Any</option>
+                                    {PRODUCT_TYPES.map(t => (
+                                        <option key={t} value={t}>{t}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
                                 <label className="text-xs font-semibold mb-1.5 block">Potency (Min %)</label>
                                 <div className="flex gap-2 items-center">
                                     <Input
@@ -289,13 +320,13 @@ export default function MarketplacePage() {
             )}
 
             {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-                    {[1, 2, 3].map(i => <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>)}
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-pulse">
+                    {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>)}
                 </div>
             ) : (
                 <>
                     {viewMode === 'grid' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {sortedListings.length === 0 ? (
                                 <p className="col-span-full text-center text-gray-500 py-10">No active listings found.</p>
                             ) : (
@@ -368,6 +399,12 @@ export default function MarketplacePage() {
                                                             {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}
                                                         </span>
                                                     )}
+                                                </div>
+                                                <div className="mt-2 text-xs text-gray-500 space-y-0.5">
+                                                    {listing.type && <p>Type: <span className="font-medium text-gray-700">{listing.type}</span></p>}
+                                                    {listing.flavors && <p>Flavor: <span className="font-medium text-gray-700">{listing.flavors}</span></p>}
+                                                    {listing.effects && <p>Effect: <span className="font-medium text-gray-700">{listing.effects}</span></p>}
+                                                    {listing.sku && <p>SKU: <span className="font-medium text-gray-700">{listing.sku}</span></p>}
                                                 </div>
                                             </div>
                                         </div>
@@ -446,6 +483,19 @@ export default function MarketplacePage() {
                                         <option value="Hybrid">Hybrid</option>
                                     </select>
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Product Type</label>
+                                    <select
+                                        className="w-full border rounded p-2"
+                                        value={formData.type}
+                                        onChange={e => setFormData({ ...formData, type: e.target.value })}
+                                    >
+                                        <option value="">Select...</option>
+                                        {PRODUCT_TYPES.map(t => (
+                                            <option key={t} value={t}>{t}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1">THC (%)</label>
@@ -471,6 +521,37 @@ export default function MarketplacePage() {
                                             onChange={e => setFormData({ ...formData, cbdContent: e.target.value })}
                                         />
                                     </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Flavors</label>
+                                        <input
+                                            className="w-full border rounded p-2"
+                                            value={formData.flavors}
+                                            onChange={e => setFormData({ ...formData, flavors: e.target.value })}
+                                            placeholder="E.g. Citrus, Berry"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Effects</label>
+                                        <input
+                                            className="w-full border rounded p-2"
+                                            value={formData.effects}
+                                            onChange={e => setFormData({ ...formData, effects: e.target.value })}
+                                            placeholder="E.g. Relaxed, Happy"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">SKU</label>
+                                    <input
+                                        className="w-full border rounded p-2"
+                                        value={formData.sku}
+                                        onChange={e => setFormData({ ...formData, sku: e.target.value })}
+                                        placeholder="Optional SKU"
+                                    />
                                 </div>
                             </div>
                             <div>

@@ -45,6 +45,7 @@ const getListingsQuerySchema = z.object({
     minPrice: z.coerce.number().min(0).optional(),
     maxPrice: z.coerce.number().min(0).optional(),
     strainType: z.string().optional(),
+    type: z.string().optional(),
     deliveryAvailable: z.enum(['true', 'false']).transform((val) => val === 'true').optional(),
     thcMin: z.coerce.number().min(0).max(100).optional(),
     cbdMin: z.coerce.number().min(0).max(100).optional(),
@@ -177,7 +178,7 @@ export const getListings = async (req: Request, res: Response) => {
     try {
         const {
             lat, lng, radius, search,
-            minPrice, maxPrice, strainType,
+            minPrice, maxPrice, strainType, type,
             deliveryAvailable, thcMin, cbdMin
         } = getListingsQuerySchema.parse(req.query);
 
@@ -194,7 +195,8 @@ export const getListings = async (req: Request, res: Response) => {
             whereClause.OR = [
                 { title: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
-                { strainType: { contains: search, mode: 'insensitive' } }
+                { strainType: { contains: search, mode: 'insensitive' } },
+                { type: { contains: search, mode: 'insensitive' } }
             ];
         }
 
@@ -209,9 +211,13 @@ export const getListings = async (req: Request, res: Response) => {
             whereClause.strainType = strainType;
         }
 
+        if (type) {
+            whereClause.type = { contains: type, mode: 'insensitive' };
+        }
+
         // deliveryAvailable is a boolean after transform
-        if (deliveryAvailable !== undefined) {
-            whereClause.deliveryAvailable = deliveryAvailable;
+        if (deliveryAvailable === true) {
+            whereClause.deliveryAvailable = true;
         }
 
         if (thcMin !== undefined) {

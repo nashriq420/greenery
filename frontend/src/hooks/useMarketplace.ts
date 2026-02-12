@@ -93,6 +93,7 @@ export interface ListingFilters {
     minPrice?: string;
     maxPrice?: string;
     strainType?: string;
+    type?: string;
     deliveryAvailable?: boolean;
     thcMin?: string;
     cbdMin?: string;
@@ -123,6 +124,7 @@ export function useListings(filters: ListingFilters = {}) {
             if (filters.minPrice) params.append('minPrice', filters.minPrice);
             if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
             if (filters.strainType) params.append('strainType', filters.strainType);
+            if (filters.type) params.append('type', filters.type);
             if (filters.deliveryAvailable !== undefined) params.append('deliveryAvailable', String(filters.deliveryAvailable));
             if (filters.thcMin) params.append('thcMin', filters.thcMin);
             if (filters.cbdMin) params.append('cbdMin', filters.cbdMin);
