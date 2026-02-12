@@ -20,6 +20,7 @@ export default function MobileMenu({ user, onLogout }: { user: any, onLogout: ()
                     <Link href="/dashboard/marketplace" onClick={() => setIsOpen(false)} className="text-sm font-medium hover:text-green-600 p-2 border-b">Marketplace</Link>
                     <Link href="/dashboard/community" onClick={() => setIsOpen(false)} className="text-sm font-medium hover:text-green-600 p-2 border-b">Community</Link>
                     <Link href="/dashboard/chat" onClick={() => setIsOpen(false)} className="text-sm font-medium hover:text-green-600 p-2 border-b">Chat</Link>
+                    <Link href="/dashboard/blacklist" onClick={() => setIsOpen(false)} className="text-sm font-medium hover:text-red-600 p-2 border-b">Safety</Link>
                     <Link href="/dashboard/profile" onClick={() => setIsOpen(false)} className="text-sm font-medium hover:text-green-600 p-2 border-b">Profile</Link>
                     {user?.role === 'ADMIN' && (
                         <Link href="/dashboard/admin" onClick={() => setIsOpen(false)} className="text-sm font-medium hover:text-green-600 p-2 border-b">Admin</Link>

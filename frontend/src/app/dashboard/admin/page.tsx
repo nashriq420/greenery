@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useRouter } from 'next/navigation';
 // import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import BlacklistManagement from '@/components/admin/BlacklistManagement';
 
 // Types
 type User = {
@@ -157,10 +158,11 @@ export default function AdminPage() {
             </div>
 
             <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-6">
-                <TabsList className="grid w-full grid-cols-4 lg:w-[540px]">
+                <TabsList className="grid w-full grid-cols-5 lg:w-[650px]">
                     <TabsTrigger value="customers">Customers</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers</TabsTrigger>
                     <TabsTrigger value="listings">Listings</TabsTrigger>
+                    <TabsTrigger value="blacklist">Blacklist</TabsTrigger>
                     <TabsTrigger value="logs">Logs</TabsTrigger>
                 </TabsList>
 
@@ -258,6 +260,11 @@ export default function AdminPage() {
                     </Tabs>
                 </TabsContent>
 
+                {/* BLACKLIST CONTENT */}
+                <TabsContent value="blacklist" className="space-y-4">
+                    <BlacklistManagement />
+                </TabsContent>
+
                 {/* LOGS CONTENT */}
                 <TabsContent value="logs" className="space-y-4">
                     <ActivityLogs token={token} />
@@ -265,29 +272,31 @@ export default function AdminPage() {
             </Tabs>
 
             {/* Warning Modal */}
-            {warningOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-                    <Card className="w-full max-w-md">
-                        <CardHeader>
-                            <CardTitle>Send Warning</CardTitle>
-                            <CardDescription>Send a strict warning to this user via the chat system.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <textarea
-                                className="w-full border rounded-md p-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                                placeholder="Enter warning message..."
-                                value={warningMessage}
-                                onChange={(e) => setWarningMessage(e.target.value)}
-                            />
-                            <div className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={() => setWarningOpen(false)}>Cancel</Button>
-                                <Button onClick={submitWarning} variant="destructive">Send Warning</Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
-        </div>
+            {
+                warningOpen && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                        <Card className="w-full max-w-md">
+                            <CardHeader>
+                                <CardTitle>Send Warning</CardTitle>
+                                <CardDescription>Send a strict warning to this user via the chat system.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <textarea
+                                    className="w-full border rounded-md p-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                                    placeholder="Enter warning message..."
+                                    value={warningMessage}
+                                    onChange={(e) => setWarningMessage(e.target.value)}
+                                />
+                                <div className="flex justify-end gap-2">
+                                    <Button variant="outline" onClick={() => setWarningOpen(false)}>Cancel</Button>
+                                    <Button onClick={submitWarning} variant="destructive">Send Warning</Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )
+            }
+        </div >
     );
 }
 

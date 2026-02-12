@@ -16,3 +16,5 @@ export const requireRole = (roles: string | string[]) => {
         next();
     };
 };
+
+export const isAdmin = requireRole('ADMIN');

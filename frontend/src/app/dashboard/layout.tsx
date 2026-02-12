@@ -38,6 +38,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Link href="/dashboard/marketplace" className="text-sm font-medium hover:text-green-600">Marketplace</Link>
                     <Link href="/dashboard/community" className="text-sm font-medium hover:text-green-600">Community</Link>
                     <Link href="/dashboard/chat" className="text-sm font-medium hover:text-green-600">Chat</Link>
+                    <Link href="/dashboard/blacklist" className="text-sm font-medium hover:text-red-600">Safety</Link>
                     {user?.role === 'ADMIN' && (
                         <Link href="/dashboard/admin" className="text-sm font-medium hover:text-green-600">Admin</Link>
                     )}

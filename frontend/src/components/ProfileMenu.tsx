@@ -79,6 +79,15 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
                         Profile Settings
                     </Link>
 
+                    <Link
+                        href="/dashboard/reports"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsOpen(false)}
+                    >
+                        <span className="w-4 h-4 flex items-center justify-center text-xs">📋</span>
+                        My Reports
+                    </Link>
+
                     {user?.role === 'SELLER' && (
                         <Link
                             href="/dashboard/seller/banner"

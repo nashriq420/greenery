@@ -16,6 +16,7 @@ import adminRoutes from './routes/admin.routes';
 import reviewRoutes from './routes/review.routes';
 import notificationRoutes from './routes/notification.routes';
 import { communityRoutes } from './routes/community.routes';
+import blacklistRoutes from './routes/blacklist.routes';
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/banners', bannerRoutes);
+app.use('/api/blacklist', blacklistRoutes);
 
 // Serve uploads
 import path from 'path';
