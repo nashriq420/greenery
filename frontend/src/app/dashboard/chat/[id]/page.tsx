@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { Send, Store, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import PrivacyWarning from '../components/PrivacyWarning';
 
 export default function ChatRoomPage() {
     const params = useParams();
@@ -122,58 +123,71 @@ export default function ChatRoomPage() {
     if (loading) return <div className="p-8">Loading conversation...</div>;
 
     return (
-        <div className="h-[calc(100dvh-100px)] p-2 sm:p-6 flex flex-col relative">
-            <div className="bg-white border rounded-t-lg p-3 sm:p-4 shadow-sm flex items-center gap-3">
+        <div className="flex flex-col h-full relative">
+            {/* Header */}
+            <div className="bg-white border-b p-3 sm:p-4 flex items-center gap-3 shrink-0">
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="shrink-0 -ml-2"
+                    className="shrink-0 -ml-2 md:hidden"
                     onClick={() => router.push('/dashboard/chat')}
                     title="Back to Chats"
                 >
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
-                <h1 className="font-bold text-lg">Chat Room</h1>
-                {/* Optional: Show who you are chatting with */}
+                <div>
+                    <h1 className="font-bold text-lg">Chat Room</h1>
+                    {chatDetails && (
+                        <p className="text-xs text-gray-500">
+                            {user?.id === chatDetails.participant1.id ? chatDetails.participant2.name : chatDetails.participant1.name}
+                        </p>
+                    )}
+                </div>
             </div>
 
-            <div className="flex-1 bg-gray-50 border-x p-2 sm:p-4 overflow-y-auto space-y-4">
-                {messages.length === 0 && (
-                    <p className="text-center text-gray-400 my-10">No messages yet. Say hello!</p>
-                )}
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto bg-gray-50 flex flex-col">
+                <div className="p-4 space-y-4 pb-0">
+                    <PrivacyWarning />
 
-                {messages.map((msg) => {
-                    const isMe = msg.sender.id === user?.id;
-                    return (
-                        <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${isMe ? 'bg-blue-600 text-white' : 'bg-white border text-gray-800'}`}>
-                                {msg.listing && (
-                                    <div className={`mb-2 rounded-lg overflow-hidden border ${isMe ? 'border-blue-400 bg-blue-700/50' : 'border-gray-200 bg-gray-50'} p-2 flex gap-3 items-center group cursor-pointer hover:opacity-90 transition`}>
-                                        {msg.listing.imageUrl ? (
-                                            <div className="w-12 h-12 rounded bg-gray-200 shrink-0 overflow-hidden relative">
-                                                <img src={msg.listing.imageUrl} className="absolute inset-0 w-full h-full object-cover" />
+                    {messages.length === 0 && (
+                        <p className="text-center text-gray-400 my-10">No messages yet. Say hello!</p>
+                    )}
+
+                    {messages.map((msg) => {
+                        const isMe = msg.sender.id === user?.id;
+                        return (
+                            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${isMe ? 'bg-blue-600 text-white' : 'bg-white border text-gray-800'}`}>
+                                    {msg.listing && (
+                                        <div className={`mb-2 rounded-lg overflow-hidden border ${isMe ? 'border-blue-400 bg-blue-700/50' : 'border-gray-200 bg-gray-50'} p-2 flex gap-3 items-center group cursor-pointer hover:opacity-90 transition`}>
+                                            {msg.listing.imageUrl ? (
+                                                <div className="w-12 h-12 rounded bg-gray-200 shrink-0 overflow-hidden relative">
+                                                    <img src={msg.listing.imageUrl} className="absolute inset-0 w-full h-full object-cover" />
+                                                </div>
+                                            ) : (
+                                                <div className="w-12 h-12 rounded bg-gray-700/20 shrink-0 flex items-center justify-center text-xs">No Img</div>
+                                            )}
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-sm truncate">{msg.listing.title}</p>
+                                                <p className="text-xs opacity-80">${msg.listing.price}</p>
                                             </div>
-                                        ) : (
-                                            <div className="w-12 h-12 rounded bg-gray-700/20 shrink-0 flex items-center justify-center text-xs">No Img</div>
-                                        )}
-                                        <div className="min-w-0">
-                                            <p className="font-bold text-sm truncate">{msg.listing.title}</p>
-                                            <p className="text-xs opacity-80">${msg.listing.price}</p>
                                         </div>
-                                    </div>
-                                )}
-                                <p>{msg.content}</p>
-                                <p className={`text-xs mt-1 ${isMe ? 'text-blue-200' : 'text-gray-400'}`}>
-                                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </p>
+                                    )}
+                                    <p>{msg.content}</p>
+                                    <p className={`text-xs mt-1 ${isMe ? 'text-blue-200' : 'text-gray-400'}`}>
+                                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
-                <div ref={messagesEndRef} />
+                        );
+                    })}
+                    <div ref={messagesEndRef} />
+                </div>
             </div>
 
-            <div className="bg-white border rounded-b-lg p-2 sm:p-4 flex gap-2 relative items-center">
+            {/* Input Area */}
+            <div className="bg-white border-t p-2 sm:p-4 flex gap-2 relative items-center shrink-0">
                 {/* Listing Picker Button */}
                 <div className="relative">
                     <button
