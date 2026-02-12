@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getSellersNearby, createListing, getListings, getMyListings, updateListing, deleteListing, getListingById } from '../controllers/marketplace.controller';
+import { getSellersNearby, createListing, getListings, getMyListings, updateListing, deleteListing, getListingById, getSellerById } from '../controllers/marketplace.controller';
 import { getMe } from '../controllers/auth.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 import { requireRole } from '../middlewares/rbac.middleware';
@@ -15,6 +15,7 @@ router.use((req, res, next) => {
 router.get('/sellers', authenticateToken, getSellersNearby);
 router.get('/listings', authenticateToken, getListings);
 router.get('/listings/:id', getListingById); // Public access
+router.get('/sellers/:id', getSellerById); // Public access
 router.post('/listings', authenticateToken, requireRole(['SELLER', 'ADMIN']), createListing);
 
 // My Listings & Management

@@ -141,7 +141,12 @@ export default function ListingDetailsPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-10">
-            <Link href="/dashboard/marketplace" className="text-green-600 hover:underline">&larr; Back to Marketplace</Link>
+            <button
+                onClick={() => router.back()}
+                className="text-green-600 hover:underline flex items-center gap-1 mb-4"
+            >
+                &larr; Back
+            </button>
 
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="h-64 bg-gray-200 relative">
@@ -155,7 +160,9 @@ export default function ListingDetailsPage() {
                     <div className="flex justify-between items-start">
                         <div>
                             <h1 className="text-3xl font-bold">{listing.title}</h1>
-                            <p className="text-gray-500">by {listing.seller.name}</p>
+                            <p className="text-gray-500">
+                                by <Link href={`/dashboard/seller/${listing.sellerId}`} className="hover:text-green-600 hover:underline">{listing.seller.name}</Link>
+                            </p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
                             {listing.discountPrice ? (

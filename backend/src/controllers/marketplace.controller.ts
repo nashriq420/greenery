@@ -366,3 +366,74 @@ export const getListingById = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
+
+// Get Seller by ID (Public Profile)
+export const getSellerById = async (req: Request, res: Response) => {
+    try {
+        const sellerId = req.params.id as string;
+        // sellerId here is the userId of the seller
+
+        // Check if user exists and is a seller (or at least has a profile)
+        // We'll join User and SellerProfile
+        // Also get aggregate rating
+
+        const seller = await prisma.user.findUnique({
+            where: { id: sellerId },
+            select: {
+                id: true,
+                name: true,
+                username: true,
+                profilePicture: true,
+                createdAt: true, // Joined date
+                sellerProfile: {
+                    select: {
+                        city: true,
+                        state: true,
+                        description: true,
+                        address: true,
+                        latitude: true,
+                        longitude: true
+                    }
+                },
+                loginHistory: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                    select: { createdAt: true }
+                },
+                _count: {
+                    select: {
+                        listings: { where: { active: true, status: 'ACTIVE' } }
+                    }
+                }
+            }
+        });
+
+        if (!seller) {
+            return res.status(404).json({ message: 'Seller not found' });
+        }
+
+        // Calculate Average Rating manually or via raw query for efficiency if needed.
+        // For single seller, aggregation is fine.
+        const aggregations = await prisma.review.aggregate({
+            _avg: { rating: true },
+            _count: { id: true },
+            where: {
+                listing: {
+                    sellerId: sellerId
+                }
+            }
+        });
+
+        const responseData = {
+            ...seller,
+            averageRating: aggregations._avg.rating || 0,
+            reviewCount: aggregations._count.id || 0,
+            lastSeen: seller.loginHistory[0]?.createdAt || null
+        };
+
+        res.json(responseData);
+    } catch (error) {
+        logger.error('Error fetching seller details', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
