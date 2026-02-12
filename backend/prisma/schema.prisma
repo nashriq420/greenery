@@ -207,6 +207,10 @@ model Listing {
 
   // Cannabis Metadata
   strainType      String?  // Indica, Sativa, Hybrid
+  type            String?  // Concentrates, Flower, Edible, etc.
+  flavors         String?  // Comma separated or JSON
+  effects         String?  // Comma separated or JSON
+  sku             String?  // Stock Keeping Unit
   thcContent      Float?
   cbdContent      Float?
 }

@@ -48,7 +48,21 @@ export default function ProfilePage() {
         lat: 0, lng: 0, address: '', city: '', state: '', country: '', description: ''
     });
     const [myListings, setMyListings] = useState<Listing[]>([]);
-    const [newListing, setNewListing] = useState({ title: '', description: '', price: '', imageUrl: '' });
+    const [newListing, setNewListing] = useState({
+        title: '',
+        description: '',
+        price: '',
+        imageUrl: '',
+        minQuantity: '1',
+        deliveryAvailable: false,
+        strainType: '',
+        thcContent: '',
+        cbdContent: '',
+        type: '',
+        flavors: '',
+        effects: '',
+        sku: ''
+    });
     const [editingListing, setEditingListing] = useState<Listing | null>(null);
     const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '' });
     const [loading, setLoading] = useState(false);
@@ -169,11 +183,34 @@ export default function ProfilePage() {
                 title: newListing.title,
                 description: newListing.description,
                 price: parseFloat(newListing.price) || 0,
-                imageUrl: newListing.imageUrl || undefined
+                imageUrl: newListing.imageUrl || undefined,
+                minQuantity: parseInt(newListing.minQuantity) || 1,
+                deliveryAvailable: newListing.deliveryAvailable,
+                strainType: newListing.strainType || undefined,
+                thcContent: newListing.thcContent ? parseFloat(newListing.thcContent) : undefined,
+                cbdContent: newListing.cbdContent ? parseFloat(newListing.cbdContent) : undefined,
+                type: newListing.type || undefined,
+                flavors: newListing.flavors || undefined,
+                effects: newListing.effects || undefined,
+                sku: newListing.sku || undefined
             }, token || undefined);
             alert("Listing created");
             fetchMyListings();
-            setNewListing({ title: '', description: '', price: '', imageUrl: '' });
+            setNewListing({
+                title: '',
+                description: '',
+                price: '',
+                imageUrl: '',
+                minQuantity: '1',
+                deliveryAvailable: false,
+                strainType: '',
+                thcContent: '',
+                cbdContent: '',
+                type: '',
+                flavors: '',
+                effects: '',
+                sku: ''
+            });
         } catch (err: any) {
             alert(err.message || "Failed to create listing");
         } finally {
@@ -458,19 +495,134 @@ export default function ProfilePage() {
                                     onChange={(e) => setNewListing({ ...newListing, title: e.target.value })}
                                 />
                             </div>
+
+                            <div className="space-y-2">
+                                <Label>Type</Label>
+                                <select
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={newListing.type}
+                                    onChange={(e) => setNewListing({ ...newListing, type: e.target.value })}
+                                >
+                                    <option value="">Select a type...</option>
+                                    <option value="Concentrates">Concentrates</option>
+                                    <option value="Clones">Clones</option>
+                                    <option value="Extract">Extract</option>
+                                    <option value="Edible">Edible</option>
+                                    <option value="Flower">Flower</option>
+                                    <option value="Topicals">Topicals</option>
+                                    <option value="Grow">Grow</option>
+                                    <option value="Gear">Gear</option>
+                                    <option value="Preroll">Preroll</option>
+                                    <option value="Smoking">Smoking</option>
+                                    <option value="Tinctures">Tinctures</option>
+                                    <option value="Vaporizers">Vaporizers</option>
+                                    <option value="Unidentified">Unidentified</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Price ($)</Label>
+                                <Input
+                                    type="number"
+                                    value={newListing.price}
+                                    onChange={(e) => setNewListing({ ...newListing, price: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Min Quantity</Label>
+                                    <Input
+                                        type="number"
+                                        value={newListing.minQuantity}
+                                        onChange={(e) => setNewListing({ ...newListing, minQuantity: e.target.value })}
+                                        min="1"
+                                    />
+                                </div>
+                                <div className="flex items-center space-x-2 pt-8">
+                                    <input
+                                        type="checkbox"
+                                        id="create-delivery"
+                                        checked={newListing.deliveryAvailable}
+                                        onChange={(e) => setNewListing({ ...newListing, deliveryAvailable: e.target.checked })}
+                                        className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
+                                    />
+                                    <Label htmlFor="create-delivery">Delivery Available</Label>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Strain Type</Label>
+                                    <select
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        value={newListing.strainType}
+                                        onChange={(e) => setNewListing({ ...newListing, strainType: e.target.value })}
+                                    >
+                                        <option value="">Select...</option>
+                                        <option value="Indica">Indica</option>
+                                        <option value="Sativa">Sativa</option>
+                                        <option value="Hybrid">Hybrid</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>THC (%)</Label>
+                                    <Input
+                                        type="number"
+                                        value={newListing.thcContent}
+                                        onChange={(e) => setNewListing({ ...newListing, thcContent: e.target.value })}
+                                        step="0.1"
+                                        min="0"
+                                        max="100"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>CBD (%)</Label>
+                                    <Input
+                                        type="number"
+                                        value={newListing.cbdContent}
+                                        onChange={(e) => setNewListing({ ...newListing, cbdContent: e.target.value })}
+                                        step="0.1"
+                                        min="0"
+                                        max="100"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Flavours</Label>
+                                    <Input
+                                        value={newListing.flavors}
+                                        onChange={(e) => setNewListing({ ...newListing, flavors: e.target.value })}
+                                        placeholder="E.g., Citrus, Berry"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Effects</Label>
+                                    <Input
+                                        value={newListing.effects}
+                                        onChange={(e) => setNewListing({ ...newListing, effects: e.target.value })}
+                                        placeholder="E.g., Relaxed, Happy"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>SKU (Optional - Auto-generated if blank)</Label>
+                                <Input
+                                    value={newListing.sku}
+                                    onChange={(e) => setNewListing({ ...newListing, sku: e.target.value })}
+                                    placeholder="Leave blank to auto-generate"
+                                />
+                            </div>
+
                             <div className="space-y-2">
                                 <Label>Description</Label>
                                 <Textarea
                                     value={newListing.description}
                                     onChange={(e) => setNewListing({ ...newListing, description: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Price</Label>
-                                <Input
-                                    type="number"
-                                    value={newListing.price}
-                                    onChange={(e) => setNewListing({ ...newListing, price: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">

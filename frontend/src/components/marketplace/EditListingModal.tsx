@@ -34,7 +34,11 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
         minQuantity: '1',
         strainType: '',
         thcContent: '',
-        cbdContent: ''
+        cbdContent: '',
+        type: '',
+        flavors: '',
+        effects: '',
+        sku: ''
     });
 
     useEffect(() => {
@@ -51,7 +55,11 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                 minQuantity: listing.minQuantity?.toString() || '1',
                 strainType: listing.strainType || '',
                 thcContent: listing.thcContent?.toString() || '',
-                cbdContent: listing.cbdContent?.toString() || ''
+                cbdContent: listing.cbdContent?.toString() || '',
+                type: listing.type || '',
+                flavors: listing.flavors || '',
+                effects: listing.effects || '',
+                sku: listing.sku || ''
             });
             setPreviewUrl(listing.imageUrl || '');
         }
@@ -118,7 +126,7 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
 
     return (
         <div className="fixed inset-0 flex items-center justify-center z-[1000] p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-card text-card-foreground rounded-xl p-6 w-full max-w-lg shadow-2xl border animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-card text-card-foreground rounded-xl p-6 w-full max-w-lg shadow-2xl border animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6 border-b pb-4">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">Edit Listing</h2>
@@ -146,6 +154,33 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                             required
                             placeholder="Listing title"
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="type">Type</Label>
+                        <select
+                            id="type"
+                            name="type"
+                            value={formData.type}
+                            onChange={handleChange}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <option value="">Select a type...</option>
+                            <option value="Concentrates">Concentrates</option>
+                            <option value="Clones">Clones</option>
+                            <option value="Extract">Extract</option>
+                            <option value="Edible">Edible</option>
+                            <option value="Flower">Flower</option>
+                            <option value="Topicals">Topicals</option>
+                            <option value="Grow">Grow</option>
+                            <option value="Gear">Gear</option>
+                            <option value="Preroll">Preroll</option>
+                            <option value="Smoking">Smoking</option>
+                            <option value="Tinctures">Tinctures</option>
+                            <option value="Vaporizers">Vaporizers</option>
+                            <option value="Unidentified">Unidentified</option>
+                            <option value="Others">Others</option>
+                        </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -270,6 +305,40 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                         </div>
                     </div>
 
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="flavors">Flavours</Label>
+                            <Input
+                                id="flavors"
+                                name="flavors"
+                                value={formData.flavors}
+                                onChange={handleChange}
+                                placeholder="E.g., Citrus, Berry"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="effects">Effects</Label>
+                            <Input
+                                id="effects"
+                                name="effects"
+                                value={formData.effects}
+                                onChange={handleChange}
+                                placeholder="E.g., Relaxed, Happy"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="sku">SKU</Label>
+                        <Input
+                            id="sku"
+                            name="sku"
+                            value={formData.sku}
+                            onChange={handleChange}
+                            placeholder="SKU"
+                        />
+                    </div>
+
                     <div className="space-y-2">
                         <Label htmlFor="description">Description</Label>
                         <Textarea
@@ -346,7 +415,7 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                         </Button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

@@ -57,6 +57,7 @@ export interface Listing {
     active?: boolean;
     status: 'PENDING' | 'ACTIVE' | 'SOLD' | 'REJECTED';
     imageUrl: string | null;
+    sku?: string | null; // Sku added
 
     // New Fields
     discountPrice?: string | number | null;
@@ -67,6 +68,9 @@ export interface Listing {
     strainType?: 'Indica' | 'Sativa' | 'Hybrid' | null | string;
     thcContent?: number | null;
     cbdContent?: number | null;
+    type?: string | null;
+    flavors?: string | null;
+    effects?: string | null;
 
     seller: {
         id: string;
@@ -181,6 +185,7 @@ export const createListing = async (data: {
     description: string;
     price: number;
     imageUrl?: string;
+    sku?: string;
     discountPrice?: number;
     promotionStart?: Date;
     promotionEnd?: Date;
@@ -189,6 +194,10 @@ export const createListing = async (data: {
     strainType?: string;
     thcContent?: number;
     cbdContent?: number;
+    type?: string;
+    flavors?: string;
+    effects?: string;
 }, token: string) => {
+
     return await api.post('/marketplace/listings', data, token);
 };

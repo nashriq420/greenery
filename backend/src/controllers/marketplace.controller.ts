@@ -23,6 +23,12 @@ const createListingSchema = z.object({
     strainType: z.enum(['Indica', 'Sativa', 'Hybrid']).optional(),
     thcContent: z.number().min(0).max(100).optional(),
     cbdContent: z.number().min(0).max(100).optional(),
+
+    // New Fields
+    type: z.string().optional(),
+    flavors: z.string().optional(),
+    effects: z.string().optional(),
+    sku: z.string().optional(),
 });
 
 const getSellersQuerySchema = z.object({
@@ -112,9 +118,18 @@ export const createListing = async (req: AuthRequest, res: Response) => {
         const validated = createListingSchema.parse(req.body);
         const userId = req.user!.id;
 
+        // Auto-generate SKU if not provided
+        let sku = validated.sku;
+        if (!sku) {
+            const cleanTitle = validated.title.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 6);
+            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+            sku = `${cleanTitle}-${randomSuffix}`;
+        }
+
         const listing = await prisma.listing.create({
             data: {
                 ...validated,
+                sku,
                 sellerId: userId,
                 price: validated.price,
                 active: true,
@@ -130,11 +145,22 @@ export const createListing = async (req: AuthRequest, res: Response) => {
         }, req);
 
         res.status(201).json(listing);
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error('[DEBUG] createListing error:', error);
+
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const logPath = path.join(process.cwd(), 'backend_error.log');
+            const errorMessage = `[${new Date().toISOString()}] Error: ${error.message}\nStack: ${error.stack}\n\n`;
+            fs.appendFileSync(logPath, errorMessage);
+        } catch (e) {
+            console.error('Failed to write to log file', e);
+        }
+
         // Duck typing for ZodError or similar validation libraries
-        if ((error as any).errors || error instanceof ZodError) {
-            const zodErrors = (error as any).errors || (error as any).issues || [];
+        if (error.errors || error instanceof ZodError) {
+            const zodErrors = error.errors || error.issues || [];
             const formattedErrors = zodErrors.map((e: any) => ({
                 path: e.path,
                 message: e.message
@@ -142,7 +168,7 @@ export const createListing = async (req: AuthRequest, res: Response) => {
             console.log('[DEBUG] Formatted errors:', formattedErrors);
             return res.status(400).json({ errors: formattedErrors });
         }
-        res.status(500).json({ message: `Debug Error: ${(error as any).message || String(error)} ` });
+        res.status(500).json({ message: `Debug Error: ${error.message || String(error)} ` });
     }
 };
 

@@ -48,11 +48,17 @@ export default function ViewListingModal({ listing, onClose }: ViewListingModalP
                         </div>
 
                         <div className="flex flex-wrap gap-2 mt-3">
+                            {listing.sku && (
+                                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full border border-gray-200">SKU: {listing.sku}</span>
+                            )}
                             {listing.deliveryAvailable && (
                                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold">Delivery Available</span>
                             )}
                             {listing.minQuantity && listing.minQuantity > 1 && (
                                 <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full font-semibold">Min Qty: {listing.minQuantity}</span>
+                            )}
+                            {listing.type && (
+                                <span className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-semibold">{listing.type}</span>
                             )}
                             {listing.strainType && (
                                 <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-semibold">{listing.strainType}</span>
@@ -65,6 +71,35 @@ export default function ViewListingModal({ listing, onClose }: ViewListingModalP
                                 </span>
                             )}
                         </div>
+
+                        {(listing.flavors || listing.effects) && (
+                            <div className="mt-4 space-y-2">
+                                {listing.flavors && (
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[60px] pt-1">Flavours:</span>
+                                        <div className="flex flex-wrap gap-1">
+                                            {listing.flavors.split(',').map((flavor, i) => (
+                                                <span key={i} className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded border border-orange-100">
+                                                    {flavor.trim()}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {listing.effects && (
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[60px] pt-1">Effects:</span>
+                                        <div className="flex flex-wrap gap-1">
+                                            {listing.effects.split(',').map((effect, i) => (
+                                                <span key={i} className="text-xs bg-teal-50 text-teal-700 px-2 py-0.5 rounded border border-teal-100">
+                                                    {effect.trim()}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div>
