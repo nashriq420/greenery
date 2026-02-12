@@ -239,19 +239,23 @@ export const warnUser = async (req: AuthRequest, res: Response) => {
 // Get Audit Logs
 export const getLogs = async (req: AuthRequest, res: Response) => {
     try {
-        const { action, startDate, endDate, search } = req.query as {
+        const { action, startDate, endDate, search, page = '1', limit = '20' } = req.query as {
             action?: string,
             startDate?: string,
             endDate?: string,
-            search?: string
+            search?: string,
+            page?: string,
+            limit?: string
         };
+
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
 
         const where: any = {};
 
         // Filter by Action
         if (action && action !== 'ALL') {
-            // If comma separated? For now assume single or we can use "contains" if we want flexible matching
-            // Ideally the frontend sends specific action or "category"
             where.action = action;
         }
 
@@ -262,7 +266,6 @@ export const getLogs = async (req: AuthRequest, res: Response) => {
             if (endDate) where.createdAt.lte = new Date(endDate);
         }
 
-        // Filter by Search (User Name or Email)
         // Filter by Search (User Name, Email, Action, or Details)
         if (search) {
             where.OR = [
@@ -272,6 +275,9 @@ export const getLogs = async (req: AuthRequest, res: Response) => {
                 { details: { contains: search, mode: 'insensitive' } }
             ];
         }
+
+        // Get total count for pagination
+        const total = await prisma.auditLog.count({ where });
 
         const logs = await prisma.auditLog.findMany({
             where,
@@ -286,10 +292,19 @@ export const getLogs = async (req: AuthRequest, res: Response) => {
                 }
             },
             orderBy: { createdAt: 'desc' },
-            take: 200 // Increased limit
+            skip,
+            take: limitNum
         });
 
-        res.json(logs);
+        res.json({
+            logs,
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum)
+            }
+        });
     } catch (error) {
         logger.error('Error fetching audit logs', error);
         res.status(500).json({ message: 'Internal server error', error: (error as any).message });
