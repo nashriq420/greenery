@@ -61,14 +61,18 @@ export const api = {
         });
         return handleResponse(res);
     },
-    delete: async (endpoint: string, token?: string) => {
-        const res = await fetch(`${API_URL}${endpoint}`, {
+    delete: async (endpoint: string, token?: string, body?: any) => {
+        const options: RequestInit = {
             method: 'DELETE',
             headers: {
                 ...defaultHeaders,
                 'Authorization': token ? `Bearer ${token}` : '',
             }
-        });
+        };
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+        const res = await fetch(`${API_URL}${endpoint}`, options);
         return handleResponse(res);
     },
     upload: async (endpoint: string, formData: FormData, token?: string) => {

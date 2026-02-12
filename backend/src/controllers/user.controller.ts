@@ -195,3 +195,83 @@ export const updatePassword = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const deleteMe = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!.id;
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: 'Password is required to delete account' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
+            return res.status(403).json({ message: 'Invalid password' });
+        }
+
+        const timestamp = Date.now();
+        const anonymizedEmail = `deleted_${userId}_${timestamp}@greenery.deleted`;
+        const anonymizedUsername = `deleted_${userId.substring(0, 8)}`;
+        const scrambledPassword = await bcrypt.hash(Math.random().toString(36), 10);
+
+        await prisma.$transaction(async (tx) => {
+            // 1. Log Activity
+            await tx.auditLog.create({
+                data: {
+                    userId: userId,
+                    action: 'DELETE_ACCOUNT',
+                    details: 'User requested account deletion. Account anonymized and deactivated.',
+                    ipAddress: req.ip
+                }
+            });
+
+            // 2. Delete/Clean related data
+            // Delete Seller Profile
+            await tx.sellerProfile.deleteMany({ where: { userId } });
+
+            // Delete Subscription
+            await tx.subscription.deleteMany({ where: { userId } });
+
+            // Deactivate Listings
+            await tx.listing.updateMany({
+                where: { sellerId: userId },
+                data: {
+                    active: false,
+                    status: 'REJECTED'
+                }
+            });
+
+            // Delete Banners
+            await tx.banner.deleteMany({ where: { sellerId: userId } });
+
+            // Delete Notifications
+            await tx.notification.deleteMany({ where: { userId } });
+
+            // 3. Anonymize User
+            await tx.user.update({
+                where: { id: userId },
+                data: {
+                    name: 'Deleted User',
+                    email: anonymizedEmail,
+                    username: anonymizedUsername,
+                    password: scrambledPassword,
+                    profilePicture: null,
+                    status: 'REJECTED',
+                    isVerified: false,
+                    lastUsernameChange: null // Clear this too
+                }
+            });
+        });
+
+        res.json({ message: 'Account deleted successfully' });
+    } catch (error) {
+        logger.error('Delete account error', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

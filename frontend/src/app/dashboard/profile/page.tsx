@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Upload } from 'lucide-react';
+import { Upload, Trash2, AlertTriangle, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,6 +90,8 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
 
     useEffect(() => {
         if (token) {
@@ -293,6 +295,21 @@ export default function ProfilePage() {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        if (!deletePassword) {
+            alert("Please enter your password to confirm deletion.");
+            return;
+        }
+
+        try {
+            await api.delete('/user/me', token!, { password: deletePassword });
+            useAuthStore.getState().logout();
+            window.location.href = '/';
+        } catch (err: any) {
+            alert(err.message || "Failed to delete account. Please check your password.");
+        }
+    };
+
     if (!user) {
         return <div className="p-10">Please log in to view profile.</div>;
     }
@@ -310,6 +327,7 @@ export default function ProfilePage() {
                             <TabsTrigger value="promotions">My Promotions</TabsTrigger>
                         </>
                     )}
+                    <TabsTrigger value="deletion">Deletion</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="profile" className="space-y-6">
@@ -857,7 +875,86 @@ export default function ProfilePage() {
                         <BannersTab token={token} />
                     </TabsContent>
                 )}
+
+                <TabsContent value="deletion" className="space-y-6">
+                    <Card className="border-destructive/20">
+                        <CardHeader>
+                            <CardTitle className="text-destructive flex items-center gap-2">
+                                <AlertTriangle className="w-5 h-5" />
+                                Danger Zone
+                            </CardTitle>
+                            <CardDescription>
+                                Irreversible actions for your account.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                                <div>
+                                    <h3 className="font-semibold text-destructive">Delete Account</h3>
+                                    <p className="text-sm text-gray-600">
+                                        Permanently delete your account and remove your data from our servers.
+                                    </p>
+                                </div>
+                                <Button variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete Account
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
             </Tabs>
+
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center z-[1000] p-4 bg-black/40 backdrop-blur-sm">
+                    <div className="bg-card text-card-foreground rounded-xl p-6 w-full max-w-md shadow-2xl border animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center mb-6 border-b pb-4">
+                            <div>
+                                <h2 className="text-xl font-bold tracking-tight text-destructive flex items-center gap-2">
+                                    <AlertTriangle className="w-5 h-5" />
+                                    Delete Account
+                                </h2>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => setIsDeleteModalOpen(false)} className="rounded-full hover:bg-gray-100">
+                                <X className="w-5 h-5" />
+                            </Button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <p className="text-gray-600 mb-4">
+                                Are you sure you want to delete your account? This action cannot be undone. All your data will be anonymized and your listings deactivated.
+                            </p>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="delete-password">Confirm Password</Label>
+                                <Input
+                                    id="delete-password"
+                                    type="password"
+                                    value={deletePassword}
+                                    onChange={(e) => setDeletePassword(e.target.value)}
+                                    placeholder="Enter your password"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsDeleteModalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    onClick={handleDeleteAccount}
+                                    disabled={!deletePassword}
+                                >
+                                    Delete Account
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 }
