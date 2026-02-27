@@ -29,6 +29,13 @@ export default function ChatIcon() {
         return () => clearInterval(interval);
     }, [token]);
 
+    // Listen for cross-component read events
+    useEffect(() => {
+        const handleChatRead = () => fetchUnreadCount();
+        window.addEventListener('chat-read', handleChatRead);
+        return () => window.removeEventListener('chat-read', handleChatRead);
+    }, [token]);
+
     // Fast refresh when navigating away from chat
     useEffect(() => {
         if (!pathname?.includes('/dashboard/chat')) {

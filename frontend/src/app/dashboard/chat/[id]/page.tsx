@@ -38,6 +38,7 @@ export default function ChatRoomPage() {
                 const hasUnread = data.some((m: any) => !m.read && m.receiverId === user?.id);
                 if (hasUnread) {
                     await api.put(`/chat/${id}/read`, {}, token || '');
+                    window.dispatchEvent(new Event('chat-read'));
                 }
             }
         } catch (error) {
