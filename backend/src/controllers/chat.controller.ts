@@ -56,6 +56,24 @@ export const getUserChats = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!.id;
 
+        // Auto-close idle chats (no activity in 30+ mins)
+        const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+        await prisma.chat.updateMany({
+            where: {
+                OR: [
+                    { participant1Id: userId },
+                    { participant2Id: userId }
+                ],
+                updatedAt: {
+                    lt: thirtyMinsAgo
+                },
+                isActive: true
+            },
+            data: {
+                isActive: false
+            }
+        });
+
         const chats = await prisma.chat.findMany({
             where: {
                 OR: [
@@ -64,8 +82,8 @@ export const getUserChats = async (req: AuthRequest, res: Response) => {
                 ]
             },
             include: {
-                participant1: { select: { id: true, name: true, email: true, role: true } },
-                participant2: { select: { id: true, name: true, email: true, role: true } },
+                participant1: { select: { id: true, name: true, email: true, role: true, profilePicture: true } },
+                participant2: { select: { id: true, name: true, email: true, role: true, profilePicture: true } },
                 messages: {
                     orderBy: { createdAt: 'desc' },
                     take: 1
@@ -104,7 +122,7 @@ export const getChatMessages = async (req: AuthRequest, res: Response) => {
             where: { chatId },
             orderBy: { createdAt: 'asc' },
             include: {
-                sender: { select: { id: true, name: true } },
+                sender: { select: { id: true, name: true, profilePicture: true } },
                 listing: {
                     select: {
                         id: true,
@@ -162,18 +180,103 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
             data: { updatedAt: new Date() }
         });
 
-        // Send Notification to receiver
-        await createNotification(
-            receiverId,
-            NotificationType.CHAT,
-            `New message from ${req.user!.email}`, // Ideally name, but email is safer compliant with type
-            'You have a new message',
-            `/dashboard/chat/${chatId}`
-        );
+        // Send Notification to receiver (DEPRECATED FOR CHAT)
+        // await createNotification(
+        //     receiverId,
+        //     NotificationType.CHAT,
+        //     `New message from ${req.user!.email}`, // Ideally name, but email is safer compliant with type
+        //     'You have a new message',
+        //     `/dashboard/chat/${chatId}`
+        // );
 
         res.status(201).json(message);
     } catch (error) {
         logger.error('Error sending message', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Reactivate Chat
+export const reactivateChat = async (req: AuthRequest, res: Response) => {
+    try {
+        const chatId = req.params.id as string;
+        const userId = req.user!.id;
+
+        const chat = await prisma.chat.findUnique({
+            where: { id: chatId }
+        });
+
+        if (!chat) return res.status(404).json({ message: "Chat not found" });
+
+        if (chat.participant1Id !== userId && chat.participant2Id !== userId) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        const updatedChat = await prisma.chat.update({
+            where: { id: chatId },
+            data: {
+                isActive: true,
+                updatedAt: new Date()
+            }
+        });
+
+        res.json(updatedChat);
+    } catch (error) {
+        logger.error('Error reactivating chat', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Get Unread Global Message Count
+export const getUnreadCount = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!.id;
+
+        const count = await prisma.message.count({
+            where: {
+                receiverId: userId,
+                read: false
+            }
+        });
+
+        res.json({ unreadCount: count });
+    } catch (error) {
+        logger.error('Error fetching unread count', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Mark Chat Messages as Read
+export const markChatAsRead = async (req: AuthRequest, res: Response) => {
+    try {
+        const chatId = req.params.id as string;
+        const userId = req.user!.id;
+
+        // Verify participant
+        const chat = await prisma.chat.findUnique({
+            where: { id: chatId }
+        });
+
+        if (!chat) return res.status(404).json({ message: "Chat not found" });
+
+        if (chat.participant1Id !== userId && chat.participant2Id !== userId) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        const updated = await prisma.message.updateMany({
+            where: {
+                chatId,
+                receiverId: userId,
+                read: false
+            },
+            data: {
+                read: true
+            }
+        });
+
+        res.json({ success: true, count: updated.count });
+    } catch (error) {
+        logger.error('Error marking chat as read', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

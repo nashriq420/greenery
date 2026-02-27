@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import NotificationMenu from '@/components/NotificationMenu';
 import MobileMenu from '@/components/MobileMenu';
 import ProfileMenu from '@/components/ProfileMenu';
+import ChatIcon from '@/components/ChatIcon';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, logout } = useAuthStore();
@@ -37,7 +38,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Link href="/dashboard" className="text-sm font-medium hover:text-green-600">Dashboard</Link>
                     <Link href="/dashboard/marketplace" className="text-sm font-medium hover:text-green-600">Marketplace</Link>
                     <Link href="/dashboard/community" className="text-sm font-medium hover:text-green-600">Community</Link>
-                    <Link href="/dashboard/chat" className="text-sm font-medium hover:text-green-600">Chat</Link>
                     <Link href="/dashboard/blacklist" className="text-sm font-medium hover:text-red-600">Safety</Link>
                     {user?.role === 'ADMIN' && (
                         <Link href="/dashboard/admin" className="text-sm font-medium hover:text-green-600">Admin</Link>
@@ -45,6 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </nav>
 
                 <div className="flex items-center gap-4">
+                    <ChatIcon />
                     <NotificationMenu />
                     <ProfileMenu user={user} onLogout={handleLogout} />
 

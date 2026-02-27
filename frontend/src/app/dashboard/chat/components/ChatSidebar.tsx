@@ -87,10 +87,20 @@ export default function ChatSidebar({ className = "" }: { className?: string }) 
                                     className={`block p-4 hover:bg-gray-50 transition ${isActive ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}
                                 >
                                     <div className="flex justify-between items-start mb-1">
-                                        <h3 className={`font-bold text-sm truncate ${isActive ? 'text-blue-700' : 'text-gray-900'}`}>
-                                            {otherParticipant.name}
-                                        </h3>
-                                        <span className="text-xs text-gray-400 whitespace-nowrap ml-2">
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            {otherParticipant.profilePicture ? (
+                                                <img src={otherParticipant.profilePicture} alt={otherParticipant.name} className={`w-8 h-8 rounded-full object-cover shrink-0 ${chat.isActive === false ? 'grayscale opacity-50' : ''}`} />
+                                            ) : (
+                                                <div className={`w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0 ${chat.isActive === false ? 'grayscale opacity-50' : ''}`}>
+                                                    {otherParticipant.name?.charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
+                                            <h3 className={`font-bold text-sm truncate ${isActive ? 'text-blue-700' : 'text-gray-900'} ${chat.isActive === false ? 'opacity-50' : ''}`}>
+                                                {otherParticipant.name}
+                                                {chat.isActive === false && <span className="ml-2 text-xs font-normal text-red-500 bg-red-50 px-1 py-0.5 rounded">Closed</span>}
+                                            </h3>
+                                        </div>
+                                        <span className="text-xs text-gray-400 whitespace-nowrap ml-2 shrink-0">
                                             {/* Simple formatting for now */}
                                             {timeString}
                                         </span>

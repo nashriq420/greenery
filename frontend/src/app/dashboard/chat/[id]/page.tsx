@@ -33,6 +33,12 @@ export default function ChatRoomPage() {
             const data = await api.get(`/chat/${id}/messages`, token || '');
             if (Array.isArray(data)) {
                 setMessages(data);
+
+                // Clear unread notifications for this chat if there are any
+                const hasUnread = data.some((m: any) => !m.read && m.receiverId === user?.id);
+                if (hasUnread) {
+                    await api.put(`/chat/${id}/read`, {}, token || '');
+                }
             }
         } catch (error) {
             console.error("Failed to fetch messages", error);
@@ -120,6 +126,16 @@ export default function ChatRoomPage() {
         }
     };
 
+    const handleReactivate = async () => {
+        try {
+            await api.put(`/chat/${id}/reactivate`, {}, token || '');
+            setChatDetails((prev: any) => ({ ...prev, isActive: true }));
+        } catch (error) {
+            console.error("Failed to reactivate chat", error);
+            alert("Failed to reactivate chat");
+        }
+    };
+
     if (loading) return <div className="p-8">Loading conversation...</div>;
 
     return (
@@ -136,7 +152,12 @@ export default function ChatRoomPage() {
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div>
-                    <h1 className="font-bold text-lg">Chat Room</h1>
+                    <h1 className="font-bold text-lg flex items-center gap-2">
+                        Chat Room
+                        {chatDetails?.isActive === false && (
+                            <span className="text-xs font-normal text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">Closed</span>
+                        )}
+                    </h1>
                     {chatDetails && (
                         <p className="text-xs text-gray-500">
                             {user?.id === chatDetails.participant1.id ? chatDetails.participant2.name : chatDetails.participant1.name}
@@ -157,7 +178,18 @@ export default function ChatRoomPage() {
                     {messages.map((msg) => {
                         const isMe = msg.sender.id === user?.id;
                         return (
-                            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
+                                {!isMe && (
+                                    <div className="shrink-0 mr-2 self-end mb-1">
+                                        {msg.sender.profilePicture ? (
+                                            <img src={msg.sender.profilePicture} alt={msg.sender.name} className="w-6 h-6 rounded-full object-cover" />
+                                        ) : (
+                                            <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-bold text-[10px]">
+                                                {msg.sender.name?.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                                 <div className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${isMe ? 'bg-blue-600 text-white' : 'bg-white border text-gray-800'}`}>
                                     {msg.listing && (
                                         <div className={`mb-2 rounded-lg overflow-hidden border ${isMe ? 'border-blue-400 bg-blue-700/50' : 'border-gray-200 bg-gray-50'} p-2 flex gap-3 items-center group cursor-pointer hover:opacity-90 transition`}>
@@ -175,7 +207,7 @@ export default function ChatRoomPage() {
                                         </div>
                                     )}
                                     <p>{msg.content}</p>
-                                    <p className={`text-xs mt-1 ${isMe ? 'text-blue-200' : 'text-gray-400'}`}>
+                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-blue-200' : 'text-gray-400'}`}>
                                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>
@@ -187,61 +219,70 @@ export default function ChatRoomPage() {
             </div>
 
             {/* Input Area */}
-            <div className="bg-white border-t p-2 sm:p-4 flex gap-2 relative items-center shrink-0">
-                {/* Listing Picker Button */}
-                <div className="relative">
-                    <button
-                        onClick={() => setShowListingPicker(!showListingPicker)}
-                        className="h-12 w-12 sm:w-auto sm:px-4 text-gray-500 hover:bg-gray-100 rounded-lg border flex items-center justify-center"
-                        title="Attach Listing"
-                    >
-                        <Store className="w-5 h-5 sm:mr-2" />
-                        <span className="hidden sm:inline">Store</span>
-                    </button>
-
-                    {/* Listing Picker Popover */}
-                    {showListingPicker && (
-                        <div className="absolute bottom-full left-0 mb-2 w-72 bg-white border rounded-lg shadow-xl max-h-96 overflow-y-auto z-10 p-2">
-                            <h3 className="font-bold text-sm mb-2 px-2">Select a Listing to Share</h3>
-                            {availableListings.length === 0 ? (
-                                <p className="text-sm text-gray-500 px-2 py-4">No listings available.</p>
-                            ) : (
-                                <div className="space-y-2">
-                                    {availableListings.map(l => (
-                                        <div
-                                            key={l.id}
-                                            onClick={() => handleSend(l.id)}
-                                            className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer border"
-                                        >
-                                            {l.imageUrl && <img src={l.imageUrl} className="w-10 h-10 object-cover rounded bg-gray-200" />}
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-bold truncate">{l.title}</p>
-                                                <p className="text-xs text-gray-500">${l.price}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
+            {chatDetails?.isActive === false ? (
+                <div className="bg-gray-50 border-t p-4 flex flex-col items-center justify-center shrink-0 min-h-[80px]">
+                    <p className="text-sm text-gray-500 mb-3">This chat was closed due to inactivity.</p>
+                    <Button onClick={handleReactivate} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+                        Reactivate Chat
+                    </Button>
                 </div>
+            ) : (
+                <div className="bg-white border-t p-2 sm:p-4 flex gap-2 relative items-center shrink-0">
+                    {/* Listing Picker Button */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowListingPicker(!showListingPicker)}
+                            className="h-12 w-12 sm:w-auto sm:px-4 text-gray-500 hover:bg-gray-100 rounded-lg border flex items-center justify-center"
+                            title="Attach Listing"
+                        >
+                            <Store className="w-5 h-5 sm:mr-2" />
+                            <span className="hidden sm:inline">Store</span>
+                        </button>
 
-                <input
-                    className="flex-1 border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-12"
-                    placeholder="Type a message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                />
-                <button
-                    onClick={() => handleSend()}
-                    className="bg-blue-600 text-white w-12 sm:w-auto sm:px-6 h-12 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center"
-                    title="Send Message"
-                >
-                    <Send className="w-5 h-5 sm:hidden" />
-                    <span className="hidden sm:inline">Send</span>
-                </button>
-            </div>
+                        {/* Listing Picker Popover */}
+                        {showListingPicker && (
+                            <div className="absolute bottom-full left-0 mb-2 w-72 bg-white border rounded-lg shadow-xl max-h-96 overflow-y-auto z-10 p-2">
+                                <h3 className="font-bold text-sm mb-2 px-2">Select a Listing to Share</h3>
+                                {availableListings.length === 0 ? (
+                                    <p className="text-sm text-gray-500 px-2 py-4">No listings available.</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {availableListings.map(l => (
+                                            <div
+                                                key={l.id}
+                                                onClick={() => handleSend(l.id)}
+                                                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer border"
+                                            >
+                                                {l.imageUrl && <img src={l.imageUrl} className="w-10 h-10 object-cover rounded bg-gray-200" />}
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-bold truncate">{l.title}</p>
+                                                    <p className="text-xs text-gray-500">${l.price}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <input
+                        className="flex-1 border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-12"
+                        placeholder="Type a message..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    />
+                    <button
+                        onClick={() => handleSend()}
+                        className="bg-blue-600 text-white w-12 sm:w-auto sm:px-6 h-12 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center"
+                        title="Send Message"
+                    >
+                        <Send className="w-5 h-5 sm:hidden" />
+                        <span className="hidden sm:inline">Send</span>
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
