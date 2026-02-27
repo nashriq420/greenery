@@ -71,11 +71,20 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
                     </div>
 
                     <Link
+                        href={`/dashboard/seller/${user?.id}`}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsOpen(false)}
+                    >
+                        <User className="w-4 h-4" />
+                        View Profile
+                    </Link>
+
+                    <Link
                         href="/dashboard/profile"
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
-                        <UserCircle className="w-4 h-4" />
+                        <Settings className="w-4 h-4" />
                         Profile Settings
                     </Link>
 

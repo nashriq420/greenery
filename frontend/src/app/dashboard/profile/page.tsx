@@ -282,6 +282,33 @@ export default function ProfilePage() {
         }
     };
 
+    const handleDelistListing = async (id: string) => {
+        try {
+            if (!confirm("Are you sure you want to delist this item? It will be hidden from the marketplace.")) return;
+            await api.put(`/marketplace/listings/${id}/delist`, {}, token || undefined);
+            alert("Listing delisted");
+            fetchMyListings();
+            // Refresh listing count in dashboard
+            const { refreshUser } = useAuthStore.getState();
+            if (refreshUser) refreshUser();
+        } catch (err) {
+            alert("Failed to delist listing");
+        }
+    };
+
+    const handleRelistListing = async (id: string) => {
+        try {
+            await api.put(`/marketplace/listings/${id}/relist`, {}, token || undefined);
+            alert("Listing relisted");
+            fetchMyListings();
+            // Refresh listing count in dashboard
+            const { refreshUser } = useAuthStore.getState();
+            if (refreshUser) refreshUser();
+        } catch (err) {
+            alert("Failed to relist listing");
+        }
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const formData = new FormData();
@@ -818,45 +845,98 @@ export default function ProfilePage() {
                         <CardContent>
                             <div className="grid gap-4">
                                 {myListings.length === 0 && <p>No listings found.</p>}
-                                {myListings.map(listing => (
-                                    <div key={listing.id} className="border p-4 rounded bg-white shadow-sm grid grid-cols-[auto_1fr_auto] gap-4 items-center">
-                                        {/* Image Column */}
-                                        {listing.imageUrl ? (
-                                            <div className="w-24 h-24 bg-gray-100 rounded-md border overflow-hidden relative shrink-0">
-                                                <img
-                                                    src={listing.imageUrl}
-                                                    alt={listing.title}
-                                                    className="absolute inset-0 w-full h-full object-cover"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="w-24 h-24 bg-gray-100 rounded-md border flex items-center justify-center text-xs text-gray-400 shrink-0">
-                                                No Image
-                                            </div>
-                                        )}
 
-                                        {/* Text Column */}
-                                        <div className="min-w-0 pr-4">
-                                            <h3 className="font-bold text-lg truncate" title={listing.title}>{listing.title}</h3>
-                                            <p className="text-gray-600 font-medium">${listing.price}</p>
-                                            <div className="mt-1">
-                                                <span className={`inline-block text-xs px-2 py-1 rounded-full font-bold ${listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                                    listing.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                                                        listing.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                                            'bg-gray-100 text-gray-800'
-                                                    }`}>
-                                                    {listing.status}
-                                                </span>
-                                            </div>
-                                        </div>
+                                {/* Active Listings */}
+                                {myListings.some(l => l.active !== false) && (
+                                    <div className="space-y-4">
+                                        <h3 className="text-lg font-semibold border-b pb-2">Active Listings</h3>
+                                        {myListings.filter(l => l.active !== false).map(listing => (
+                                            <div key={listing.id} className="border p-4 rounded bg-white shadow-sm grid grid-cols-[auto_1fr_auto] gap-4 items-center">
+                                                {/* Image Column */}
+                                                {listing.imageUrl ? (
+                                                    <div className="w-24 h-24 bg-gray-100 rounded-md border overflow-hidden relative shrink-0">
+                                                        <img
+                                                            src={listing.imageUrl}
+                                                            alt={listing.title}
+                                                            className="absolute inset-0 w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-24 h-24 bg-gray-100 rounded-md border flex items-center justify-center text-xs text-gray-400 shrink-0">
+                                                        No Image
+                                                    </div>
+                                                )}
 
-                                        {/* Action Column */}
-                                        <div className="flex gap-2">
-                                            <Button variant="outline" size="sm" onClick={() => setEditingListing(listing)}>Edit</Button>
-                                            <Button variant="destructive" size="sm" onClick={() => handleDeleteListing(listing.id)}>Delete</Button>
+                                                {/* Text Column */}
+                                                <div className="min-w-0 pr-4">
+                                                    <h3 className="font-bold text-lg truncate" title={listing.title}>{listing.title}</h3>
+                                                    <p className="text-gray-600 font-medium">${listing.price}</p>
+                                                    <div className="mt-1">
+                                                        <span className={`inline-block text-xs px-2 py-1 rounded-full font-bold ${listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                                            listing.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                                                                listing.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                                                    'bg-gray-100 text-gray-800'
+                                                            }`}>
+                                                            {listing.status}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Action Column */}
+                                                <div className="flex gap-2">
+                                                    <Button variant="outline" size="sm" onClick={() => setEditingListing(listing)}>Edit</Button>
+                                                    <Button variant="secondary" size="sm" onClick={() => handleDelistListing(listing.id)}>Delist</Button>
+                                                    <Button variant="destructive" size="sm" onClick={() => handleDeleteListing(listing.id)}>Delete</Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Delisted Listings */}
+                                {myListings.some(l => l.active === false) && (
+                                    <div className="space-y-4 pt-6">
+                                        <h3 className="text-lg font-semibold border-b pb-2 text-gray-500">Delisted Listings</h3>
+                                        <div className="opacity-75 space-y-4">
+                                            {myListings.filter(l => l.active === false).map(listing => (
+                                                <div key={listing.id} className="border p-4 rounded bg-gray-50 shadow-sm grid grid-cols-[auto_1fr_auto] gap-4 items-center">
+                                                    {/* Image Column */}
+                                                    {listing.imageUrl ? (
+                                                        <div className="w-24 h-24 bg-gray-100 rounded-md border overflow-hidden relative shrink-0">
+                                                            <img
+                                                                src={listing.imageUrl}
+                                                                alt={listing.title}
+                                                                className="absolute inset-0 w-full h-full object-cover grayscale"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-24 h-24 bg-gray-100 rounded-md border flex items-center justify-center text-xs text-gray-400 shrink-0">
+                                                            No Image
+                                                        </div>
+                                                    )}
+
+                                                    {/* Text Column */}
+                                                    <div className="min-w-0 pr-4">
+                                                        <h3 className="font-bold text-lg truncate text-gray-500" title={listing.title}>{listing.title}</h3>
+                                                        <p className="text-gray-400 font-medium">${listing.price}</p>
+                                                        <div className="mt-1">
+                                                            <span className="inline-block text-xs px-2 py-1 rounded-full font-bold bg-gray-200 text-gray-600">
+                                                                DELISTED
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Action Column */}
+                                                    <div className="flex gap-2">
+                                                        <Button variant="outline" size="sm" onClick={() => setEditingListing(listing)}>Edit</Button>
+                                                        <Button variant="default" size="sm" onClick={() => handleRelistListing(listing.id)}>Relist</Button>
+                                                        <Button variant="destructive" size="sm" onClick={() => handleDeleteListing(listing.id)}>Delete</Button>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </CardContent>
                     </Card>

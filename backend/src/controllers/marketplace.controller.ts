@@ -350,6 +350,60 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
     }
 };
 
+// Delist Listing
+export const delistListing = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!.id;
+        const listingId = req.params.id as string;
+
+        const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+        if (!listing) {
+            return res.status(404).json({ message: 'Listing not found' });
+        }
+        if (listing.sellerId !== userId) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const updated = await prisma.listing.update({
+            where: { id: listingId },
+            data: { active: false }
+        });
+
+        await logActivity(userId, 'DELIST_LISTING', { listingId }, req);
+
+        res.json({ message: 'Listing delisted', listing: updated });
+    } catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Relist Listing
+export const relistListing = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!.id;
+        const listingId = req.params.id as string;
+
+        const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+        if (!listing) {
+            return res.status(404).json({ message: 'Listing not found' });
+        }
+        if (listing.sellerId !== userId) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const updated = await prisma.listing.update({
+            where: { id: listingId },
+            data: { active: true }
+        });
+
+        await logActivity(userId, 'RELIST_LISTING', { listingId }, req);
+
+        res.json({ message: 'Listing relisted', listing: updated });
+    } catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 // Get Listing by ID
 export const getListingById = async (req: Request, res: Response) => {
     try {
