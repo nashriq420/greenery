@@ -38,6 +38,17 @@ type Listing = {
         email: string;
     };
     createdAt: string;
+    imageUrl?: string;
+    strainType?: string;
+    type?: string;
+    flavors?: string;
+    effects?: string;
+    sku?: string;
+    thcContent?: number;
+    cbdContent?: number;
+    discountPrice?: number;
+    deliveryAvailable?: boolean;
+    minQuantity?: number;
 }
 
 
@@ -62,6 +73,15 @@ export default function AdminPage() {
     const [warningOpen, setWarningOpen] = useState(false);
     const [warningMessage, setWarningMessage] = useState('');
     const [selectedUserForWarning, setSelectedUserForWarning] = useState<{ userId: string, listingId?: string } | null>(null);
+
+    // View Listing Modal State
+    const [viewListingOpen, setViewListingOpen] = useState(false);
+    const [selectedListingForView, setSelectedListingForView] = useState<Listing | null>(null);
+
+    const handleViewListing = (listing: Listing) => {
+        setSelectedListingForView(listing);
+        setViewListingOpen(true);
+    };
 
     const handleWarnUser = (userId: string, listingId?: string) => {
         setSelectedUserForWarning({ userId, listingId });
@@ -245,6 +265,7 @@ export default function AdminPage() {
                                 isPending={true}
                                 onUpdateStatus={handleListingStatusUpdate}
                                 onWarnSeller={handleWarnUser}
+                                onViewListing={handleViewListing}
                                 loading={loading}
                             />
                         </TabsContent>
@@ -254,6 +275,7 @@ export default function AdminPage() {
                                 isPending={false}
                                 onUpdateStatus={handleListingStatusUpdate}
                                 onWarnSeller={handleWarnUser}
+                                onViewListing={handleViewListing}
                                 loading={loading}
                             />
                         </TabsContent>
@@ -290,6 +312,115 @@ export default function AdminPage() {
                                 <div className="flex justify-end gap-2">
                                     <Button variant="outline" onClick={() => setWarningOpen(false)}>Cancel</Button>
                                     <Button onClick={submitWarning} variant="destructive">Send Warning</Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )
+            }
+
+            {/* View Listing Modal */}
+            {
+                viewListingOpen && selectedListingForView && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+                        <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-white dark:bg-zinc-950 z-10 border-b">
+                                <div>
+                                    <CardTitle className="text-xl">{selectedListingForView.title}</CardTitle>
+                                    <CardDescription>Listing Details</CardDescription>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => setViewListingOpen(false)}>×</Button>
+                            </CardHeader>
+                            <CardContent className="space-y-6 pt-6">
+                                {selectedListingForView.imageUrl && (
+                                    <div className="w-full h-64 relative rounded-md overflow-hidden bg-gray-100">
+                                        <img src={selectedListingForView.imageUrl} alt={selectedListingForView.title} className="w-full h-full object-cover" />
+                                    </div>
+                                )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <span className="text-sm text-gray-500 font-medium">Price</span>
+                                        <p className="font-semibold text-lg">${Number(selectedListingForView.price).toFixed(2)}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-sm text-gray-500 font-medium">Status</span>
+                                        <div><StatusBadge status={selectedListingForView.status} /></div>
+                                    </div>
+                                    <div className="space-y-1 col-span-1 md:col-span-2">
+                                        <span className="text-sm text-gray-500 font-medium">Description</span>
+                                        <p className="text-sm whitespace-pre-wrap">{selectedListingForView.description}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-sm text-gray-500 font-medium">Seller</span>
+                                        <p className="text-sm font-medium">{selectedListingForView.seller?.name}</p>
+                                        <p className="text-xs text-blue-600">{selectedListingForView.seller?.email}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-sm text-gray-500 font-medium">Created At</span>
+                                        <p className="text-sm">{new Date(selectedListingForView.createdAt).toLocaleString()}</p>
+                                    </div>
+
+                                    {/* Cannabis Metadata & Extras */}
+                                    {selectedListingForView.type && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">Type</span>
+                                            <p className="text-sm">{selectedListingForView.type}</p>
+                                        </div>
+                                    )}
+                                    {selectedListingForView.strainType && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">Strain</span>
+                                            <p className="text-sm">{selectedListingForView.strainType}</p>
+                                        </div>
+                                    )}
+                                    {selectedListingForView.flavors && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">Flavors</span>
+                                            <p className="text-sm">{selectedListingForView.flavors}</p>
+                                        </div>
+                                    )}
+                                    {selectedListingForView.effects && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">Effects</span>
+                                            <p className="text-sm">{selectedListingForView.effects}</p>
+                                        </div>
+                                    )}
+                                    {selectedListingForView.thcContent !== undefined && selectedListingForView.thcContent !== null && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">THC Content</span>
+                                            <p className="text-sm">{selectedListingForView.thcContent}%</p>
+                                        </div>
+                                    )}
+                                    {selectedListingForView.cbdContent !== undefined && selectedListingForView.cbdContent !== null && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">CBD Content</span>
+                                            <p className="text-sm">{selectedListingForView.cbdContent}%</p>
+                                        </div>
+                                    )}
+                                    {selectedListingForView.sku && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">SKU</span>
+                                            <p className="text-sm">{selectedListingForView.sku}</p>
+                                        </div>
+                                    )}
+                                    {(selectedListingForView.minQuantity !== undefined) && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">Min Quantity</span>
+                                            <p className="text-sm">{selectedListingForView.minQuantity}</p>
+                                        </div>
+                                    )}
+                                    {selectedListingForView.discountPrice && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">Discount Price</span>
+                                            <p className="text-sm">${Number(selectedListingForView.discountPrice).toFixed(2)}</p>
+                                        </div>
+                                    )}
+                                    {selectedListingForView.deliveryAvailable && (
+                                        <div className="space-y-1">
+                                            <span className="text-sm text-gray-500 font-medium">Delivery</span>
+                                            <p className="text-sm text-green-600 font-medium">Available</p>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -372,7 +503,7 @@ function UserGroupList({ users, type, isPending, onUpdateStatus, onWarn, loading
     );
 }
 
-function ListingGroupList({ listings, isPending, onUpdateStatus, onWarnSeller, loading }: any) {
+function ListingGroupList({ listings, isPending, onUpdateStatus, onWarnSeller, onViewListing, loading }: any) {
     if (loading) return <div className="p-8 text-center text-gray-500 animate-pulse">Loading data...</div>;
 
     if (listings.length === 0) {
@@ -407,6 +538,9 @@ function ListingGroupList({ listings, isPending, onUpdateStatus, onWarnSeller, l
                         </div>
 
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                            <Button variant="secondary" size="sm" onClick={() => onViewListing?.(l)} className="w-full sm:w-auto">
+                                👁️ View
+                            </Button>
                             {isPending ? (
                                 <>
                                     <Button onClick={() => onUpdateStatus(l.id, 'ACTIVE')} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
