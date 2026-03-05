@@ -100,6 +100,12 @@ export default function ProfilePage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deletePassword, setDeletePassword] = useState('');
 
+    // Customer Location Search State
+    const [customerLocationQuery, setCustomerLocationQuery] = useState('');
+    const [customerLocationSuggestions, setCustomerLocationSuggestions] = useState<any[]>([]);
+    const [customerLocationLoading, setCustomerLocationLoading] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
     useEffect(() => {
         if (token) {
             fetchProfile();
@@ -221,6 +227,59 @@ export default function ProfilePage() {
             const msg = err?.message || "Failed to update password";
             alert(msg);
         }
+    };
+
+    // Autocomplete for Customer Location
+    useEffect(() => {
+        if (!customerLocationQuery || customerLocationQuery.length < 3) {
+            setCustomerLocationSuggestions([]);
+            return;
+        }
+
+        const delayDebounceFn = setTimeout(async () => {
+            setCustomerLocationLoading(true);
+            try {
+                // Ignore search if it matches an already selected result exactly
+                const isSelected = customerLocationSuggestions.some(s => s.display_name === customerLocationQuery);
+                if (isSelected) {
+                    setCustomerLocationLoading(false);
+                    return;
+                }
+
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(customerLocationQuery)}&limit=5&addressdetails=1`, {
+                    headers: {
+                        'User-Agent': 'GreeneryApp/1.0'
+                    }
+                });
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    setCustomerLocationSuggestions(data);
+                    setShowSuggestions(true);
+                } else {
+                    setCustomerLocationSuggestions([]);
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            } finally {
+                setCustomerLocationLoading(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [customerLocationQuery]);
+
+    const handleSelectLocation = (result: any) => {
+        const address = result.address || {};
+
+        setProfile(prev => ({
+            ...prev,
+            district: address.city || address.town || address.village || address.suburb || address.county || '',
+            state: address.state || address.region || '',
+            country: address.country || ''
+        }));
+
+        setCustomerLocationQuery(result.display_name);
+        setShowSuggestions(false);
     };
 
     const handleUpdateLocation = async () => {
@@ -525,14 +584,54 @@ export default function ProfilePage() {
                                 <Input value={profile.email} disabled />
                             </div>
 
+                            <div className="space-y-2 pt-4 border-t">
+                                <Label className="text-base font-semibold">Location</Label>
+                                <div className="space-y-4 relative">
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 relative">
+                                            <Input
+                                                placeholder="Search for your location to autofill..."
+                                                value={customerLocationQuery}
+                                                onChange={(e) => {
+                                                    setCustomerLocationQuery(e.target.value);
+                                                    setShowSuggestions(true);
+                                                }}
+                                                onFocus={() => {
+                                                    if (customerLocationSuggestions.length > 0) {
+                                                        setShowSuggestions(true);
+                                                    }
+                                                }}
+                                            />
+                                            {customerLocationLoading && (
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {showSuggestions && customerLocationSuggestions.length > 0 && (
+                                        <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                            {customerLocationSuggestions.map((suggestion, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="px-4 py-2 hover:bg-muted cursor-pointer text-sm border-b last:border-0"
+                                                    onClick={() => handleSelectLocation(suggestion)}
+                                                >
+                                                    {suggestion.display_name}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <Label>District</Label>
+                                    <Label>District / City</Label>
                                     <Input
                                         list="district-options"
                                         value={profile.district || ''}
                                         onChange={(e) => setProfile({ ...profile, district: e.target.value })}
-                                        placeholder="Search district..."
+                                        placeholder="e.g. Subang Jaya"
                                     />
                                     <datalist id="district-options">
                                         <option value="Central" />
@@ -548,7 +647,7 @@ export default function ProfilePage() {
                                         list="state-options"
                                         value={profile.state || ''}
                                         onChange={(e) => setProfile({ ...profile, state: e.target.value })}
-                                        placeholder="Search state..."
+                                        placeholder="e.g. Selangor"
                                     />
                                     <datalist id="state-options">
                                         <option value="Kuala Lumpur" />
@@ -565,7 +664,7 @@ export default function ProfilePage() {
                                         list="country-options"
                                         value={profile.country || ''}
                                         onChange={(e) => setProfile({ ...profile, country: e.target.value })}
-                                        placeholder="Search country..."
+                                        placeholder="e.g. Malaysia"
                                     />
                                     <datalist id="country-options">
                                         <option value="Malaysia" />
