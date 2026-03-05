@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import { Send, Store, ArrowLeft } from 'lucide-react';
+import { Send, Store, ArrowLeft, Star, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PrivacyWarning from '../components/PrivacyWarning';
 
@@ -160,8 +160,18 @@ export default function ChatRoomPage() {
                         )}
                     </h1>
                     {chatDetails && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm font-medium text-gray-600 flex items-center gap-1.5 mt-0.5">
                             {user?.id === chatDetails.participant1.id ? chatDetails.participant2.name : chatDetails.participant1.name}
+                            {(user?.id === chatDetails.participant1.id ? chatDetails.participant2.subscription?.status : chatDetails.participant1.subscription?.status) === 'ACTIVE' && (
+                                <>
+                                    <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white rounded-full text-[10px] shadow-sm ml-0.5 shrink-0">
+                                        <Check className="w-2.5 h-2.5" strokeWidth={3} />
+                                    </span>
+                                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0">
+                                        <Star size={8} fill="currentColor" /> Premium
+                                    </span>
+                                </>
+                            )}
                         </p>
                     )}
                 </div>

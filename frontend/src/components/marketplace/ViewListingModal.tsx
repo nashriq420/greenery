@@ -19,18 +19,30 @@ export default function ViewListingModal({ listing, onClose }: ViewListingModalP
                 </div>
 
                 <div className="space-y-4">
-                    {listing.imageUrl ? (
+                    {/* Media Display */}
+                    {listing.videoUrl ? (
+                        <div className="w-full h-48 bg-black rounded-lg overflow-hidden flex items-center justify-center">
+                            <video src={listing.videoUrl} controls className="w-full h-full object-contain" />
+                        </div>
+                    ) : listing.imageUrl ? (
                         <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
                             <img src={listing.imageUrl} alt={listing.title} className="w-full h-full object-cover" />
                         </div>
                     ) : (
                         <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                            No Image
+                            No Media
                         </div>
                     )}
 
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{listing.title}</h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-semibold text-gray-900">{listing.title}</h3>
+                            {listing.seller?.subscription?.status === 'ACTIVE' && (
+                                <span title="Premium Seller" className="inline-flex items-center justify-center w-5 h-5 bg-blue-500 text-white rounded-full text-[10px] shadow-sm">
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                                </span>
+                            )}
+                        </div>
                         <div className="flex items-center gap-2 mt-1">
                             {listing.discountPrice ? (
                                 <div className="flex items-end gap-2">

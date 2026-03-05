@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Star, MapPin, Calendar, MessageCircle, Clock, Search } from 'lucide-react';
+import { Star, MapPin, Calendar, MessageCircle, Clock, Search, Check } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const SellerLocationMap = dynamic(() => import('@/components/SellerLocationMap'), {
@@ -99,7 +99,19 @@ export default function SellerProfilePage() {
 
                         {/* Name and Handle */}
                         <div className="flex-1 mt-4 md:mt-0 md:mb-2">
-                            <h1 className="text-3xl font-bold text-gray-900 leading-tight">{seller.name}</h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-3xl font-bold text-gray-900 leading-tight">{seller.name}</h1>
+                                {seller.subscription?.status === 'ACTIVE' && (
+                                    <div className="flex items-center gap-2">
+                                        <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-[12px] shadow-sm">
+                                            <Check className="w-4 h-4" strokeWidth={3} />
+                                        </span>
+                                        <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0">
+                                            <Star size={12} fill="currentColor" /> Premium
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                             <p className="text-gray-500 font-medium">@{seller.username || seller.name.replace(/\s+/g, '').toLowerCase()}</p>
                         </div>
                     </div>

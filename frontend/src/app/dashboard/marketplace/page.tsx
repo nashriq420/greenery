@@ -6,7 +6,7 @@ import { calculateDistance } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { MapPin, Check, Search, Filter, X } from 'lucide-react';
+import { MapPin, Check, Search, Filter, X, Star } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -332,10 +332,15 @@ export default function MarketplacePage() {
                             ) : (
                                 sortedListings.map((listing) => (
                                     <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="block">
-                                        <div className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition h-full">
-                                            <div className="h-48 bg-gray-200 relative">
+                                        <div className={`bg-white border rounded-lg overflow-hidden transition h-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'ring-2 ring-yellow-400 shadow-md hover:shadow-xl relative' : 'hover:shadow-lg'}`}>
+                                            <div className="bg-gray-200 relative">
+                                                {listing.seller.subscription?.status === 'ACTIVE' && (
+                                                    <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-sm uppercase flex items-center gap-1 z-10">
+                                                        <Star size={10} fill="currentColor" /> Premium
+                                                    </div>
+                                                )}
                                                 {listing.imageUrl ? (
-                                                    <div className="w-full h-48 bg-gray-100 relative">
+                                                    <div className={`w-full relative ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} bg-gray-100`}>
                                                         <img
                                                             src={listing.imageUrl}
                                                             alt={listing.title}
@@ -343,26 +348,28 @@ export default function MarketplacePage() {
                                                         />
                                                     </div>
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+                                                    <div className={`w-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} flex items-center justify-center text-gray-400`}>No Image</div>
                                                 )}
-                                                <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-bold shadow">
-                                                    {listing.discountPrice ? (
-                                                        <div className="flex flex-col items-end">
-                                                            <span className="text-gray-400 line-through text-xs">RM {listing.price}</span>
-                                                            <span className="text-red-600">RM {listing.discountPrice}</span>
-                                                            {listing.promotionEnd && (
-                                                                <span className="text-[10px] text-red-500 font-normal">Ends {new Date(listing.promotionEnd).toLocaleDateString()}</span>
-                                                            )}
+                                                <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
+                                                    <div className="bg-white px-2 py-1 rounded-full text-sm font-bold shadow">
+                                                        {listing.discountPrice ? (
+                                                            <div className="flex flex-col items-end leading-tight">
+                                                                <span className="text-gray-400 line-through text-xs">RM {listing.price}</span>
+                                                                <span className="text-red-600">RM {listing.discountPrice}</span>
+                                                                {listing.promotionEnd && (
+                                                                    <span className="text-[10px] text-red-500 font-normal mt-0.5">Ends {new Date(listing.promotionEnd).toLocaleDateString()}</span>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span>RM {listing.price}</span>
+                                                        )}
+                                                    </div>
+                                                    {listing.deliveryAvailable && (
+                                                        <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase">
+                                                            Delivery
                                                         </div>
-                                                    ) : (
-                                                        <span>RM {listing.price}</span>
                                                     )}
                                                 </div>
-                                                {listing.deliveryAvailable && (
-                                                    <div className="absolute top-2 left-2 bg-green-100 text-green-800 px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase">
-                                                        Delivery
-                                                    </div>
-                                                )}
                                             </div>
                                             <div className="p-4">
                                                 <h3 className="font-bold text-lg">{listing.title}</h3>
@@ -379,7 +386,14 @@ export default function MarketplacePage() {
                                                         </span>
                                                     </div>
                                                 )}
-                                                <p className="text-sm text-gray-500 mb-2">by {listing.seller.name}</p>
+                                                <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
+                                                    by {listing.seller.name}
+                                                    {listing.seller.subscription?.status === 'ACTIVE' && (
+                                                        <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-3.5 h-3.5 bg-blue-500 text-white rounded-full text-[8px] shadow-sm">
+                                                            <Check size={8} strokeWidth={3} />
+                                                        </span>
+                                                    )}
+                                                </p>
                                                 <p className="text-gray-600 line-clamp-2 text-sm">{listing.description}</p>
                                                 <div className="mt-4 flex justify-between items-center text-xs text-gray-400">
                                                     <span>{listing.seller.sellerProfile?.city || 'Unknown Location'}</span>

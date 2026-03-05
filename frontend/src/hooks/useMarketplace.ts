@@ -16,6 +16,7 @@ export interface Seller {
     lastSeen: string | Date | null;
     averageRating: number | null;
     reviewCount: number | null;
+    subscriptionStatus?: string | null;
 }
 
 export function useSellers(lat: number, lng: number, radius: number = 50) {
@@ -57,6 +58,7 @@ export interface Listing {
     active?: boolean;
     status: 'PENDING' | 'ACTIVE' | 'SOLD' | 'REJECTED';
     imageUrl: string | null;
+    videoUrl?: string | null;
     sku?: string | null; // Sku added
 
     // New Fields
@@ -80,6 +82,9 @@ export interface Listing {
             state: string | null;
             latitude?: number;
             longitude?: number;
+        } | null;
+        subscription?: {
+            status: string;
         } | null;
     };
     createdAt?: string;

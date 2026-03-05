@@ -20,13 +20,17 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
     const [error, setError] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
+    const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+    const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         price: '',
         imageUrl: '',
+        videoUrl: '',
         discountPrice: '',
         promotionStart: '',
         promotionEnd: '',
@@ -48,6 +52,7 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                 description: listing.description || '',
                 price: listing.price.toString(),
                 imageUrl: listing.imageUrl || '',
+                videoUrl: listing.videoUrl || '',
                 discountPrice: listing.discountPrice?.toString() || '',
                 promotionStart: listing.promotionStart ? new Date(listing.promotionStart).toISOString().split('T')[0] : '',
                 promotionEnd: listing.promotionEnd ? new Date(listing.promotionEnd).toISOString().split('T')[0] : '',
@@ -62,6 +67,7 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                 sku: listing.sku || ''
             });
             setPreviewUrl(listing.imageUrl || '');
+            setVideoPreviewUrl(listing.videoUrl || '');
         }
     }, [listing]);
 
@@ -85,6 +91,19 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
         }
     };
 
+    const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (file.size > 10 * 1024 * 1024) {
+                alert("Video is too large. Maximum size is 10MB.");
+                return;
+            }
+            setSelectedVideo(file);
+            const url = URL.createObjectURL(file);
+            setVideoPreviewUrl(url);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -92,6 +111,7 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
 
         try {
             let finalImageUrl = formData.imageUrl;
+            let finalVideoUrl = formData.videoUrl;
 
             if (selectedFile) {
                 const uploadData = new FormData();
@@ -100,6 +120,16 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                 const uploadRes = await api.upload('/upload/image', uploadData, token!);
                 if (uploadRes.url) {
                     finalImageUrl = uploadRes.url;
+                }
+            }
+
+            if (selectedVideo) {
+                const uploadData = new FormData();
+                uploadData.append('video', selectedVideo);
+
+                const uploadRes = await api.uploadVideo('/upload/video', uploadData, token!);
+                if (uploadRes.url) {
+                    finalVideoUrl = uploadRes.url;
                 }
             }
 
@@ -112,7 +142,8 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                 minQuantity: parseInt(formData.minQuantity) || 1,
                 thcContent: formData.thcContent ? parseFloat(formData.thcContent) : undefined,
                 cbdContent: formData.cbdContent ? parseFloat(formData.cbdContent) : undefined,
-                imageUrl: finalImageUrl
+                imageUrl: finalImageUrl,
+                videoUrl: finalVideoUrl
             }, token!);
 
             onUpdate();
@@ -353,44 +384,88 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Listing Image</Label>
-                        <div className="flex items-start gap-4">
-                            <div className="relative w-24 h-24 bg-muted rounded-lg border overflow-hidden shrink-0 shadow-sm group">
-                                {previewUrl ? (
-                                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                                ) : (
-                                    <div className="flex items-center justify-center w-full h-full text-muted-foreground">
-                                        <Upload className="w-8 h-8 opacity-20" />
-                                    </div>
-                                )}
-                            </div>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label>Listing Image</Label>
+                            <div className="flex items-start gap-4">
+                                <div className="relative w-24 h-24 bg-muted rounded-lg border overflow-hidden shrink-0 shadow-sm group">
+                                    {previewUrl ? (
+                                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                                    ) : (
+                                        <div className="flex items-center justify-center w-full h-full text-muted-foreground">
+                                            <Upload className="w-8 h-8 opacity-20" />
+                                        </div>
+                                    )}
+                                </div>
 
-                            <div className="flex-1 space-y-2">
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    ref={fileInputRef}
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                />
-                                <div className="flex flex-col gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-fit"
-                                        onClick={() => fileInputRef.current?.click()}
-                                    >
-                                        <Upload className="w-4 h-4 mr-2" />
-                                        {previewUrl ? 'Change Image' : 'Upload Image'}
-                                    </Button>
-                                    <p className="text-xs text-muted-foreground">
-                                        Supported formats: JPG, PNG, WebP.
-                                    </p>
+                                <div className="flex-1 space-y-2">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                    />
+                                    <div className="flex flex-col gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-fit"
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
+                                            <Upload className="w-4 h-4 mr-2" />
+                                            {previewUrl ? 'Change Image' : 'Upload Image'}
+                                        </Button>
+                                        <p className="text-xs text-muted-foreground">
+                                            Supported formats: JPG, PNG, WebP.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        {listing.seller?.subscription?.status === 'ACTIVE' && (
+                            <div className="space-y-2 pt-4 border-t">
+                                <Label className="flex items-center gap-2">Video (Premium Feature) <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold">Premium</span></Label>
+                                <div className="flex items-start gap-4">
+                                    <div className="relative w-32 h-24 bg-black rounded-lg border overflow-hidden shrink-0 shadow-sm group">
+                                        {videoPreviewUrl ? (
+                                            <video src={videoPreviewUrl} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="flex items-center justify-center w-full h-full text-muted-foreground bg-muted">
+                                                <Upload className="w-8 h-8 opacity-20" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex-1 space-y-2">
+                                        <input
+                                            type="file"
+                                            accept="video/*"
+                                            ref={videoInputRef}
+                                            onChange={handleVideoChange}
+                                            className="hidden"
+                                        />
+                                        <div className="flex flex-col gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-fit"
+                                                onClick={() => videoInputRef.current?.click()}
+                                            >
+                                                <Upload className="w-4 h-4 mr-2" />
+                                                {videoPreviewUrl ? 'Change Video' : 'Upload Video'}
+                                            </Button>
+                                            <p className="text-xs text-muted-foreground">
+                                                Max size: 10MB.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 border-t mt-6">

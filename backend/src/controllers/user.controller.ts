@@ -9,7 +9,10 @@ const updateProfileSchema = z.object({
     name: z.string().min(2).optional(),
     email: z.string().email().optional(),
     username: z.string().min(3).optional(),
-    profilePicture: z.string().optional()
+    profilePicture: z.string().optional(),
+    district: z.string().optional(),
+    state: z.string().optional(),
+    country: z.string().optional()
 });
 
 const updateLocationSchema = z.object({
@@ -36,8 +39,12 @@ export const getMe = async (req: AuthRequest, res: Response) => {
                 email: true,
                 username: true,
                 profilePicture: true,
+                district: true,
+                state: true,
+                country: true,
                 role: true,
-                sellerProfile: true
+                sellerProfile: true,
+                subscription: true
             }
         });
 
@@ -91,6 +98,9 @@ export const updateMe = async (req: AuthRequest, res: Response) => {
                 email: true,
                 username: true,
                 profilePicture: true,
+                district: true,
+                state: true,
+                country: true,
                 role: true,
                 lastUsernameChange: true
             }

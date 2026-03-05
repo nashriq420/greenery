@@ -5,12 +5,14 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Search } from 'lucide-react';
+import { Search, Megaphone } from 'lucide-react';
+import BroadcastModal from './BroadcastModal';
 
 export default function ChatSidebar({ className = "" }: { className?: string }) {
     const { token, user } = useAuthStore();
     const [chats, setChats] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
     const params = useParams();
     const activeId = params?.id;
 
@@ -43,8 +45,18 @@ export default function ChatSidebar({ className = "" }: { className?: string }) 
         <div className={`flex flex-col h-full bg-white border-r ${className}`}>
             <div className="p-4 border-b flex items-center justify-between">
                 <h2 className="font-bold text-xl">Messages</h2>
-                {/* Settings or new chat icon could go here */}
+                {user?.role === 'SELLER' && user?.subscription?.status === 'ACTIVE' && (
+                    <button
+                        onClick={() => setIsBroadcastOpen(true)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition flex items-center gap-2 text-sm font-medium"
+                        title="Broadcast Message"
+                    >
+                        <Megaphone className="w-5 h-5" />
+                    </button>
+                )}
             </div>
+
+            <BroadcastModal isOpen={isBroadcastOpen} onClose={() => setIsBroadcastOpen(false)} />
 
             <div className="p-3 border-b">
                 <div className="relative">

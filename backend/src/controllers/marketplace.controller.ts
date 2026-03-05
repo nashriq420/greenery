@@ -11,6 +11,7 @@ const createListingSchema = z.object({
     description: z.string().min(10, "Description must be at least 10 characters long"),
     price: z.number().min(0, "Price cannot be negative"),
     imageUrl: z.string().url("Image URL must be a valid URL").optional().or(z.literal('')),
+    videoUrl: z.string().url("Video URL must be a valid URL").optional().or(z.literal('')),
 
     // Promotion & Requirements
     discountPrice: z.number().min(0).optional(),
@@ -77,6 +78,7 @@ export const getSellersNearby = async (req: Request, res: Response) => {
                 u.name, 
                 u.email,
                 u."profilePicture",
+                sub.status as "subscriptionStatus",
                 (SELECT "createdAt" FROM "LoginHistory" WHERE "userId" = u.id ORDER BY "createdAt" DESC LIMIT 1) as "lastSeen",
                 (
                     SELECT CAST(AVG(r.rating) AS DOUBLE PRECISION)
@@ -93,6 +95,7 @@ export const getSellersNearby = async (req: Request, res: Response) => {
                 ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) AS distance
             FROM "SellerProfile" s
             JOIN "User" u ON s."userId" = u.id
+            LEFT JOIN "Subscription" sub ON u.id = sub."userId"
             WHERE u.status = 'ACTIVE'
             AND ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) < ${radiusKm}
             ORDER BY distance ASC
@@ -258,11 +261,26 @@ export const getListings = async (req: Request, res: Response) => {
                                 latitude: true,
                                 longitude: true
                             }
+                        },
+                        subscription: {
+                            select: {
+                                status: true
+                            }
                         }
                     }
                 }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: [
+                { seller: { subscription: { status: 'asc' } } }, // Simplistic hack: ACTIVE is before pending_payment etc depending on db text. Needs sorting properly. We can fetch and sort or rely on created at
+                { createdAt: 'desc' }
+            ]
+        });
+
+        // Better sorting: sort ACTIVE subscriptions at the top manually if prisma order is tricky
+        listings.sort((a, b) => {
+            const aActive = a.seller.subscription?.status === 'ACTIVE' ? 1 : 0;
+            const bActive = b.seller.subscription?.status === 'ACTIVE' ? 1 : 0;
+            return bActive - aActive; // Descending order of active status
         });
 
         res.json(listings);
@@ -491,6 +509,11 @@ export const getSellerById = async (req: Request, res: Response) => {
                 _count: {
                     select: {
                         listings: { where: { active: true, status: 'ACTIVE' } }
+                    }
+                },
+                subscription: {
+                    select: {
+                        status: true
                     }
                 }
             }

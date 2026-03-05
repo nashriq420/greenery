@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Upload, Trash2, AlertTriangle, X } from 'lucide-react';
+import { Upload, Trash2, AlertTriangle, X, Check } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,8 @@ import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
 import EditListingModal from '@/components/marketplace/EditListingModal';
 import { Listing } from '@/hooks/useMarketplace';
+import SubscriptionTab from '@/components/profile/SubscriptionTab';
+import AnalyticsTab from '@/components/dashboard/AnalyticsTab';
 
 interface UserProfile {
     name: string;
@@ -21,6 +23,10 @@ interface UserProfile {
     username: string;
     profilePicture?: string;
     role: string;
+    district?: string;
+    state?: string;
+    country?: string;
+    subscription?: { status: string };
 }
 
 interface SellerProfile {
@@ -45,7 +51,7 @@ const LocationPicker = dynamic(() => import('@/components/LocationPicker'), {
 export default function ProfilePage() {
     const { user, token } = useAuthStore();
     const [profile, setProfile] = useState<UserProfile>({
-        name: '', email: '', username: '', role: '', profilePicture: ''
+        name: '', email: '', username: '', role: '', profilePicture: '', district: '', state: '', country: ''
     });
     const [sellerProfile, setSellerProfile] = useState<SellerProfile>({
         lat: 0, lng: 0, address: '', city: '', state: '', country: '', description: ''
@@ -56,6 +62,7 @@ export default function ProfilePage() {
         description: '',
         price: '',
         imageUrl: '',
+        videoUrl: '',
         minQuantity: '1',
         deliveryAvailable: false,
         strainType: '',
@@ -113,7 +120,11 @@ export default function ProfilePage() {
                     email: res.email || '',
                     username: res.username || '',
                     profilePicture: res.profilePicture || '',
-                    role: res.role || ''
+                    role: res.role || '',
+                    district: res.district || '',
+                    state: res.state || '',
+                    country: res.country || '',
+                    subscription: res.subscription
                 });
                 if (res.sellerProfile) {
                     setSellerProfile({
@@ -164,7 +175,10 @@ export default function ProfilePage() {
             const payload = {
                 name: profile.name,
                 username: profile.username,
-                profilePicture: profile.profilePicture
+                profilePicture: profile.profilePicture,
+                district: profile.district,
+                state: profile.state,
+                country: profile.country
             };
 
             await api.put('/user/me', payload, token || undefined);
@@ -180,7 +194,10 @@ export default function ProfilePage() {
                     ...user,
                     name: profile.name,
                     username: profile.username,
-                    profilePicture: profile.profilePicture
+                    profilePicture: profile.profilePicture,
+                    district: profile.district,
+                    state: profile.state,
+                    country: profile.country
                 }, token);
             }
 
@@ -231,6 +248,7 @@ export default function ProfilePage() {
                 description: newListing.description,
                 price: parseFloat(newListing.price) || 0,
                 imageUrl: newListing.imageUrl || undefined,
+                videoUrl: newListing.videoUrl || undefined,
                 minQuantity: parseInt(newListing.minQuantity) || 1,
                 deliveryAvailable: newListing.deliveryAvailable,
                 strainType: newListing.strainType || undefined,
@@ -248,6 +266,7 @@ export default function ProfilePage() {
                 description: '',
                 price: '',
                 imageUrl: '',
+                videoUrl: '',
                 minQuantity: '1',
                 deliveryAvailable: false,
                 strainType: '',
@@ -322,6 +341,24 @@ export default function ProfilePage() {
         }
     };
 
+    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (file.size > 10 * 1024 * 1024) {
+                alert("Video is too large. Maximum size is 10MB.");
+                return;
+            }
+            const formData = new FormData();
+            formData.append('video', file);
+            try {
+                const res = await api.uploadVideo('/upload/video', formData, token || undefined);
+                setNewListing({ ...newListing, videoUrl: res.url });
+            } catch (err: any) {
+                alert(err.message || "Failed to upload video");
+            }
+        }
+    };
+
     const handleDeleteAccount = async () => {
         if (!deletePassword) {
             alert("Please enter your password to confirm deletion.");
@@ -343,7 +380,14 @@ export default function ProfilePage() {
 
     return (
         <div className="container mx-auto py-10 space-y-8">
-            <h1 className="text-3xl font-bold">Profile Management</h1>
+            <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold">Profile Management</h1>
+                {profile.subscription?.status === 'ACTIVE' && (
+                    <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-full shadow-sm">
+                        <Check className="w-5 h-5" strokeWidth={3} />
+                    </span>
+                )}
+            </div>
 
             <Tabs defaultValue="profile" className="w-full">
                 <TabsList>
@@ -352,6 +396,8 @@ export default function ProfilePage() {
                         <>
                             <TabsTrigger value="listings">My Listings</TabsTrigger>
                             <TabsTrigger value="promotions">My Promotions</TabsTrigger>
+                            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                            <TabsTrigger value="subscription">Subscription</TabsTrigger>
                         </>
                     )}
                     <TabsTrigger value="deletion">Deletion</TabsTrigger>
@@ -478,6 +524,62 @@ export default function ProfilePage() {
                                 <Label>Email</Label>
                                 <Input value={profile.email} disabled />
                             </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label>District</Label>
+                                    <Input
+                                        list="district-options"
+                                        value={profile.district || ''}
+                                        onChange={(e) => setProfile({ ...profile, district: e.target.value })}
+                                        placeholder="Search district..."
+                                    />
+                                    <datalist id="district-options">
+                                        <option value="Central" />
+                                        <option value="North" />
+                                        <option value="South" />
+                                        <option value="East" />
+                                        <option value="West" />
+                                    </datalist>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>State</Label>
+                                    <Input
+                                        list="state-options"
+                                        value={profile.state || ''}
+                                        onChange={(e) => setProfile({ ...profile, state: e.target.value })}
+                                        placeholder="Search state..."
+                                    />
+                                    <datalist id="state-options">
+                                        <option value="Kuala Lumpur" />
+                                        <option value="Selangor" />
+                                        <option value="Johor" />
+                                        <option value="Penang" />
+                                        <option value="Sabah" />
+                                        <option value="Sarawak" />
+                                    </datalist>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Country</Label>
+                                    <Input
+                                        list="country-options"
+                                        value={profile.country || ''}
+                                        onChange={(e) => setProfile({ ...profile, country: e.target.value })}
+                                        placeholder="Search country..."
+                                    />
+                                    <datalist id="country-options">
+                                        <option value="Malaysia" />
+                                        <option value="Singapore" />
+                                        <option value="Indonesia" />
+                                        <option value="Brunei" />
+                                        <option value="Thailand" />
+                                        <option value="United States" />
+                                        <option value="United Kingdom" />
+                                        <option value="Australia" />
+                                    </datalist>
+                                </div>
+                            </div>
+
                             <Button onClick={handleUpdateProfile}>Update Profile</Button>
                         </CardContent>
                     </Card>
@@ -832,6 +934,18 @@ export default function ProfilePage() {
                                 />
                                 {newListing.imageUrl && <p className="text-sm text-green-600">Image uploaded successfully!</p>}
                             </div>
+                            {user?.subscription?.status === 'ACTIVE' && (
+                                <div className="space-y-2">
+                                    <Label className="flex items-center gap-2">Video (Premium Feature) <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold">Premium</span></Label>
+                                    <Input
+                                        type="file"
+                                        accept="video/*"
+                                        onChange={(e) => handleVideoUpload(e)}
+                                    />
+                                    <p className="text-xs text-muted-foreground">Max size: 10MB</p>
+                                    {newListing.videoUrl && <p className="text-sm text-green-600">Video uploaded successfully!</p>}
+                                </div>
+                            )}
                             <Button onClick={handleCreateListing} disabled={loading}>
                                 {loading ? 'Creating...' : 'Create Listing'}
                             </Button>
@@ -956,6 +1070,12 @@ export default function ProfilePage() {
                     </TabsContent>
                 )}
 
+                {profile.role === 'SELLER' && (
+                    <TabsContent value="analytics" className="space-y-6">
+                        <AnalyticsTab />
+                    </TabsContent>
+                )}
+
                 <TabsContent value="deletion" className="space-y-6">
                     <Card className="border-destructive/20">
                         <CardHeader>
@@ -982,6 +1102,10 @@ export default function ProfilePage() {
                             </div>
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                <TabsContent value="subscription" className="space-y-6">
+                    <SubscriptionTab subscription={profile.subscription} />
                 </TabsContent>
             </Tabs>
 

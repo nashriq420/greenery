@@ -8,6 +8,9 @@ interface User {
     username?: string;
     profilePicture?: string;
     role: 'CUSTOMER' | 'SELLER' | 'ADMIN' | 'SUPERADMIN';
+    district?: string;
+    state?: string;
+    country?: string;
     sellerProfile?: {
         city: string | null;
         state: string | null;

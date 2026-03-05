@@ -11,6 +11,11 @@ const sendMessageSchema = z.object({
     listingId: z.string().optional()
 });
 
+const broadcastSchema = z.object({
+    content: z.string().min(1),
+    listingId: z.string().optional()
+});
+
 const createChatSchema = z.object({
     participantId: z.string().uuid()
 });
@@ -82,8 +87,8 @@ export const getUserChats = async (req: AuthRequest, res: Response) => {
                 ]
             },
             include: {
-                participant1: { select: { id: true, name: true, email: true, role: true, profilePicture: true } },
-                participant2: { select: { id: true, name: true, email: true, role: true, profilePicture: true } },
+                participant1: { select: { id: true, name: true, email: true, role: true, profilePicture: true, subscription: { select: { status: true } } } },
+                participant2: { select: { id: true, name: true, email: true, role: true, profilePicture: true, subscription: { select: { status: true } } } },
                 messages: {
                     orderBy: { createdAt: 'desc' },
                     take: 1
@@ -277,6 +282,114 @@ export const markChatAsRead = async (req: AuthRequest, res: Response) => {
         res.json({ success: true, count: updated.count });
     } catch (error) {
         logger.error('Error marking chat as read', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Broadcast Message (Premium Sellers only) -> sends to past chat list AND users in same state
+export const broadcastMessage = async (req: AuthRequest, res: Response) => {
+    try {
+        const { content, listingId } = broadcastSchema.parse(req.body);
+        const userId = req.user!.id;
+
+        // 1. Verify user is a premium seller
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { subscription: true, sellerProfile: true }
+        });
+
+        if (!user || user.role !== 'SELLER' || user.subscription?.status !== 'ACTIVE') {
+            return res.status(403).json({ message: "Only premium sellers can use broadcast." });
+        }
+
+        const sellerState = user.sellerProfile?.state;
+
+        // 2. Find target users
+        // A. Users from past chats
+        const pastChats = await prisma.chat.findMany({
+            where: {
+                OR: [
+                    { participant1Id: userId },
+                    { participant2Id: userId }
+                ]
+            }
+        });
+
+        const chatUserIds = new Set<string>();
+        pastChats.forEach(chat => {
+            if (chat.participant1Id !== userId) chatUserIds.add(chat.participant1Id);
+            if (chat.participant2Id !== userId) chatUserIds.add(chat.participant2Id);
+        });
+
+        // B. Users in the same state
+        let stateUserIds: string[] = [];
+        if (sellerState) {
+            const usersInState = await prisma.user.findMany({
+                where: {
+                    state: sellerState,
+                    id: { not: userId }
+                },
+                select: { id: true }
+            });
+            stateUserIds = usersInState.map(u => u.id);
+        }
+
+        // Combine unique user IDs
+        const targetUserIds = Array.from(new Set([...chatUserIds, ...stateUserIds]));
+        if (targetUserIds.length === 0) {
+            return res.status(200).json({ message: "No users found in chat history or same state.", sentCount: 0 });
+        }
+
+        // 3. If listingId is provided, verify ownership
+        if (listingId) {
+            const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+            if (!listing || listing.sellerId !== userId) {
+                return res.status(403).json({ message: "Invalid listing or unauthorized." });
+            }
+        }
+
+        // 4. For each target user, ensure a chat exists, then send message
+        let sentCount = 0;
+        for (const targetId of targetUserIds) {
+            let chat = await prisma.chat.findFirst({
+                where: {
+                    OR: [
+                        { participant1Id: userId, participant2Id: targetId },
+                        { participant1Id: targetId, participant2Id: userId }
+                    ]
+                }
+            });
+
+            if (!chat) {
+                chat = await prisma.chat.create({
+                    data: {
+                        participant1Id: userId,
+                        participant2Id: targetId
+                    }
+                });
+            }
+
+            await prisma.message.create({
+                data: {
+                    chatId: chat.id,
+                    senderId: userId,
+                    receiverId: targetId,
+                    content: `[BROADCAST]\n\n${content}`,
+                    listingId: listingId || undefined
+                }
+            });
+
+            await prisma.chat.update({
+                where: { id: chat.id },
+                data: { isActive: true, updatedAt: new Date() }
+            });
+
+            sentCount++;
+        }
+
+        res.json({ message: "Broadcast sent successfully", sentCount });
+    } catch (error) {
+        logger.error('Error sending broadcast', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

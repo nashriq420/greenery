@@ -85,5 +85,16 @@ export const api = {
             body: formData
         });
         return handleResponse(res);
+    },
+    uploadVideo: async (endpoint: string, formData: FormData, token?: string) => {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Bypass-Tunnel-Reminder': 'true',
+                'Authorization': token ? `Bearer ${token}` : '',
+            },
+            body: formData
+        });
+        return handleResponse(res);
     }
 };

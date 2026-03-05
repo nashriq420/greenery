@@ -71,6 +71,11 @@ model User {
   profilePicture String?
   lastUsernameChange DateTime?
 
+  // Customer Location
+  district  String?
+  state     String?
+  country   String?
+
   // Community Relations
   posts         Post[]
   comments      Comment[]
@@ -190,6 +195,7 @@ model Listing {
   description String
   price       Decimal
   imageUrl    String?
+  videoUrl    String?
   active      Boolean  @default(true)
   status      ListingStatus @default(PENDING)
   
