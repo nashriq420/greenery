@@ -88,14 +88,6 @@ export default function SubscriptionTab({ subscription }: { subscription?: { sta
                                     <p className="text-xs text-gray-500">Build instant trust with a verifiable, distinguished profile badge.</p>
                                 </div>
                             </div>
-
-                            <div className="flex items-start gap-3">
-                                <div className="mt-0.5 bg-primary/10 p-1 rounded-md text-primary shrink-0"><Video className="w-4 h-4" /></div>
-                                <div>
-                                    <p className="font-semibold text-gray-900 text-sm">Video Product Showcases</p>
-                                    <p className="text-xs text-gray-500">Upload high-quality videos to your listings for better engagement.</p>
-                                </div>
-                            </div>
                         </div>
                     </CardContent>
 
