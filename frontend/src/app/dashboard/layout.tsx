@@ -28,7 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     return (
         <div className="min-h-screen flex flex-col">
-            <header className="border-b h-16 flex items-center px-6 justify-between bg-white sticky top-0 z-50">
+            <header className="border-b h-16 flex items-center px-6 justify-between bg-white sticky top-0 z-[9999]">
                 <div className="font-bold text-xl text-green-700 flex items-center gap-2">
                     <span>🌿</span> Greenery
                 </div>
