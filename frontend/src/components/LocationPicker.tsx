@@ -72,8 +72,8 @@ function LocationMarker({ position, setPosition, onDragEnd, icon }: {
 
 export default function LocationPicker({ initialLat, initialLng, onLocationSelect }: LocationPickerProps) {
     const [position, setPosition] = useState<{ lat: number; lng: number }>({
-        lat: initialLat || 51.505,
-        lng: initialLng || -0.09
+        lat: initialLat || 33.87,
+        lng: initialLng || 151.21
     });
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);

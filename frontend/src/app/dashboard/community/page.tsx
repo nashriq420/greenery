@@ -112,15 +112,15 @@ export default function CommunityPage() {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-                <h1 className="text-2xl font-bold text-green-900 mb-2">Community Feed 🌿</h1>
-                <p className="text-gray-500 mb-6">Connect with other growers and enthusiasts.</p>
+            <div className="bg-card p-6 rounded-xl shadow-sm border border-border">
+                <h1 className="text-2xl font-bold text-primary mb-2">Community Feed 🌿</h1>
+                <p className="text-muted-foreground mb-6">Connect with other growers and enthusiasts.</p>
 
                 {/* Create Post Widget */}
                 {user ? (
                     <form onSubmit={handleCreatePost} className="space-y-4">
                         <div className="flex gap-3">
-                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold flex-shrink-0 overflow-hidden border border-green-200">
+                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold shrink-0 overflow-hidden border border-green-200">
                                 {user.profilePicture && !imageError ? (
                                     <img
                                         src={user.profilePicture}
@@ -137,7 +137,7 @@ export default function CommunityPage() {
                                     value={newContent}
                                     onChange={(e) => setNewContent(e.target.value)}
                                     placeholder="What's growing on?"
-                                    className="w-full bg-gray-50 rounded-lg p-3 border-none focus:ring-1 focus:ring-green-500 resize-none h-24"
+                                    className="w-full bg-muted text-foreground rounded-lg p-3 border-none focus:ring-1 focus:ring-green-500 resize-none h-24"
                                 />
 
                                 {showImageInput && (
@@ -146,12 +146,12 @@ export default function CommunityPage() {
                                             type="file"
                                             accept="image/*"
                                             onChange={handleFileSelect}
-                                            className="block w-full text-sm text-gray-500
+                                            className="block w-full text-sm text-muted-foreground
                                                 file:mr-4 file:py-2 file:px-4
                                                 file:rounded-full file:border-0
                                                 file:text-sm file:font-semibold
-                                                file:bg-green-50 file:text-green-700
-                                                hover:file:bg-green-100
+                                                file:bg-primary/20 file:text-primary
+                                                hover:file:bg-primary/30
                                             "
                                         />
                                         {previewUrl && (
@@ -176,7 +176,7 @@ export default function CommunityPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowImageInput(!showImageInput)}
-                                        className={`p-2 rounded-full hover:bg-gray-100 transition ${showImageInput ? 'text-green-600 bg-green-50' : 'text-gray-400'}`}
+                                        className={`p-2 rounded-full transition ${showImageInput ? 'text-primary bg-primary/20' : 'text-muted-foreground hover:bg-muted'}`}
                                     >
                                         <ImageIcon size={20} />
                                     </button>
@@ -193,8 +193,8 @@ export default function CommunityPage() {
                         </div>
                     </form>
                 ) : (
-                    <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500 text-sm">
-                        Please <a href="/login" className="text-green-600 underline">login</a> to post.
+                    <div className="bg-muted p-4 rounded-lg text-center text-muted-foreground text-sm">
+                        Please <a href="/login" className="text-primary underline">login</a> to post.
                     </div>
                 )}
             </div>
@@ -203,13 +203,13 @@ export default function CommunityPage() {
             {loading ? (
                 <div className="space-y-4">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-white h-48 rounded-xl shadow-sm border animate-pulse"></div>
+                        <div key={i} className="bg-card border-border h-48 rounded-xl shadow-sm border animate-pulse"></div>
                     ))}
                 </div>
             ) : (
                 <div className="space-y-6">
                     {posts.length === 0 ? (
-                        <div className="text-center py-10 text-gray-500">
+                        <div className="text-center py-10 text-muted-foreground">
                             No posts yet. Be the first to share!
                         </div>
                     ) : (

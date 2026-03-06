@@ -38,33 +38,33 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {user?.role === 'SELLER' && (
-                    <div className="bg-white p-6 rounded-lg shadow border">
-                        <h3 className="font-bold text-lg mb-2">My Location</h3>
+                    <div className="bg-card p-6 rounded-lg shadow border border-border text-card-foreground">
+                        <h3 className="font-bold text-lg mb-2 text-foreground">My Location</h3>
                         {user.sellerProfile ? (
                             <div>
-                                <p className="text-gray-700">{user.sellerProfile.address}</p>
-                                <p className="text-gray-500">{user.sellerProfile.city}, {user.sellerProfile.country}</p>
+                                <p className="text-foreground">{user.sellerProfile.address}</p>
+                                <p className="text-muted-foreground">{user.sellerProfile.city}, {user.sellerProfile.country}</p>
                             </div>
                         ) : (
-                            <p className="text-sm text-gray-400">Location not set</p>
+                            <p className="text-sm text-muted-foreground">Location not set</p>
                         )}
                     </div>
                 )}
 
                 {user?.role === 'SELLER' && (
-                    <div className="bg-white p-6 rounded-lg shadow border h-full">
-                        <h3 className="font-bold text-lg mb-4">My Listings</h3>
+                    <div className="bg-card p-6 rounded-lg shadow border border-border h-full text-card-foreground">
+                        <h3 className="font-bold text-lg mb-4 text-foreground">My Listings</h3>
                         {loading ? <p>Loading...</p> : (
                             listings.length > 0 ? (
                                 <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                                     {listings.map((listing) => (
-                                        <div key={listing.id} className="flex gap-3 items-center border-b pb-2 last:border-0 last:pb-0">
-                                            <div className="w-12 h-12 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                                                {listing.imageUrl ? <img src={listing.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs">No Img</div>}
+                                        <div key={listing.id} className="flex gap-3 items-center border-b border-border pb-2 last:border-0 last:pb-0">
+                                            <div className="w-12 h-12 flex-shrink-0 bg-muted rounded overflow-hidden">
+                                                {listing.imageUrl ? <img src={listing.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">No Img</div>}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-center pr-2">
-                                                    <p className="font-medium text-sm truncate mr-2">{listing.title}</p>
+                                                    <p className="font-medium text-sm truncate mr-2 text-foreground">{listing.title}</p>
                                                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
                                                         listing.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
                                                             listing.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
@@ -82,7 +82,7 @@ export default function DashboardPage() {
                                                 </button>
                                                 <button
                                                     onClick={() => setEditingListing(listing)}
-                                                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded hover:bg-gray-200 transition-colors"
+                                                    className="px-3 py-1 text-xs font-medium text-foreground bg-muted border border-border rounded hover:bg-muted/80 transition-colors"
                                                 >
                                                     Edit
                                                 </button>
@@ -91,14 +91,14 @@ export default function DashboardPage() {
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-sm text-gray-500">No active listings.</p>
+                                <p className="text-sm text-muted-foreground">No active listings.</p>
                             )
                         )}
                     </div>
                 )}
 
-                <div className="bg-white p-6 rounded-lg shadow border md:col-span-3">
-                    <h3 className="font-bold text-lg mb-4">Nearby Sellers</h3>
+                <div className="bg-card p-6 rounded-lg shadow border border-border md:col-span-3 text-card-foreground">
+                    <h3 className="font-bold text-lg mb-4 text-foreground">Nearby Sellers</h3>
                     <MapComponent />
                 </div>
 

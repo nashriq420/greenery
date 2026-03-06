@@ -135,44 +135,44 @@ export default function BlacklistPage() {
                     {loading ? (
                         <div className="text-center py-8">Loading...</div>
                     ) : filteredReports.length === 0 ? (
-                        <Card>
-                            <CardContent className="flex flex-col items-center justify-center h-40 text-gray-500">
+                        <Card className="bg-card border-border">
+                            <CardContent className="flex flex-col items-center justify-center h-40 text-muted-foreground">
                                 <p>No reports found.</p>
                             </CardContent>
                         </Card>
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {filteredReports.map((report) => (
-                                <Card key={report.id} className="border-red-200 shadow-sm hover:shadow-md transition-shadow">
+                                <Card key={report.id} className="bg-card border-red-200 shadow-sm hover:shadow-md transition-shadow dark:border-red-900/50">
                                     <CardContent className="p-4">
                                         <div className="flex justify-between items-start mb-2">
-                                            <h3 className="text-xl font-bold text-gray-900">{report.username}</h3>
-                                            <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
+                                            <h3 className="text-xl font-bold text-foreground">{report.username}</h3>
+                                            <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide dark:bg-red-900/30 dark:text-red-400">
                                                 Scammer
                                             </span>
                                         </div>
 
                                         <div className="space-y-1.5 mb-3">
-                                            <div className="flex items-center justify-between text-xs text-gray-500 mb-2 border-b border-gray-100 pb-2">
+                                            <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 border-b border-border pb-2">
                                                 <span>Reported: {new Date(report.updatedAt).toLocaleDateString()}</span>
                                             </div>
 
                                             {report.region && (
-                                                <div className="flex items-center text-sm text-gray-700">
-                                                    <span className="font-semibold text-gray-500 w-16 text-xs uppercase tracking-wider">Region</span>
+                                                <div className="flex items-center text-sm text-foreground">
+                                                    <span className="font-semibold text-muted-foreground w-16 text-xs uppercase tracking-wider">Region</span>
                                                     <span className="font-medium">{report.region}</span>
                                                 </div>
                                             )}
                                             {report.contactInfo && (
-                                                <div className="flex items-center text-sm text-gray-700">
-                                                    <span className="font-semibold text-gray-500 w-16 text-xs uppercase tracking-wider">Contact</span>
-                                                    <span className="font-mono bg-gray-50 px-1 rounded text-red-600">{report.contactInfo}</span>
+                                                <div className="flex items-center text-sm text-foreground">
+                                                    <span className="font-semibold text-muted-foreground w-16 text-xs uppercase tracking-wider">Contact</span>
+                                                    <span className="font-mono bg-muted px-1 rounded text-red-600 dark:text-red-400">{report.contactInfo}</span>
                                                 </div>
                                             )}
                                         </div>
 
                                         {report.description && (
-                                            <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 italic line-clamp-3">
+                                            <div className="text-sm text-muted-foreground bg-muted p-2 rounded border border-border italic line-clamp-3">
                                                 "{report.description}"
                                             </div>
                                         )}
@@ -184,7 +184,7 @@ export default function BlacklistPage() {
                 </TabsContent>
 
                 <TabsContent value="report" className="mt-4">
-                    <Card className="max-w-2xl mx-auto">
+                    <Card className="max-w-2xl mx-auto bg-card border-border">
                         <CardHeader>
                             <CardTitle>Report a Scammer</CardTitle>
                             <CardDescription>
@@ -195,8 +195,8 @@ export default function BlacklistPage() {
                             {submitStatus === 'success' ? (
                                 <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
                                     <CheckCircle className="w-12 h-12 text-green-500" />
-                                    <h3 className="text-xl font-semibold text-green-700">Report Submitted</h3>
-                                    <p className="text-gray-600">Thank you for helping keep the community safe. Your report is under review.</p>
+                                    <h3 className="text-xl font-semibold text-green-700 dark:text-green-500">Report Submitted</h3>
+                                    <p className="text-muted-foreground">Thank you for helping keep the community safe. Your report is under review.</p>
                                     <Button onClick={() => setSubmitStatus('idle')} variant="outline">Submit Another</Button>
                                 </div>
                             ) : (

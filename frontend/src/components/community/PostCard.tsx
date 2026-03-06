@@ -135,11 +135,11 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
     };
 
     return (
-        <div className="bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition relative">
+        <div className="bg-card border-border text-card-foreground border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition relative">
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border border-green-200 shrink-0 relative">
+                    <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden border border-primary/30 shrink-0 relative">
                         {post.author.profilePicture && !imageError ? (
                             <Image
                                 src={post.author.profilePicture}
@@ -149,15 +149,15 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                                 onError={() => setImageError(true)}
                             />
                         ) : (
-                            <span className="text-green-700 font-bold">{post.author.name.charAt(0)}</span>
+                            <span className="text-primary font-bold">{post.author.name.charAt(0)}</span>
                         )}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-sm text-gray-900">{post.author.name}</h3>
-                        <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <h3 className="font-semibold text-sm text-foreground">{post.author.name}</h3>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
                             {new Date(post.createdAt).toLocaleDateString()}
                             {(post.isEdited || currentContent !== post.content) && <span className="text-[10px] italic">(edited)</span>}
-                            {post.author.role === 'SELLER' && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] rounded-full font-bold">SELLER</span>}
+                            {post.author.role === 'SELLER' && <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-[10px] rounded-full font-bold">SELLER</span>}
                         </p>
                     </div>
                 </div>
@@ -166,22 +166,22 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                     <div className="relative">
                         <button
                             onClick={() => setShowMenu(!showMenu)}
-                            className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
+                            className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted"
                         >
                             <MoreHorizontal size={20} />
                         </button>
 
                         {showMenu && (
-                            <div className="absolute right-0 top-8 bg-white border rounded-lg shadow-lg py-1 w-32 z-10">
+                            <div className="absolute right-0 top-8 bg-card border-border border rounded-lg shadow-lg py-1 w-32 z-10">
                                 <button
                                     onClick={() => { setIsEditing(true); setShowMenu(false); }}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted"
                                 >
                                     Edit
                                 </button>
                                 <button
                                     onClick={handleDelete}
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-red-400"
                                 >
                                     Delete
                                 </button>
@@ -198,33 +198,33 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                         <textarea
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
-                            className="w-full border rounded-lg p-2 text-sm focus:ring-1 focus:ring-green-500 outline-none resize-none"
+                            className="w-full border border-border bg-muted text-foreground rounded-lg p-2 text-sm focus:ring-1 focus:ring-green-500 outline-none resize-none"
                             rows={3}
                         />
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={() => setIsEditing(false)}
-                                className="text-xs text-gray-500 hover:text-gray-700"
+                                className="text-xs text-muted-foreground hover:text-foreground"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleSaveEdit}
                                 disabled={isSaving}
-                                className="text-xs bg-green-600 text-white px-3 py-1 rounded-full hover:bg-green-700"
+                                className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-full hover:bg-primary/90"
                             >
                                 {isSaving ? 'Saving...' : 'Save'}
                             </button>
                         </div>
                     </div>
                 ) : (
-                    <p className="text-gray-800 whitespace-pre-wrap">{currentContent}</p>
+                    <p className="text-foreground whitespace-pre-wrap">{currentContent}</p>
                 )}
             </div>
 
             {/* Image */}
             {post.imageUrl && (
-                <div className="w-full bg-gray-100">
+                <div className="w-full bg-muted">
                     <img
                         src={post.imageUrl}
                         alt="Post content"
@@ -234,10 +234,10 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
             )}
 
             {/* Actions */}
-            <div className="p-4 border-t flex items-center gap-6">
+            <div className="p-4 border-t border-border flex items-center gap-6">
                 <button
                     onClick={handleLike}
-                    className={`flex items-center gap-2 text-sm transition ${isLiked ? 'text-red-500 font-semibold' : 'text-gray-500 hover:text-red-500'}`}
+                    className={`flex items-center gap-2 text-sm transition ${isLiked ? 'text-red-500 font-semibold' : 'text-muted-foreground hover:text-red-500'}`}
                 >
                     <Heart size={20} className={`${isLiked ? 'fill-current' : ''} ${isAnimating ? 'animate-bounce' : ''}`} />
                     <span>{likesCount}</span>
@@ -245,27 +245,27 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
 
                 <button
                     onClick={toggleComments}
-                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-500 transition"
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-blue-500 transition"
                 >
                     <MessageCircle size={20} />
                     <span>{commentsCountState}</span>
                 </button>
 
-                <button className="flex items-center gap-2 text-sm text-gray-500 hover:text-green-500 transition ml-auto">
+                <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition ml-auto">
                     <Share2 size={20} />
                 </button>
             </div>
 
             {/* Comments Section */}
             {showComments && (
-                <div className="px-4 pb-4 bg-gray-50 border-t">
+                <div className="px-4 pb-4 bg-muted/30 border-t border-border">
                     <div className="space-y-4 pt-4">
                         {commentsLoading ? (
-                            <div className="text-center text-xs text-gray-400">Loading comments...</div>
+                            <div className="text-center text-xs text-muted-foreground">Loading comments...</div>
                         ) : comments.length > 0 ? (
                             comments.map((comment: any) => (
                                 <div key={comment.id} className="flex gap-2">
-                                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden text-xs font-bold text-gray-600 relative">
+                                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center overflow-hidden text-xs font-bold text-muted-foreground relative border border-border">
                                         {comment.author.profilePicture ? (
                                             <Image
                                                 src={comment.author.profilePicture}
@@ -277,14 +277,14 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                                             <span>{comment.author.name.charAt(0)}</span>
                                         )}
                                     </div>
-                                    <div className="bg-white p-2 rounded-lg text-sm border flex-1">
-                                        <div className="font-semibold text-xs text-gray-700">{comment.author.name}</div>
-                                        <p className="text-gray-600">{comment.content}</p>
+                                    <div className="bg-card text-card-foreground p-2 rounded-lg text-sm border border-border flex-1">
+                                        <div className="font-semibold text-xs text-foreground">{comment.author.name}</div>
+                                        <p className="text-muted-foreground">{comment.content}</p>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center text-xs text-gray-400">No comments yet.</div>
+                            <div className="text-center text-xs text-muted-foreground">No comments yet.</div>
                         )}
 
                         {token && (
@@ -294,12 +294,12 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                                     value={newComment}
                                     onChange={(e) => setNewComment(e.target.value)}
                                     placeholder="Write a comment..."
-                                    className="flex-1 text-sm border rounded-full px-4 py-2 outline-none focus:border-green-500"
+                                    className="flex-1 text-sm border border-border bg-card text-foreground rounded-full px-4 py-2 outline-none focus:border-green-500"
                                 />
                                 <button
                                     type="submit"
                                     disabled={!newComment.trim()}
-                                    className="text-green-600 font-semibold text-sm disabled:opacity-50"
+                                    className="text-primary font-semibold text-sm disabled:opacity-50"
                                 >
                                     Post
                                 </button>

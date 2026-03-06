@@ -1064,10 +1064,10 @@ export default function ProfilePage() {
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-semibold border-b pb-2">Active Listings</h3>
                                         {myListings.filter(l => l.active !== false).map(listing => (
-                                            <div key={listing.id} className="border p-4 rounded bg-white shadow-sm grid grid-cols-[auto_1fr_auto] gap-4 items-center">
+                                            <div key={listing.id} className="border border-border p-4 rounded bg-card text-card-foreground shadow-sm grid grid-cols-[auto_1fr_auto] gap-4 items-center">
                                                 {/* Image Column */}
                                                 {listing.imageUrl ? (
-                                                    <div className="w-24 h-24 bg-gray-100 rounded-md border overflow-hidden relative shrink-0">
+                                                    <div className="w-24 h-24 bg-muted rounded-md border border-border overflow-hidden relative shrink-0">
                                                         <img
                                                             src={listing.imageUrl}
                                                             alt={listing.title}
@@ -1075,20 +1075,20 @@ export default function ProfilePage() {
                                                         />
                                                     </div>
                                                 ) : (
-                                                    <div className="w-24 h-24 bg-gray-100 rounded-md border flex items-center justify-center text-xs text-gray-400 shrink-0">
+                                                    <div className="w-24 h-24 bg-muted rounded-md border border-border flex items-center justify-center text-xs text-muted-foreground shrink-0">
                                                         No Image
                                                     </div>
                                                 )}
 
                                                 {/* Text Column */}
                                                 <div className="min-w-0 pr-4">
-                                                    <h3 className="font-bold text-lg truncate" title={listing.title}>{listing.title}</h3>
-                                                    <p className="text-gray-600 font-medium">${listing.price}</p>
+                                                    <h3 className="font-bold text-lg text-foreground truncate" title={listing.title}>{listing.title}</h3>
+                                                    <p className="text-muted-foreground font-medium">${listing.price}</p>
                                                     <div className="mt-1">
-                                                        <span className={`inline-block text-xs px-2 py-1 rounded-full font-bold ${listing.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                                            listing.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                                                                listing.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                                                    'bg-gray-100 text-gray-800'
+                                                        <span className={`inline-block text-xs px-2 py-1 rounded-full font-bold ${listing.status === 'PENDING' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-900/50' :
+                                                            listing.status === 'ACTIVE' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-900/50' :
+                                                                listing.status === 'REJECTED' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-900/50' :
+                                                                    'bg-muted text-muted-foreground border border-border'
                                                             }`}>
                                                             {listing.status}
                                                         </span>
@@ -1109,13 +1109,13 @@ export default function ProfilePage() {
                                 {/* Delisted Listings */}
                                 {myListings.some(l => l.active === false) && (
                                     <div className="space-y-4 pt-6">
-                                        <h3 className="text-lg font-semibold border-b pb-2 text-gray-500">Delisted Listings</h3>
+                                        <h3 className="text-lg font-semibold border-b border-border pb-2 text-muted-foreground">Delisted Listings</h3>
                                         <div className="opacity-75 space-y-4">
                                             {myListings.filter(l => l.active === false).map(listing => (
-                                                <div key={listing.id} className="border p-4 rounded bg-gray-50 shadow-sm grid grid-cols-[auto_1fr_auto] gap-4 items-center">
+                                                <div key={listing.id} className="border border-border p-4 rounded bg-muted/30 shadow-sm grid grid-cols-[auto_1fr_auto] gap-4 items-center">
                                                     {/* Image Column */}
                                                     {listing.imageUrl ? (
-                                                        <div className="w-24 h-24 bg-gray-100 rounded-md border overflow-hidden relative shrink-0">
+                                                        <div className="w-24 h-24 bg-muted rounded-md border border-border overflow-hidden relative shrink-0">
                                                             <img
                                                                 src={listing.imageUrl}
                                                                 alt={listing.title}
@@ -1123,17 +1123,17 @@ export default function ProfilePage() {
                                                             />
                                                         </div>
                                                     ) : (
-                                                        <div className="w-24 h-24 bg-gray-100 rounded-md border flex items-center justify-center text-xs text-gray-400 shrink-0">
+                                                        <div className="w-24 h-24 bg-muted rounded-md border border-border flex items-center justify-center text-xs text-muted-foreground shrink-0">
                                                             No Image
                                                         </div>
                                                     )}
 
                                                     {/* Text Column */}
                                                     <div className="min-w-0 pr-4">
-                                                        <h3 className="font-bold text-lg truncate text-gray-500" title={listing.title}>{listing.title}</h3>
-                                                        <p className="text-gray-400 font-medium">${listing.price}</p>
+                                                        <h3 className="font-bold text-lg truncate text-muted-foreground" title={listing.title}>{listing.title}</h3>
+                                                        <p className="text-muted-foreground/70 font-medium">${listing.price}</p>
                                                         <div className="mt-1">
-                                                            <span className="inline-block text-xs px-2 py-1 rounded-full font-bold bg-gray-200 text-gray-600">
+                                                            <span className="inline-block text-xs px-2 py-1 rounded-full font-bold bg-accent text-accent-foreground border border-border">
                                                                 DELISTED
                                                             </span>
                                                         </div>
@@ -1307,30 +1307,30 @@ function BannersTab({ token }: { token: string | null }) {
             </CardHeader>
             <CardContent>
                 {list.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No banners in this category.</p>
+                    <p className="text-muted-foreground text-sm">No banners in this category.</p>
                 ) : (
                     <div className="space-y-4">
                         {list.map(banner => (
-                            <div key={banner.id} className="flex gap-4 border p-4 rounded-lg items-center bg-white relative overflow-hidden">
-                                <div className="w-32 h-16 bg-gray-100 rounded shrink-0 border overflow-hidden">
+                            <div key={banner.id} className="flex gap-4 border border-border p-4 rounded-lg items-center bg-card text-card-foreground relative overflow-hidden">
+                                <div className="w-32 h-16 bg-muted rounded shrink-0 border border-border overflow-hidden">
                                     <img src={getImageUrl(banner.imageUrl)} className="w-full h-full object-cover" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="font-bold truncate">{banner.title || "No Title"}</h4>
-                                    <p className="text-sm text-gray-500">Listing: {banner.listing?.title}</p>
+                                    <h4 className="font-bold truncate text-foreground">{banner.title || "No Title"}</h4>
+                                    <p className="text-sm text-muted-foreground">Listing: {banner.listing?.title}</p>
                                     <div className="flex flex-wrap gap-2 mt-2 text-xs">
                                         {banner.status === 'APPROVED' && (
-                                            <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded font-medium">
+                                            <span className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 px-2 py-0.5 rounded font-medium border border-green-200 dark:border-green-900/50">
                                                 Runs: {new Date(banner.startDate).toLocaleDateString()} - {new Date(banner.endDate).toLocaleDateString()}
                                             </span>
                                         )}
                                         {banner.status === 'PENDING' && (
-                                            <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-medium">
+                                            <span className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-0.5 rounded font-medium border border-yellow-200 dark:border-yellow-900/50">
                                                 Waiting for Approval
                                             </span>
                                         )}
                                         {banner.status === 'REJECTED' && (
-                                            <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded font-medium">
+                                            <span className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 px-2 py-0.5 rounded font-medium border border-red-200 dark:border-red-900/50">
                                                 Rejected
                                             </span>
                                         )}
@@ -1349,11 +1349,11 @@ function BannersTab({ token }: { token: string | null }) {
     return (
         <div>
             <div className="mb-6">
-                <h2 className="text-xl font-bold mb-2">My Promotional Banners</h2>
-                <p className="text-gray-600">Track the status of your "Product of the Week" banner requests.</p>
+                <h2 className="text-xl font-bold mb-2 text-foreground">My Promotional Banners</h2>
+                <p className="text-muted-foreground">Track the status of your "Product of the Week" banner requests.</p>
             </div>
             {/* Context: Banners functionality seems to be work-in-progress or lost. Placeholder message added. */}
-            <div className="p-4 bg-yellow-50 text-yellow-800 rounded-md">
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 rounded-md border border-yellow-200 dark:border-yellow-900/50">
                 Banner management is currently under maintenance.
             </div>
         </div>

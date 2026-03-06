@@ -46,8 +46,8 @@ export default function MyReportsPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">My Reports</h1>
-                    <p className="text-gray-500 mt-1">Track the status of scammers you have reported.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">My Reports</h1>
+                    <p className="text-muted-foreground mt-1">Track the status of scammers you have reported.</p>
                 </div>
                 <Link href="/dashboard/blacklist?tab=report">
                     <Button className="bg-red-600 hover:bg-red-700 text-white">
@@ -59,16 +59,16 @@ export default function MyReportsPage() {
 
             {loading ? (
                 <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
             ) : reports.length === 0 ? (
                 <Card>
-                    <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                        <div className="bg-gray-100 p-4 rounded-full mb-4">
-                            <Search className="h-8 w-8 text-gray-400" />
+                    <CardContent className="flex flex-col items-center justify-center py-12 text-center text-card-foreground">
+                        <div className="bg-muted p-4 rounded-full mb-4">
+                            <Search className="h-8 w-8 text-muted-foreground" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900">No reports found</h3>
-                        <p className="text-gray-500 mt-2 max-w-sm">
+                        <h3 className="text-lg font-medium text-foreground">No reports found</h3>
+                        <p className="text-muted-foreground mt-2 max-w-sm">
                             You haven't reported anyone yet. If you encounter a scammer, please report them to help the community.
                         </p>
                         <Link href="/dashboard/blacklist?tab=report" className="mt-6">
@@ -87,37 +87,37 @@ export default function MyReportsPage() {
                             <CardHeader className="pb-2">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <CardTitle className="text-lg">{report.username}</CardTitle>
-                                        <CardDescription>
+                                        <CardTitle className="text-lg text-foreground">{report.username}</CardTitle>
+                                        <CardDescription className="text-muted-foreground">
                                             Reported on {new Date(report.createdAt).toLocaleDateString()}
                                         </CardDescription>
                                     </div>
-                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${report.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                        report.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                            'bg-yellow-100 text-yellow-800'
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${report.status === 'APPROVED' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-900/50' :
+                                        report.status === 'REJECTED' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-900/50' :
+                                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-900/50'
                                         }`}>
                                         {report.status}
                                     </span>
                                 </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="text-card-foreground">
                                 <div className="grid sm:grid-cols-2 gap-4 text-sm mb-3">
                                     <div>
-                                        <span className="font-semibold text-gray-500">Region:</span> {report.region}
+                                        <span className="font-semibold text-muted-foreground">Region:</span> {report.region}
                                     </div>
                                     <div>
-                                        <span className="font-semibold text-gray-500">Contact:</span> {report.contactInfo}
+                                        <span className="font-semibold text-muted-foreground">Contact:</span> {report.contactInfo}
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 p-3 rounded text-sm text-gray-700">
+                                <div className="bg-muted p-3 rounded text-sm text-foreground">
                                     <span className="font-semibold block mb-1">Description:</span>
                                     {report.description}
                                 </div>
 
                                 {report.adminComment && (
-                                    <div className="mt-3 bg-blue-50 border border-blue-100 p-3 rounded text-sm">
-                                        <span className="font-semibold text-blue-800 block mb-1">Admin Comment:</span>
-                                        <p className="text-blue-700">{report.adminComment}</p>
+                                    <div className="mt-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-900/50 p-3 rounded text-sm">
+                                        <span className="font-semibold text-blue-800 dark:text-blue-400 block mb-1">Admin Comment:</span>
+                                        <p className="text-blue-700 dark:text-blue-300">{report.adminComment}</p>
                                     </div>
                                 )}
                             </CardContent>

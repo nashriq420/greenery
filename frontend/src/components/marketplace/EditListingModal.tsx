@@ -156,7 +156,7 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-[1000] p-4 bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 flex items-center justify-center z-1000 p-4 bg-black/40 backdrop-blur-sm">
             <div className="bg-card text-card-foreground rounded-xl p-6 w-full max-w-lg shadow-2xl border animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6 border-b pb-4">
                     <div>
@@ -286,7 +286,7 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                                 name="deliveryAvailable"
                                 checked={formData.deliveryAvailable}
                                 onChange={handleChange}
-                                className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
+                                className="h-4 w-4 rounded border-border text-green-600 focus:ring-green-600"
                             />
                             <Label htmlFor="deliveryAvailable">Delivery Available</Label>
                         </div>
@@ -427,7 +427,7 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
 
                         {listing.seller?.subscription?.status === 'ACTIVE' && (
                             <div className="space-y-2 pt-4 border-t">
-                                <Label className="flex items-center gap-2">Video (Premium Feature) <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold">Premium</span></Label>
+                                <Label className="flex items-center gap-2">Video (Premium Feature) <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-0.5 rounded-full font-bold border border-yellow-200 dark:border-yellow-900/50">Premium</span></Label>
                                 <div className="flex items-start gap-4">
                                     <div className="relative w-32 h-24 bg-black rounded-lg border overflow-hidden shrink-0 shadow-sm group">
                                         {videoPreviewUrl ? (

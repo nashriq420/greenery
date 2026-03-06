@@ -193,25 +193,25 @@ export default function BlacklistManagement() {
                 </div>
 
                 {/* Desktop View - Table */}
-                <div className="hidden md:block bg-white rounded-lg border shadow-sm overflow-hidden">
+                <div className="hidden md:block bg-card text-card-foreground rounded-lg border border-border shadow-sm overflow-hidden">
                     <table className="w-full text-sm">
-                        <thead className="bg-gray-50 border-b">
+                        <thead className="bg-muted border-b border-border">
                             <tr>
-                                <th className="text-left p-3 font-medium text-gray-500">Scammer</th>
-                                <th className="text-left p-3 font-medium text-gray-500">Region</th>
-                                <th className="text-left p-3 font-medium text-gray-500">Reporter</th>
-                                <th className="text-left p-3 font-medium text-gray-500">Date</th>
-                                <th className="text-left p-3 font-medium text-gray-500">Status</th>
-                                <th className="text-right p-3 font-medium text-gray-500">Actions</th>
+                                <th className="text-left p-3 font-medium text-muted-foreground">Scammer</th>
+                                <th className="text-left p-3 font-medium text-muted-foreground">Region</th>
+                                <th className="text-left p-3 font-medium text-muted-foreground">Reporter</th>
+                                <th className="text-left p-3 font-medium text-muted-foreground">Date</th>
+                                <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                                <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y">
+                        <tbody className="divide-y divide-border">
                             {historyReports.map((report) => (
-                                <tr key={report.id}>
-                                    <td className="p-3 font-medium">{report.username}</td>
-                                    <td className="p-3 text-gray-600">{report.region}</td>
-                                    <td className="p-3 text-gray-600">{report.reporter?.name || 'Anonymous'}</td>
-                                    <td className="p-3 text-gray-600">{new Date(report.createdAt).toLocaleDateString()}</td>
+                                <tr key={report.id} className="hover:bg-muted/50 transition-colors">
+                                    <td className="p-3 font-medium text-foreground">{report.username}</td>
+                                    <td className="p-3 text-muted-foreground">{report.region}</td>
+                                    <td className="p-3 text-muted-foreground">{report.reporter?.name || 'Anonymous'}</td>
+                                    <td className="p-3 text-muted-foreground">{new Date(report.createdAt).toLocaleDateString()}</td>
                                     <td className="p-3">
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${report.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                             }`}>

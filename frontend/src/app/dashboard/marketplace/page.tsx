@@ -171,23 +171,23 @@ export default function MarketplacePage() {
                     <div className="flex gap-2 items-center flex-wrap">
                         <button
                             onClick={handleUseLocation}
-                            className={`px-3 py-1.5 rounded-lg text-sm border flex items-center gap-2 ${userLocation ? 'bg-green-100 border-green-500 text-green-700' : 'bg-white border-gray-300 hover:bg-gray-50'
+                            className={`px-3 py-1.5 rounded-lg text-sm border flex items-center gap-2 ${userLocation ? 'bg-primary/20 border-primary text-primary' : 'bg-card border-border text-foreground hover:bg-muted'
                                 }`}
                         >
                             <MapPin size={16} />
                             {userLocation ? 'Nearby (50km)' : 'My Location'}
                         </button>
 
-                        <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
+                        <div className="flex bg-muted p-1 rounded-lg border border-border">
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`px-3 py-1.5 rounded-md text-sm transition ${viewMode === 'grid' ? 'bg-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`px-3 py-1.5 rounded-md text-sm transition ${viewMode === 'grid' ? 'bg-card shadow-sm font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                             >
                                 Grid
                             </button>
                             <button
                                 onClick={() => setViewMode('map')}
-                                className={`px-3 py-1.5 rounded-md text-sm transition ${viewMode === 'map' ? 'bg-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`px-3 py-1.5 rounded-md text-sm transition ${viewMode === 'map' ? 'bg-card shadow-sm font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                             >
                                 Map
                             </button>
@@ -197,7 +197,7 @@ export default function MarketplacePage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`gap-2 ${showFilters ? 'bg-gray-100' : ''}`}
+                            className={`gap-2 ${showFilters ? 'bg-muted' : ''}`}
                         >
                             <Filter size={16} />
                             Filters
@@ -217,31 +217,31 @@ export default function MarketplacePage() {
                 {/* Search & Filter Panel */}
                 <div className="space-y-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                         <Input
                             placeholder="Search listings..."
-                            className="pl-10 bg-white"
+                            className="pl-10 bg-card"
                             value={filters.search}
                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                         />
                     </div>
 
                     {showFilters && (
-                        <div className="p-4 bg-gray-50 rounded-lg border grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="p-4 bg-muted rounded-lg border grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2">
                             <div>
-                                <label className="text-xs font-semibold mb-1.5 block">Price Range</label>
+                                <label className="text-xs font-semibold mb-1.5 block text-foreground">Price Range</label>
                                 <div className="flex gap-2 items-center">
                                     <Input
                                         placeholder="Min"
-                                        className="h-8 bg-white"
+                                        className="h-8 bg-card"
                                         type="number"
                                         value={filters.minPrice}
                                         onChange={e => setFilters({ ...filters, minPrice: e.target.value })}
                                     />
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-muted-foreground">-</span>
                                     <Input
                                         placeholder="Max"
-                                        className="h-8 bg-white"
+                                        className="h-8 bg-card"
                                         type="number"
                                         value={filters.maxPrice}
                                         onChange={e => setFilters({ ...filters, maxPrice: e.target.value })}
@@ -250,9 +250,9 @@ export default function MarketplacePage() {
                             </div>
 
                             <div>
-                                <label className="text-xs font-semibold mb-1.5 block">Strain Type</label>
+                                <label className="text-xs font-semibold mb-1.5 block text-foreground">Strain Type</label>
                                 <select
-                                    className="w-full h-8 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    className="w-full h-8 rounded-md border border-input bg-card px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                     value={filters.strainType}
                                     onChange={e => setFilters({ ...filters, strainType: e.target.value })}
                                 >
@@ -264,9 +264,9 @@ export default function MarketplacePage() {
                             </div>
 
                             <div>
-                                <label className="text-xs font-semibold mb-1.5 block">Type</label>
+                                <label className="text-xs font-semibold mb-1.5 block text-foreground">Type</label>
                                 <select
-                                    className="w-full h-8 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    className="w-full h-8 rounded-md border border-input bg-card px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                     value={filters.type || ''}
                                     onChange={e => setFilters({ ...filters, type: e.target.value })}
                                 >
@@ -278,18 +278,18 @@ export default function MarketplacePage() {
                             </div>
 
                             <div>
-                                <label className="text-xs font-semibold mb-1.5 block">Potency (Min %)</label>
+                                <label className="text-xs font-semibold mb-1.5 block text-foreground">Potency (Min %)</label>
                                 <div className="flex gap-2 items-center">
                                     <Input
                                         placeholder="THC"
-                                        className="h-8 bg-white"
+                                        className="h-8 bg-card"
                                         type="number"
                                         value={filters.thcMin}
                                         onChange={e => setFilters({ ...filters, thcMin: e.target.value })}
                                     />
                                     <Input
                                         placeholder="CBD"
-                                        className="h-8 bg-white"
+                                        className="h-8 bg-card"
                                         type="number"
                                         value={filters.cbdMin}
                                         onChange={e => setFilters({ ...filters, cbdMin: e.target.value })}
@@ -298,12 +298,12 @@ export default function MarketplacePage() {
                             </div>
 
                             <div className="flex items-end">
-                                <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 border rounded-md w-full h-8 justify-center hover:bg-gray-50">
+                                <label className="flex items-center gap-2 cursor-pointer bg-card px-3 py-1.5 border border-border rounded-md w-full h-8 justify-center hover:bg-muted text-foreground">
                                     <input
                                         type="checkbox"
                                         checked={filters.deliveryAvailable}
                                         onChange={e => setFilters({ ...filters, deliveryAvailable: e.target.checked })}
-                                        className="w-4 h-4 text-green-600 rounded"
+                                        className="w-4 h-4 text-primary rounded"
                                     />
                                     <span className="text-sm font-medium">Delivery Only</span>
                                 </label>
@@ -328,19 +328,19 @@ export default function MarketplacePage() {
                     {viewMode === 'grid' ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {sortedListings.length === 0 ? (
-                                <p className="col-span-full text-center text-gray-500 py-10">No active listings found.</p>
+                                <p className="col-span-full text-center text-muted-foreground py-10">No active listings found.</p>
                             ) : (
                                 sortedListings.map((listing) => (
                                     <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="block">
-                                        <div className={`bg-white border rounded-lg overflow-hidden transition h-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'ring-2 ring-yellow-400 shadow-md hover:shadow-xl relative' : 'hover:shadow-lg'}`}>
-                                            <div className="bg-gray-200 relative">
+                                        <div className={`bg-card text-card-foreground border-border border rounded-lg overflow-hidden transition h-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'ring-2 ring-yellow-400 shadow-md hover:shadow-xl relative' : 'hover:shadow-lg'}`}>
+                                            <div className="bg-muted relative">
                                                 {listing.seller.subscription?.status === 'ACTIVE' && (
-                                                    <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-sm uppercase flex items-center gap-1 z-10">
+                                                    <div className="absolute top-2 left-2 bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-sm uppercase flex items-center gap-1 z-10">
                                                         <Star size={10} fill="currentColor" /> Premium
                                                     </div>
                                                 )}
                                                 {listing.imageUrl ? (
-                                                    <div className={`w-full relative ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} bg-gray-100`}>
+                                                    <div className={`w-full relative ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} bg-muted`}>
                                                         <img
                                                             src={listing.imageUrl}
                                                             alt={listing.title}
@@ -348,14 +348,14 @@ export default function MarketplacePage() {
                                                         />
                                                     </div>
                                                 ) : (
-                                                    <div className={`w-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} flex items-center justify-center text-gray-400`}>No Image</div>
+                                                    <div className={`w-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} flex items-center justify-center text-muted-foreground`}>No Image</div>
                                                 )}
                                                 <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
-                                                    <div className="bg-white px-2 py-1 rounded-full text-sm font-bold shadow">
+                                                    <div className="bg-card text-card-foreground px-2 py-1 rounded-full text-sm font-bold shadow">
                                                         {listing.discountPrice ? (
                                                             <div className="flex flex-col items-end leading-tight">
-                                                                <span className="text-gray-400 line-through text-xs">RM {listing.price}</span>
-                                                                <span className="text-red-600">RM {listing.discountPrice}</span>
+                                                                <span className="text-muted-foreground line-through text-xs">RM {listing.price}</span>
+                                                                <span className="text-red-500 font-bold dark:text-red-400">RM {listing.discountPrice}</span>
                                                                 {listing.promotionEnd && (
                                                                     <span className="text-[10px] text-red-500 font-normal mt-0.5">Ends {new Date(listing.promotionEnd).toLocaleDateString()}</span>
                                                                 )}
@@ -365,16 +365,16 @@ export default function MarketplacePage() {
                                                         )}
                                                     </div>
                                                     {listing.deliveryAvailable && (
-                                                        <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase">
+                                                        <div className="bg-primary/20 text-primary px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase">
                                                             Delivery
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
                                             <div className="p-4">
-                                                <h3 className="font-bold text-lg">{listing.title}</h3>
+                                                <h3 className="font-bold text-lg text-foreground">{listing.title}</h3>
                                                 {userLocation && listing.seller.sellerProfile?.latitude && listing.seller.sellerProfile?.longitude && (
-                                                    <div className="flex items-center gap-1 text-green-600 text-xs font-semibold mb-1">
+                                                    <div className="flex items-center gap-1 text-primary text-xs font-semibold mb-1">
                                                         <MapPin size={12} />
                                                         <span>
                                                             {calculateDistance(
@@ -386,39 +386,39 @@ export default function MarketplacePage() {
                                                         </span>
                                                     </div>
                                                 )}
-                                                <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
-                                                    by {listing.seller.name}
+                                                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                                                    by <span className="text-foreground">{listing.seller.name}</span>
                                                     {listing.seller.subscription?.status === 'ACTIVE' && (
                                                         <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-3.5 h-3.5 bg-blue-500 text-white rounded-full text-[8px] shadow-sm">
                                                             <Check size={8} strokeWidth={3} />
                                                         </span>
                                                     )}
                                                 </p>
-                                                <p className="text-gray-600 line-clamp-2 text-sm">{listing.description}</p>
-                                                <div className="mt-4 flex justify-between items-center text-xs text-gray-400">
+                                                <p className="text-muted-foreground line-clamp-2 text-sm">{listing.description}</p>
+                                                <div className="mt-4 flex justify-between items-center text-xs text-muted-foreground">
                                                     <span>{listing.seller.sellerProfile?.city || 'Unknown Location'}</span>
                                                     <span>{new Date(listing.createdAt || Date.now()).toLocaleDateString()}</span>
                                                 </div>
                                                 <div className="mt-2 flex flex-wrap gap-1">
                                                     {listing.minQuantity && listing.minQuantity > 1 && (
-                                                        <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border">Min Qty: {listing.minQuantity}</span>
+                                                        <span className="text-[10px] bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">Min Qty: {listing.minQuantity}</span>
                                                     )}
                                                     {listing.strainType && (
-                                                        <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded border border-purple-200">{listing.strainType}</span>
+                                                        <span className="text-[10px] bg-purple-100/10 text-purple-400 px-1.5 py-0.5 rounded border border-purple-200/20">{listing.strainType}</span>
                                                     )}
                                                     {(listing.thcContent || listing.cbdContent) && (
-                                                        <span className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded border border-green-200">
+                                                        <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
                                                             {listing.thcContent ? `THC: ${listing.thcContent}%` : ''}
                                                             {listing.thcContent && listing.cbdContent ? ' • ' : ''}
                                                             {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="mt-2 text-xs text-gray-500 space-y-0.5">
-                                                    {listing.type && <p>Type: <span className="font-medium text-gray-700">{listing.type}</span></p>}
-                                                    {listing.flavors && <p>Flavor: <span className="font-medium text-gray-700">{listing.flavors}</span></p>}
-                                                    {listing.effects && <p>Effect: <span className="font-medium text-gray-700">{listing.effects}</span></p>}
-                                                    {listing.sku && <p>SKU: <span className="font-medium text-gray-700">{listing.sku}</span></p>}
+                                                <div className="mt-2 text-xs text-muted-foreground space-y-0.5">
+                                                    {listing.type && <p>Type: <span className="font-medium text-foreground">{listing.type}</span></p>}
+                                                    {listing.flavors && <p>Flavor: <span className="font-medium text-foreground">{listing.flavors}</span></p>}
+                                                    {listing.effects && <p>Effect: <span className="font-medium text-foreground">{listing.effects}</span></p>}
+                                                    {listing.sku && <p>SKU: <span className="font-medium text-foreground">{listing.sku}</span></p>}
                                                 </div>
                                             </div>
                                         </div>
@@ -435,7 +435,7 @@ export default function MarketplacePage() {
             {/* Simple Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                    <div className="bg-card text-card-foreground rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border border-border">
                         <h2 className="text-xl font-bold mb-4">New Listing</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
@@ -663,9 +663,9 @@ export default function MarketplacePage() {
             {/* Success Modal */}
             {showSuccessMessage && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-sm text-center">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-                            <MapPin size={32} className="text-green-600" />
+                    <div className="bg-card text-card-foreground border border-border rounded-lg p-6 w-full max-w-sm text-center">
+                        <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 text-primary">
+                            <MapPin size={32} className="text-primary" />
                             {/* Reusing MapPin for now, but really need Check icon. Importing types at top. */}
                         </div>
                         <h2 className="text-xl font-bold mb-2">Listing Submitted!</h2>

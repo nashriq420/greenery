@@ -41,9 +41,9 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-lg transition-colors"
+                className="flex items-center gap-2 hover:bg-muted p-1.5 rounded-lg transition-colors"
             >
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center overflow-hidden border border-green-200">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30">
                     {getProfileImage() ? (
                         <img
                             src={getProfileImage()}
@@ -52,58 +52,58 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
                             onError={() => setImageError(true)}
                         />
                     ) : (
-                        <span className="font-bold text-green-700 text-sm">
+                        <span className="font-bold text-primary text-sm">
                             {user?.name?.charAt(0).toUpperCase() || 'U'}
                         </span>
                     )}
                 </div>
                 <div className="text-left hidden md:block">
-                    <p className="text-sm font-medium text-gray-700 leading-none">{user?.name || 'User'}</p>
-                    <p className="text-xs text-gray-500 leading-none mt-1">@{user?.username || user?.email?.split('@')[0]}</p>
+                    <p className="text-sm font-medium text-foreground leading-none">{user?.name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground leading-none mt-1">@{user?.username || user?.email?.split('@')[0]}</p>
                 </div>
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 z-[9999] overflow-hidden py-1">
-                    <div className="px-4 py-3 border-b border-gray-100 md:hidden">
-                        <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <div className="absolute right-0 mt-2 w-56 bg-card rounded-lg shadow-xl border border-border z-[9999] overflow-hidden py-1 text-card-foreground">
+                    <div className="px-4 py-3 border-b border-border md:hidden">
+                        <p className="text-sm font-medium text-foreground">{user?.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
 
                     <Link
                         href={`/dashboard/seller/${user?.id}`}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
-                        <User className="w-4 h-4" />
+                        <User className="w-4 h-4 text-muted-foreground" />
                         View Profile
                     </Link>
 
                     <Link
                         href="/dashboard/profile"
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
-                        <Settings className="w-4 h-4" />
+                        <Settings className="w-4 h-4 text-muted-foreground" />
                         Profile Settings
                     </Link>
 
                     <Link
                         href="/dashboard/reports"
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
-                        <span className="w-4 h-4 flex items-center justify-center text-xs">📋</span>
+                        <span className="w-4 h-4 flex items-center justify-center text-xs text-muted-foreground">📋</span>
                         My Reports
                     </Link>
 
                     {user?.role === 'SELLER' && (
                         <Link
                             href="/dashboard/seller/banner"
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
-                            <span className="w-4 h-4 flex items-center justify-center text-xs">📣</span>
+                            <span className="w-4 h-4 flex items-center justify-center text-xs text-muted-foreground">📣</span>
                             Promote Products
                         </Link>
                     )}
@@ -111,22 +111,22 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
                     {(user?.role === 'ADMIN' || user?.role === 'SUPERADMIN') && (
                         <Link
                             href="/dashboard/admin/banners"
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
-                            <span className="w-4 h-4 flex items-center justify-center text-xs">🛡️</span>
+                            <span className="w-4 h-4 flex items-center justify-center text-xs text-muted-foreground">🛡️</span>
                             Manage Banners
                         </Link>
                     )}
 
-                    <div className="border-t border-gray-100 my-1"></div>
+                    <div className="border-t border-border my-1"></div>
 
                     <button
                         onClick={() => {
                             setIsOpen(false);
                             onLogout();
                         }}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-red-400 transition-colors"
                     >
                         <LogOut className="w-4 h-4" />
                         Logout

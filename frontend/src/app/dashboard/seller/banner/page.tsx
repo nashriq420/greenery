@@ -87,12 +87,12 @@ export default function SellerBannerPage() {
 
     return (
         <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6">Promote Your Products</h1>
+            <h1 className="text-2xl font-bold mb-6 text-foreground">Promote Your Products</h1>
 
             {/* Upload Section */}
-            <div className="bg-white p-6 rounded-lg shadow border mb-8">
-                <h2 className="text-lg font-semibold mb-4">Request "Product of the Week" Banner</h2>
-                <div className="bg-blue-50 text-blue-800 p-4 rounded mb-4 text-sm">
+            <div className="bg-card text-card-foreground p-6 rounded-lg shadow border border-border mb-8">
+                <h2 className="text-lg font-semibold mb-4 text-foreground">Request "Product of the Week" Banner</h2>
+                <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 p-4 rounded mb-4 text-sm border border-blue-100 dark:border-blue-900/50">
                     <p className="font-bold">Instructions:</p>
                     <ul className="list-disc ml-5 mt-1">
                         <li>Banner size recommendation: <strong>1200x200 pixels</strong>.</li>
@@ -104,9 +104,9 @@ export default function SellerBannerPage() {
 
                 <form onSubmit={handleUpload} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Select Listing to Promote *</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Select Listing to Promote *</label>
                         <select
-                            className="w-full border rounded p-2"
+                            className="w-full border border-input rounded p-2 bg-background text-foreground"
                             value={selectedListing}
                             onChange={(e) => setSelectedListing(e.target.value)}
                             required
@@ -119,10 +119,10 @@ export default function SellerBannerPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">Custom Title (Optional)</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Custom Title (Optional)</label>
                         <input
                             type="text"
-                            className="w-full border rounded p-2"
+                            className="w-full border border-input rounded p-2 bg-background text-foreground"
                             placeholder='e.g., "Special Harvest Sale"'
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
@@ -130,9 +130,9 @@ export default function SellerBannerPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">Banner Image *</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Banner Image *</label>
                         <div className="flex items-center gap-3">
-                            <label className="cursor-pointer bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow-sm hover:bg-gray-50 focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">
+                            <label className="cursor-pointer bg-card border border-input text-card-foreground px-4 py-2 rounded shadow-sm hover:bg-accent focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
                                 <span className="text-sm font-medium">Choose File</span>
                                 <input
                                     type="file"
@@ -142,11 +142,11 @@ export default function SellerBannerPage() {
                                     required={!file} // Only required if no file selected yet
                                 />
                             </label>
-                            <span className="text-sm text-gray-500 italic">
+                            <span className="text-sm text-muted-foreground italic">
                                 {file ? file.name : 'No file chosen'}
                             </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Recommended: 1200x200px</p>
+                        <p className="text-xs text-muted-foreground mt-1">Recommended: 1200x200px</p>
                     </div>
 
                     {message && <p className={`text-sm ${message.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>{message}</p>}
@@ -163,28 +163,28 @@ export default function SellerBannerPage() {
 
             {/* My Banners List */}
             < div >
-                <h2 className="text-lg font-semibold mb-4">My Banner Requests</h2>
+                <h2 className="text-lg font-semibold mb-4 text-foreground">My Banner Requests</h2>
                 {
-                    loading ? <p>Loading...</p> : (
+                    loading ? <p className="text-muted-foreground">Loading...</p> : (
                         banners && banners.length > 0 ? (
                             <div className="space-y-4">
                                 {banners.map((banner) => (
-                                    <div key={banner.id} className="bg-white border rounded-lg p-4 flex gap-4 items-center">
-                                        <div className="w-32 h-16 bg-gray-100 rounded overflow-hidden shrink-0">
+                                    <div key={banner.id} className="bg-card text-card-foreground border border-border rounded-lg p-4 flex gap-4 items-center">
+                                        <div className="w-32 h-16 bg-muted rounded overflow-hidden shrink-0">
                                             <img src={getImageUrl(banner.imageUrl)} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-bold">{banner.title || "No Title"}</h3>
-                                            <p className="text-sm text-gray-600">Listing: {banner.listing?.title}</p>
+                                            <h3 className="font-bold text-foreground">{banner.title || "No Title"}</h3>
+                                            <p className="text-sm text-muted-foreground">Listing: {banner.listing?.title}</p>
                                             <div className="flex gap-2 mt-1 text-xs">
-                                                <span className={`px-2 py-0.5 rounded-full font-bold ${banner.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                    banner.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                                        'bg-yellow-100 text-yellow-800'
+                                                <span className={`px-2 py-0.5 rounded-full font-bold ${banner.status === 'APPROVED' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
+                                                    banner.status === 'REJECTED' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
+                                                        'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
                                                     }`}>
                                                     {banner.status}
                                                 </span>
                                                 {banner.startDate && (
-                                                    <span className="text-gray-500">
+                                                    <span className="text-muted-foreground">
                                                         Running: {new Date(banner.startDate).toLocaleDateString()} - {new Date(banner.endDate).toLocaleDateString()}
                                                     </span>
                                                 )}
@@ -194,7 +194,7 @@ export default function SellerBannerPage() {
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-gray-500">No banner requests yet.</p>
+                            <p className="text-muted-foreground">No banner requests yet.</p>
                         )
                     )
                 }

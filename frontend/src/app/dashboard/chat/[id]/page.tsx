@@ -142,7 +142,7 @@ export default function ChatRoomPage() {
     return (
         <div className="flex flex-col h-full relative">
             {/* Header */}
-            <div className="bg-white border-b p-3 sm:p-4 flex items-center gap-3 shrink-0">
+            <div className="bg-card border-b border-border p-3 sm:p-4 flex items-center gap-3 shrink-0">
                 <Button
                     variant="ghost"
                     size="icon"
@@ -153,21 +153,21 @@ export default function ChatRoomPage() {
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div>
-                    <h1 className="font-bold text-lg flex items-center gap-2">
+                    <h1 className="font-bold text-lg flex items-center gap-2 text-foreground">
                         Chat Room
                         {chatDetails?.isActive === false && (
-                            <span className="text-xs font-normal text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">Closed</span>
+                            <span className="text-xs font-normal text-red-500 bg-red-50 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-full border border-red-100 dark:border-red-900/50">Closed</span>
                         )}
                     </h1>
                     {chatDetails && (
-                        <p className="text-sm font-medium text-gray-600 flex items-center gap-1.5 mt-0.5">
+                        <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5 mt-0.5">
                             {user?.id === chatDetails.participant1.id ? chatDetails.participant2.name : chatDetails.participant1.name}
                             {(user?.id === chatDetails.participant1.id ? chatDetails.participant2.subscription?.status : chatDetails.participant1.subscription?.status) === 'ACTIVE' && (
                                 <>
                                     <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white rounded-full text-[10px] shadow-sm ml-0.5 shrink-0">
                                         <Check className="w-2.5 h-2.5" strokeWidth={3} />
                                     </span>
-                                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0">
+                                    <span className="bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0">
                                         <Star size={8} fill="currentColor" /> Premium
                                     </span>
                                 </>
@@ -178,12 +178,12 @@ export default function ChatRoomPage() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto bg-gray-50 flex flex-col">
+            <div className="flex-1 overflow-y-auto bg-muted/50 flex flex-col">
                 <div className="p-4 space-y-4 pb-0">
                     <PrivacyWarning />
 
                     {messages.length === 0 && (
-                        <p className="text-center text-gray-400 my-10">No messages yet. Say hello!</p>
+                        <p className="text-center text-muted-foreground my-10">No messages yet. Say hello!</p>
                     )}
 
                     {messages.map((msg) => {
@@ -195,21 +195,21 @@ export default function ChatRoomPage() {
                                         {msg.sender.profilePicture ? (
                                             <img src={msg.sender.profilePicture} alt={msg.sender.name} className="w-6 h-6 rounded-full object-cover" />
                                         ) : (
-                                            <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-bold text-[10px]">
+                                            <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center font-bold text-[10px]">
                                                 {msg.sender.name?.charAt(0).toUpperCase()}
                                             </div>
                                         )}
                                     </div>
                                 )}
-                                <div className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${isMe ? 'bg-blue-600 text-white' : 'bg-white border text-gray-800'}`}>
+                                <div className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-foreground'}`}>
                                     {msg.listing && (
-                                        <div className={`mb-2 rounded-lg overflow-hidden border ${isMe ? 'border-blue-400 bg-blue-700/50' : 'border-gray-200 bg-gray-50'} p-2 flex gap-3 items-center group cursor-pointer hover:opacity-90 transition`}>
+                                        <div className={`mb-2 rounded-lg overflow-hidden border ${isMe ? 'border-primary/50 bg-primary-foreground/10' : 'border-border bg-muted'} p-2 flex gap-3 items-center group cursor-pointer hover:opacity-90 transition`}>
                                             {msg.listing.imageUrl ? (
-                                                <div className="w-12 h-12 rounded bg-gray-200 shrink-0 overflow-hidden relative">
+                                                <div className="w-12 h-12 rounded bg-muted shrink-0 overflow-hidden relative">
                                                     <img src={msg.listing.imageUrl} className="absolute inset-0 w-full h-full object-cover" />
                                                 </div>
                                             ) : (
-                                                <div className="w-12 h-12 rounded bg-gray-700/20 shrink-0 flex items-center justify-center text-xs">No Img</div>
+                                                <div className="w-12 h-12 rounded bg-muted shrink-0 flex items-center justify-center text-xs text-muted-foreground">No Img</div>
                                             )}
                                             <div className="min-w-0">
                                                 <p className="font-bold text-sm truncate">{msg.listing.title}</p>
@@ -218,7 +218,7 @@ export default function ChatRoomPage() {
                                         </div>
                                     )}
                                     <p>{msg.content}</p>
-                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-blue-200' : 'text-gray-400'}`}>
+                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>
@@ -231,19 +231,19 @@ export default function ChatRoomPage() {
 
             {/* Input Area */}
             {chatDetails?.isActive === false ? (
-                <div className="bg-gray-50 border-t p-4 flex flex-col items-center justify-center shrink-0 min-h-[80px]">
-                    <p className="text-sm text-gray-500 mb-3">This chat was closed due to inactivity.</p>
-                    <Button onClick={handleReactivate} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+                <div className="bg-muted/50 border-t border-border p-4 flex flex-col items-center justify-center shrink-0 min-h-[80px]">
+                    <p className="text-sm text-muted-foreground mb-3">This chat was closed due to inactivity.</p>
+                    <Button onClick={handleReactivate} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-6 rounded-lg">
                         Reactivate Chat
                     </Button>
                 </div>
             ) : (
-                <div className="bg-white border-t p-2 sm:p-4 flex gap-2 relative items-center shrink-0">
+                <div className="bg-card border-t border-border p-2 sm:p-4 flex gap-2 relative items-center shrink-0">
                     {/* Listing Picker Button */}
                     <div className="relative">
                         <button
                             onClick={() => setShowListingPicker(!showListingPicker)}
-                            className="h-12 w-12 sm:w-auto sm:px-4 text-gray-500 hover:bg-gray-100 rounded-lg border flex items-center justify-center"
+                            className="h-12 w-12 sm:w-auto sm:px-4 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg border border-border flex items-center justify-center"
                             title="Attach Listing"
                         >
                             <Store className="w-5 h-5 sm:mr-2" />
@@ -252,22 +252,22 @@ export default function ChatRoomPage() {
 
                         {/* Listing Picker Popover */}
                         {showListingPicker && (
-                            <div className="absolute bottom-full left-0 mb-2 w-72 bg-white border rounded-lg shadow-xl max-h-96 overflow-y-auto z-10 p-2">
-                                <h3 className="font-bold text-sm mb-2 px-2">Select a Listing to Share</h3>
+                            <div className="absolute bottom-full left-0 mb-2 w-72 bg-card border border-border rounded-lg shadow-xl max-h-96 overflow-y-auto z-10 p-2">
+                                <h3 className="font-bold text-sm mb-2 px-2 text-foreground">Select a Listing to Share</h3>
                                 {availableListings.length === 0 ? (
-                                    <p className="text-sm text-gray-500 px-2 py-4">No listings available.</p>
+                                    <p className="text-sm text-muted-foreground px-2 py-4">No listings available.</p>
                                 ) : (
                                     <div className="space-y-2">
                                         {availableListings.map(l => (
                                             <div
                                                 key={l.id}
                                                 onClick={() => handleSend(l.id)}
-                                                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer border"
+                                                className="flex items-center gap-3 p-2 hover:bg-muted rounded cursor-pointer border border-border"
                                             >
-                                                {l.imageUrl && <img src={l.imageUrl} className="w-10 h-10 object-cover rounded bg-gray-200" />}
+                                                {l.imageUrl && <img src={l.imageUrl} className="w-10 h-10 object-cover rounded bg-muted" />}
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-bold truncate">{l.title}</p>
-                                                    <p className="text-xs text-gray-500">${l.price}</p>
+                                                    <p className="text-sm font-bold truncate text-foreground">{l.title}</p>
+                                                    <p className="text-xs text-muted-foreground">${l.price}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -278,7 +278,7 @@ export default function ChatRoomPage() {
                     </div>
 
                     <input
-                        className="flex-1 border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-12"
+                        className="flex-1 border border-border bg-card text-foreground rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary h-12"
                         placeholder="Type a message..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
@@ -286,7 +286,7 @@ export default function ChatRoomPage() {
                     />
                     <button
                         onClick={() => handleSend()}
-                        className="bg-blue-600 text-white w-12 sm:w-auto sm:px-6 h-12 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center"
+                        className="bg-primary text-primary-foreground w-12 sm:w-auto sm:px-6 h-12 rounded-lg font-bold hover:bg-primary/90 transition flex items-center justify-center"
                         title="Send Message"
                     >
                         <Send className="w-5 h-5 sm:hidden" />

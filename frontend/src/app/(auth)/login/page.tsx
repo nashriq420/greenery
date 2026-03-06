@@ -116,8 +116,8 @@ function AuthForm() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <header className="flex w-full items-center p-6 bg-white border-b border-gray-200">
+        <div className="min-h-screen bg-background flex flex-col">
+            <header className="flex w-full items-center p-6 bg-card border-b border-border">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl text-green-700">
                     <span>🌿</span> Greenery
                 </Link>
@@ -240,7 +240,7 @@ function AuthForm() {
                                 <span className="w-full border-t" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+                                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
                             </div>
                         </div>
 
