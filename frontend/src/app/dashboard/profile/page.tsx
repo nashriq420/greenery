@@ -816,7 +816,7 @@ export default function ProfilePage() {
                                 <div className="space-y-4 pt-4 border-t">
                                     <Label className="text-base font-semibold">Shop Banner</Label>
                                     <div className="space-y-4">
-                                        <div className="relative w-full aspect-[4/1] bg-muted rounded-lg border overflow-hidden shadow-sm group">
+                                        <div className="relative w-full aspect-4/1 bg-muted rounded-lg border overflow-hidden shadow-sm group">
                                             {sellerProfile.bannerUrl ? (
                                                 <img src={sellerProfile.bannerUrl} alt="Banner Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                                             ) : (
@@ -1209,7 +1209,7 @@ export default function ProfilePage() {
             </Tabs>
 
             {isDeleteModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center z-[1000] p-4 bg-black/40 backdrop-blur-sm">
+                <div className="fixed inset-0 flex items-center justify-center z-1000 p-4 bg-black/40 backdrop-blur-sm">
                     <div className="bg-card text-card-foreground rounded-xl p-6 w-full max-w-md shadow-2xl border animate-in fade-in zoom-in-95 duration-200">
                         <div className="flex justify-between items-center mb-6 border-b pb-4">
                             <div>

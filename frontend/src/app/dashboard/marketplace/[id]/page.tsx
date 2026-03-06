@@ -154,35 +154,35 @@ export default function ListingDetailsPage() {
                 &larr; Back
             </button>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="h-64 bg-gray-200 relative">
+            <div className="bg-card text-card-foreground rounded-lg shadow border border-border overflow-hidden">
+                <div className="h-64 bg-muted border-b border-border relative">
                     {listing.imageUrl ? (
                         <img src={listing.imageUrl} alt={listing.title} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">No Image</div>
                     )}
                 </div>
                 <div className="p-6">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h1 className="text-3xl font-bold">{listing.title}</h1>
-                            <p className="text-gray-500">
-                                by <Link href={`/dashboard/seller/${listing.sellerId}`} className="hover:text-green-600 hover:underline">{listing.seller?.name || 'Unknown Seller'}</Link>
+                            <h1 className="text-3xl font-bold text-foreground">{listing.title}</h1>
+                            <p className="text-muted-foreground">
+                                by <Link href={`/dashboard/seller/${listing.sellerId}`} className="hover:text-green-600 dark:hover:text-green-400 hover:underline">{listing.seller?.name || 'Unknown Seller'}</Link>
                             </p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
                             {listing.discountPrice ? (
                                 <div className="text-right">
-                                    <div className="text-2xl font-bold text-red-600">RM {listing.discountPrice}</div>
-                                    <div className="text-sm text-gray-400 line-through">RM {listing.price}</div>
+                                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">RM {listing.discountPrice}</div>
+                                    <div className="text-sm text-muted-foreground line-through">RM {listing.price}</div>
                                     {listing.promotionEnd && (
-                                        <div className="text-xs text-red-500 font-medium mt-1">
+                                        <div className="text-xs text-red-500 dark:text-red-400 font-medium mt-1">
                                             Ends {new Date(listing.promotionEnd).toLocaleDateString()}
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <div className="text-2xl font-bold text-green-700">RM {listing.price}</div>
+                                <div className="text-2xl font-bold text-green-700 dark:text-green-400">RM {listing.price}</div>
                             )}
                             {!isOwner && (
                                 <button
@@ -197,50 +197,50 @@ export default function ListingDetailsPage() {
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                         {listing.deliveryAvailable && (
-                            <span className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-semibold">Delivery Available</span>
+                            <span className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-sm px-3 py-1 rounded-full font-semibold border border-green-200 dark:border-green-900/50">Delivery Available</span>
                         )}
                         {listing.minQuantity && listing.minQuantity > 1 && (
-                            <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full font-semibold">Min Qty: {listing.minQuantity}</span>
+                            <span className="bg-muted text-muted-foreground text-sm px-3 py-1 rounded-full font-semibold border border-border">Min Qty: {listing.minQuantity}</span>
                         )}
                         {listing.strainType && (
-                            <span className="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full font-semibold">{listing.strainType}</span>
+                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 text-sm px-3 py-1 rounded-full font-semibold border border-purple-200 dark:border-purple-900/50">{listing.strainType}</span>
                         )}
                         {(listing.thcContent || listing.cbdContent) && (
-                            <span className="bg-blue-50 text-blue-800 text-sm px-3 py-1 rounded-full font-semibold border border-blue-100">
+                            <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-sm px-3 py-1 rounded-full font-semibold border border-blue-100 dark:border-blue-900/50">
                                 {listing.thcContent ? `THC: ${listing.thcContent}%` : ''}
                                 {listing.thcContent && listing.cbdContent ? ' • ' : ''}
                                 {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}
                             </span>
                         )}
                     </div>
-                    <div className="mt-4 text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-2">
+                    <div className="mt-4 text-sm text-foreground bg-muted/30 p-4 rounded-lg border border-border space-y-2">
                         {listing.type && (
                             <div className="flex">
-                                <span className="font-semibold w-24 text-gray-900">Type:</span>
+                                <span className="font-semibold w-24 text-foreground">Type:</span>
                                 <span>{listing.type}</span>
                             </div>
                         )}
                         {listing.flavors && (
                             <div className="flex">
-                                <span className="font-semibold w-24 text-gray-900">Flavor:</span>
+                                <span className="font-semibold w-24 text-foreground">Flavor:</span>
                                 <span>{listing.flavors}</span>
                             </div>
                         )}
                         {listing.effects && (
                             <div className="flex">
-                                <span className="font-semibold w-24 text-gray-900">Effect:</span>
+                                <span className="font-semibold w-24 text-foreground">Effect:</span>
                                 <span>{listing.effects}</span>
                             </div>
                         )}
                         {listing.sku && (
                             <div className="flex">
-                                <span className="font-semibold w-24 text-gray-900">SKU:</span>
+                                <span className="font-semibold w-24 text-foreground">SKU:</span>
                                 <span>{listing.sku}</span>
                             </div>
                         )}
                     </div>
-                    <p className="mt-6 text-gray-700 whitespace-pre-line">{listing.description}</p>
-                    <div className="mt-6 text-sm text-gray-500">
+                    <p className="mt-6 text-foreground whitespace-pre-line">{listing.description}</p>
+                    <div className="mt-6 text-sm text-muted-foreground">
                         {listing.seller?.sellerProfile?.city}, {listing.seller?.sellerProfile?.state}
                     </div>
                 </div>
@@ -248,11 +248,11 @@ export default function ListingDetailsPage() {
 
             {/* Reviews Section */}
             <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Reviews</h2>
+                <h2 className="text-2xl font-bold text-foreground">Reviews</h2>
 
                 {/* Review Form */}
                 {isCustomer && (
-                    <div className="bg-white p-6 rounded-lg shadow">
+                    <div className="bg-card text-card-foreground p-6 rounded-lg shadow border border-border">
                         <h3 className="font-bold mb-4">Leave a Review</h3>
                         <form onSubmit={handleSubmitReview} className="space-y-4">
                             <div>
@@ -263,7 +263,7 @@ export default function ListingDetailsPage() {
                                             key={star}
                                             type="button"
                                             onClick={() => setRating(star)}
-                                            className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                            className={`text-2xl ${star <= rating ? 'text-yellow-400 dark:text-yellow-500' : 'text-gray-300 dark:text-gray-600'}`}
                                         >
                                             ★
                                         </button>
@@ -295,25 +295,25 @@ export default function ListingDetailsPage() {
                 {/* Reviews List */}
                 <div className="space-y-4">
                     {listing.reviews.length === 0 ? (
-                        <p className="text-gray-500 italic">No reviews yet.</p>
+                        <p className="text-muted-foreground italic">No reviews yet.</p>
                     ) : (
                         listing.reviews.map(review => (
-                            <div key={review.id} className="bg-white p-6 rounded-lg shadow">
+                            <div key={review.id} className="bg-card text-card-foreground p-6 rounded-lg shadow border border-border">
                                 <div className="flex justify-between mb-2">
                                     <span className="font-bold">{review.customer.name}</span>
-                                    <span className="text-sm text-gray-500">{new Date(review.createdAt).toLocaleDateString()}</span>
+                                    <span className="text-sm text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</span>
                                 </div>
-                                <div className="text-yellow-400 text-sm mb-2">
+                                <div className="text-yellow-400 dark:text-yellow-500 text-sm mb-2">
                                     {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                                 </div>
-                                <p className="text-gray-700 mb-4">{review.comment}</p>
+                                <p className="text-foreground mb-4">{review.comment}</p>
 
                                 {/* Seller Reply Display */}
                                 {review.reply && (
-                                    <div className="bg-gray-50 p-4 rounded-lg mt-4 border-l-4 border-green-500">
-                                        <p className="text-sm font-bold text-green-700 mb-1">Seller Response</p>
-                                        <p className="text-gray-600 text-sm">{review.reply}</p>
-                                        <p className="text-xs text-gray-400 mt-1">{new Date(review.repliedAt!).toLocaleDateString()}</p>
+                                    <div className="bg-muted/30 p-4 rounded-lg mt-4 border-l-4 border-green-500">
+                                        <p className="text-sm font-bold text-green-700 dark:text-green-500 mb-1">Seller Response</p>
+                                        <p className="text-foreground text-sm">{review.reply}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">{new Date(review.repliedAt!).toLocaleDateString()}</p>
                                     </div>
                                 )}
 
@@ -332,13 +332,13 @@ export default function ListingDetailsPage() {
                                                     <button
                                                         onClick={() => handleReply(review.id)}
                                                         disabled={submittingReply}
-                                                        className="text-white bg-green-600 px-3 py-1 rounded text-sm hover:bg-green-700"
+                                                        className="text-white bg-green-600 px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50"
                                                     >
                                                         Post Reply
                                                     </button>
                                                     <button
                                                         onClick={() => setReplyingTo(null)}
-                                                        className="text-gray-600 px-3 py-1 text-sm hover:underline"
+                                                        className="text-muted-foreground px-3 py-1 text-sm hover:text-foreground hover:underline"
                                                     >
                                                         Cancel
                                                     </button>

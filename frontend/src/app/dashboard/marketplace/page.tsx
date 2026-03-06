@@ -233,7 +233,7 @@ export default function MarketplacePage() {
                                 <div className="flex gap-2 items-center">
                                     <Input
                                         placeholder="Min"
-                                        className="h-8 bg-card"
+                                        className="h-8 bg-background text-foreground border-input"
                                         type="number"
                                         value={filters.minPrice}
                                         onChange={e => setFilters({ ...filters, minPrice: e.target.value })}
@@ -241,7 +241,7 @@ export default function MarketplacePage() {
                                     <span className="text-muted-foreground">-</span>
                                     <Input
                                         placeholder="Max"
-                                        className="h-8 bg-card"
+                                        className="h-8 bg-background text-foreground border-input"
                                         type="number"
                                         value={filters.maxPrice}
                                         onChange={e => setFilters({ ...filters, maxPrice: e.target.value })}
@@ -252,7 +252,7 @@ export default function MarketplacePage() {
                             <div>
                                 <label className="text-xs font-semibold mb-1.5 block text-foreground">Strain Type</label>
                                 <select
-                                    className="w-full h-8 rounded-md border border-input bg-card px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    className="w-full h-8 rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                     value={filters.strainType}
                                     onChange={e => setFilters({ ...filters, strainType: e.target.value })}
                                 >
@@ -266,7 +266,7 @@ export default function MarketplacePage() {
                             <div>
                                 <label className="text-xs font-semibold mb-1.5 block text-foreground">Type</label>
                                 <select
-                                    className="w-full h-8 rounded-md border border-input bg-card px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    className="w-full h-8 rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                     value={filters.type || ''}
                                     onChange={e => setFilters({ ...filters, type: e.target.value })}
                                 >
@@ -282,14 +282,14 @@ export default function MarketplacePage() {
                                 <div className="flex gap-2 items-center">
                                     <Input
                                         placeholder="THC"
-                                        className="h-8 bg-card"
+                                        className="h-8 bg-background text-foreground border-input"
                                         type="number"
                                         value={filters.thcMin}
                                         onChange={e => setFilters({ ...filters, thcMin: e.target.value })}
                                     />
                                     <Input
                                         placeholder="CBD"
-                                        className="h-8 bg-card"
+                                        className="h-8 bg-background text-foreground border-input"
                                         type="number"
                                         value={filters.cbdMin}
                                         onChange={e => setFilters({ ...filters, cbdMin: e.target.value })}
@@ -365,7 +365,7 @@ export default function MarketplacePage() {
                                                         )}
                                                     </div>
                                                     {listing.deliveryAvailable && (
-                                                        <div className="bg-primary/20 text-primary px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase">
+                                                        <div className="bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-400 px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase border border-green-200 dark:border-green-800/60">
                                                             Delivery
                                                         </div>
                                                     )}
@@ -450,7 +450,7 @@ export default function MarketplacePage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">
+                                <label className="block text-sm font-medium mb-1 text-foreground">
                                     Price ($) <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -486,10 +486,10 @@ export default function MarketplacePage() {
                                     </label>
                                 </div>
                             </div>
-                            <div className="space-y-3 pt-2 border-t">
-                                <h3 className="text-sm font-semibold text-gray-700">Product Details</h3>
+                            <div className="space-y-3 pt-2 border-t border-border">
+                                <h3 className="text-sm font-semibold text-foreground">Product Details</h3>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Strain Type</label>
+                                    <label className="block text-sm font-medium mb-1 text-foreground">Strain Type</label>
                                     <select
                                         className="w-full border rounded p-2"
                                         value={formData.strainType}
@@ -502,7 +502,7 @@ export default function MarketplacePage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Product Type</label>
+                                    <label className="block text-sm font-medium mb-1 text-foreground">Product Type</label>
                                     <select
                                         className="w-full border rounded p-2"
                                         value={formData.type}
@@ -516,7 +516,7 @@ export default function MarketplacePage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">THC (%)</label>
+                                        <label className="block text-sm font-medium mb-1 text-foreground">THC (%)</label>
                                         <input
                                             type="number"
                                             min="0"
@@ -528,7 +528,7 @@ export default function MarketplacePage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">CBD (%)</label>
+                                        <label className="block text-sm font-medium mb-1 text-foreground">CBD (%)</label>
                                         <input
                                             type="number"
                                             min="0"
@@ -543,7 +543,7 @@ export default function MarketplacePage() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">Flavors</label>
+                                        <label className="block text-sm font-medium mb-1 text-foreground">Flavors</label>
                                         <input
                                             className="w-full border rounded p-2"
                                             value={formData.flavors}
@@ -552,7 +552,7 @@ export default function MarketplacePage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">Effects</label>
+                                        <label className="block text-sm font-medium mb-1 text-foreground">Effects</label>
                                         <input
                                             className="w-full border rounded p-2"
                                             value={formData.effects}
@@ -563,7 +563,7 @@ export default function MarketplacePage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">SKU</label>
+                                    <label className="block text-sm font-medium mb-1 text-foreground">SKU</label>
                                     <input
                                         className="w-full border rounded p-2"
                                         value={formData.sku}

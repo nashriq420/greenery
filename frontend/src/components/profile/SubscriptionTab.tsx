@@ -9,13 +9,13 @@ export default function SubscriptionTab({ subscription }: { subscription?: { sta
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row gap-6 items-start justify-center">
-                <Card className="w-full max-w-lg border-2 border-primary/20 bg-gradient-to-br from-card to-background shadow-xl relative overflow-hidden">
+                <Card className="w-full max-w-lg border-2 border-primary/20 bg-linear-to-br from-card to-background shadow-xl relative overflow-hidden">
                     {/* Decorative Background Elements */}
                     <div className={`absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 ${isActive ? 'bg-green-500/10' : 'bg-primary/10'} rounded-full blur-3xl pointer-events-none`}></div>
                     <div className={`absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 ${isActive ? 'bg-yellow-500/10' : 'bg-blue-500/10'} rounded-full blur-3xl pointer-events-none`}></div>
 
                     <CardHeader className="text-center pb-2 pt-8">
-                        <div className={`mx-auto ${isActive ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white' : 'bg-primary/10 text-primary'} w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transform rotate-3 shadow-inner`}>
+                        <div className={`mx-auto ${isActive ? 'bg-linear-to-br from-yellow-400 to-yellow-600 text-white' : 'bg-primary/10 text-primary'} w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transform rotate-3 shadow-inner`}>
                             <Star className={`w-8 h-8 ${isActive ? 'fill-white' : 'fill-primary'}`} />
                         </div>
                         <CardTitle className="text-3xl font-extrabold text-foreground tracking-tight">Premium Seller</CardTitle>
@@ -96,15 +96,15 @@ export default function SubscriptionTab({ subscription }: { subscription?: { sta
                             <Button
                                 variant="outline"
                                 className="w-full text-base font-semibold py-6 shadow-sm border-border text-foreground hover:bg-accent hover:text-accent-foreground"
-                                onClick={() => alert("Manage subscription flow will be integrated here.")}
+                                onClick={() => alert("Subscription flow will be integrated later.")}
                             >
                                 Manage Subscription
                             </Button>
                         ) : (
                             <>
                                 <Button
-                                    className="w-full text-base font-semibold py-6 shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all bg-gradient-to-r from-primary to-green-600 focus:ring-4 ring-primary/30 text-white"
-                                    onClick={() => alert("Subscription flow will be integrated here.")}
+                                    className="w-full text-base font-semibold py-6 shadow-lg hover:shadow-xl hover:translate-y-px transition-all bg-linear-to-r from-primary to-green-600 focus:ring-4 ring-primary/30 text-white"
+                                    onClick={() => alert("Subscription flow will be integrated later.")}
                                 >
                                     Subscribe Now
                                 </Button>

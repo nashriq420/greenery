@@ -106,7 +106,7 @@ export default function SellerProfilePage() {
                                         <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-[12px] shadow-sm">
                                             <Check className="w-4 h-4" strokeWidth={3} />
                                         </span>
-                                        <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0">
+                                        <span className="bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0">
                                             <Star size={12} fill="currentColor" /> Premium
                                         </span>
                                     </div>

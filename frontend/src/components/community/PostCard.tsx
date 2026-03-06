@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MoreHorizontal, BadgeCheck } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
@@ -17,6 +17,9 @@ interface Post {
         name: string;
         role: string;
         profilePicture?: string | null;
+        subscription?: {
+            status: string;
+        } | null;
     };
     likesCount: number;
     commentsCount: number;
@@ -153,11 +156,22 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                         )}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-sm text-foreground">{post.author.name}</h3>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <h3 className="font-semibold text-sm text-foreground flex items-center gap-1">
+                            {post.author.name}
+                            {post.author.role === 'SELLER' && post.author.subscription?.status === 'ACTIVE' && (
+                                <BadgeCheck className="w-4 h-4 text-blue-500" />
+                            )}
+                        </h3>
+                        <p className="text-xs text-muted-foreground flex items-center flex-wrap gap-1">
                             {new Date(post.createdAt).toLocaleDateString()}
                             {(post.isEdited || currentContent !== post.content) && <span className="text-[10px] italic">(edited)</span>}
-                            {post.author.role === 'SELLER' && <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-[10px] rounded-full font-bold">SELLER</span>}
+                            {post.author.role === 'SELLER' && (
+                                post.author.subscription?.status === 'ACTIVE' ? (
+                                    <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500 text-[10px] rounded-full font-bold">PREMIUM</span>
+                                ) : (
+                                    <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-[10px] rounded-full font-bold">SELLER</span>
+                                )
+                            )}
                         </p>
                     </div>
                 </div>
@@ -278,7 +292,19 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                                         )}
                                     </div>
                                     <div className="bg-card text-card-foreground p-2 rounded-lg text-sm border border-border flex-1">
-                                        <div className="font-semibold text-xs text-foreground">{comment.author.name}</div>
+                                        <div className="flex items-center gap-1 font-semibold text-xs text-foreground">
+                                            {comment.author.name}
+                                            {comment.author.role === 'SELLER' && comment.author.subscription?.status === 'ACTIVE' && (
+                                                <BadgeCheck className="w-3 h-3 text-blue-500" />
+                                            )}
+                                            {comment.author.role === 'SELLER' && (
+                                                comment.author.subscription?.status === 'ACTIVE' ? (
+                                                    <span className="px-1 py-0.5 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500 text-[8px] rounded-full font-bold ml-1">PREMIUM</span>
+                                                ) : (
+                                                    <span className="px-1 py-0.5 bg-primary/20 text-primary text-[8px] rounded-full font-bold ml-1">SELLER</span>
+                                                )
+                                            )}
+                                        </div>
                                         <p className="text-muted-foreground">{comment.content}</p>
                                     </div>
                                 </div>

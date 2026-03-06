@@ -33,7 +33,8 @@ export const getFeed = async (req: Request, res: Response) => {
                         id: true,
                         name: true,
                         role: true,
-                        profilePicture: true
+                        profilePicture: true,
+                        subscription: { select: { status: true } }
                     }
                 },
                 _count: {
@@ -95,7 +96,9 @@ export const createPost = async (req: AuthRequest, res: Response) => {
                     select: {
                         id: true,
                         name: true,
-                        profilePicture: true
+                        role: true,
+                        profilePicture: true,
+                        subscription: { select: { status: true } }
                     }
                 }
             }
@@ -152,7 +155,7 @@ export const updatePost = async (req: AuthRequest, res: Response) => {
                 isEdited: true
             },
             include: {
-                author: { select: { id: true, name: true, role: true, profilePicture: true } }
+                author: { select: { id: true, name: true, role: true, profilePicture: true, subscription: { select: { status: true } } } }
             }
         });
         console.log("Post updated");
@@ -256,7 +259,9 @@ export const getComments = async (req: Request, res: Response) => {
                     select: {
                         id: true,
                         name: true,
-                        profilePicture: true
+                        role: true,
+                        profilePicture: true,
+                        subscription: { select: { status: true } }
                     }
                 }
             },
@@ -288,7 +293,9 @@ export const addComment = async (req: AuthRequest, res: Response) => {
                     select: {
                         id: true,
                         name: true,
-                        profilePicture: true
+                        role: true,
+                        profilePicture: true,
+                        subscription: { select: { status: true } }
                     }
                 }
             }

@@ -17,6 +17,9 @@ interface Post {
         name: string;
         role: string;
         profilePicture?: string | null;
+        subscription?: {
+            status: string;
+        } | null;
     };
     likesCount: number;
     commentsCount: number;

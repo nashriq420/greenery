@@ -59,7 +59,7 @@ export default function DashboardPage() {
                                 <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                                     {listings.map((listing) => (
                                         <div key={listing.id} className="flex gap-3 items-center border-b border-border pb-2 last:border-0 last:pb-0">
-                                            <div className="w-12 h-12 flex-shrink-0 bg-muted rounded overflow-hidden">
+                                            <div className="w-12 h-12 shrink-0 bg-muted rounded overflow-hidden">
                                                 {listing.imageUrl ? <img src={listing.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">No Img</div>}
                                             </div>
                                             <div className="flex-1 min-w-0">
