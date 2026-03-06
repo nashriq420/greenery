@@ -449,7 +449,7 @@ export default function ProfilePage() {
             </div>
 
             <Tabs defaultValue="profile" className="w-full">
-                <TabsList>
+                <TabsList className="flex w-full overflow-x-auto justify-start sm:justify-center">
                     <TabsTrigger value="profile">Profile & Location</TabsTrigger>
                     {profile.role === 'SELLER' && (
                         <>
@@ -558,7 +558,7 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label>Name</Label>
                                     <Input
@@ -744,7 +744,7 @@ export default function ProfilePage() {
                                         onChange={(e) => setSellerProfile({ ...sellerProfile, address: e.target.value })}
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>City</Label>
                                         <Input
