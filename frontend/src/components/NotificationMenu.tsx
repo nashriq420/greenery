@@ -5,6 +5,8 @@ import { Bell, Check, Info, MessageSquare, Star, AlertTriangle, X } from 'lucide
 import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+import { playNotificationSound } from '@/lib/sound';
 
 interface Notification {
     id: string;
@@ -24,6 +26,7 @@ export default function NotificationMenu() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const previousUnreadCountRef = useRef(0);
 
     const fetchNotifications = async () => {
         if (!token) return;
@@ -31,6 +34,23 @@ export default function NotificationMenu() {
             const data = await api.get('/notifications', token);
             setNotifications(data.notifications);
             setUnreadCount(data.unreadCount);
+
+            if (data.unreadCount > previousUnreadCountRef.current) {
+                // New notification arrived
+                playNotificationSound();
+                
+                // Find newest unread notification
+                const newNotification = data.notifications.find((n: Notification) => !n.read);
+                if (newNotification) {
+                    toast.success(`New Notification: ${newNotification.title}`, {
+                        icon: '🔔',
+                    });
+                } else {
+                    toast.success('You have new notifications', { icon: '🔔' });
+                }
+            }
+            previousUnreadCountRef.current = data.unreadCount;
+
         } catch (error) {
             console.error('Failed to fetch notifications', error);
         }

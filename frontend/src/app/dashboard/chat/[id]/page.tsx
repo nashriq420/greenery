@@ -7,6 +7,8 @@ import { useAuthStore } from '@/store/authStore';
 import { Send, Store, ArrowLeft, Star, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PrivacyWarning from '../components/PrivacyWarning';
+import { toast } from 'react-hot-toast';
+import { playNotificationSound } from '@/lib/sound';
 
 export default function ChatRoomPage() {
     const params = useParams();
@@ -18,6 +20,7 @@ export default function ChatRoomPage() {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const previousMessageCountRef = useRef<number>(0);
 
     // Listing Picker State
     const [showListingPicker, setShowListingPicker] = useState(false);
@@ -33,6 +36,18 @@ export default function ChatRoomPage() {
             const data = await api.get(`/chat/${id}/messages`, token || '');
             if (Array.isArray(data)) {
                 setMessages(data);
+
+                if (previousMessageCountRef.current > 0 && data.length > previousMessageCountRef.current) {
+                    // New message arrived
+                    const newMessages = data.slice(previousMessageCountRef.current);
+                    const hasIncoming = newMessages.some(m => m.sender.id !== user?.id);
+                    if (hasIncoming) {
+                        playNotificationSound();
+                        const senderName = newMessages.find(m => m.sender.id !== user?.id)?.sender.name || 'User';
+                        toast.success(`New message from ${senderName}`, { icon: '💬' });
+                    }
+                }
+                previousMessageCountRef.current = data.length;
 
                 // Clear unread notifications for this chat if there are any
                 const hasUnread = data.some((m: any) => !m.read && m.receiverId === user?.id);

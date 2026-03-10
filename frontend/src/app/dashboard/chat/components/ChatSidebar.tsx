@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Search, Megaphone } from 'lucide-react';
 import BroadcastModal from './BroadcastModal';
+import { toast } from 'react-hot-toast';
+import { playNotificationSound } from '@/lib/sound';
 
 export default function ChatSidebar({ className = "" }: { className?: string }) {
     const { token, user } = useAuthStore();
@@ -15,6 +17,7 @@ export default function ChatSidebar({ className = "" }: { className?: string }) 
     const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
     const params = useParams();
     const activeId = params?.id;
+    const previousLatestUpdateRef = useRef<number>(0);
 
     const fetchChats = async () => {
         if (!token) return;
@@ -25,6 +28,24 @@ export default function ChatSidebar({ className = "" }: { className?: string }) 
                 const sorted = data.sort((a, b) =>
                     new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
                 );
+
+                if (sorted.length > 0) {
+                    const latestTime = new Date(sorted[0].updatedAt).getTime();
+                    if (previousLatestUpdateRef.current > 0 && latestTime > previousLatestUpdateRef.current) {
+                        const latestChat = sorted[0];
+                        const lastMsg = latestChat.messages?.[0];
+
+                        // Notify if there's a new message and it's not sent by the current user,
+                        // and we are not currently viewing that chat room.
+                        if (lastMsg && lastMsg.sender?.id !== user?.id && latestChat.id !== activeId) {
+                            playNotificationSound();
+                            const senderName = lastMsg.sender?.name || 'Someone';
+                            toast.success(`New message from ${senderName}`, { icon: '💬' });
+                        }
+                    }
+                    previousLatestUpdateRef.current = latestTime;
+                }
+
                 setChats(sorted);
             }
         } catch (error) {
