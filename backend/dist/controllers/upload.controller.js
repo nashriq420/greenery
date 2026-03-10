@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadImage = exports.upload = void 0;
+exports.uploadVideo = exports.uploadVideoMiddleware = exports.uploadImage = exports.upload = void 0;
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
@@ -46,3 +46,25 @@ const uploadImage = (req, res) => {
     res.json({ url: fileUrl });
 };
 exports.uploadImage = uploadImage;
+// Video Filter (mp4, webm, etc)
+const videoFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('video/')) {
+        cb(null, true);
+    }
+    else {
+        cb(new Error('Only videos are allowed'));
+    }
+};
+exports.uploadVideoMiddleware = (0, multer_1.default)({
+    storage: storage,
+    fileFilter: videoFilter,
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+const uploadVideo = (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    res.json({ url: fileUrl });
+};
+exports.uploadVideo = uploadVideo;

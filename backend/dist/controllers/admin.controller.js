@@ -206,12 +206,13 @@ exports.warnUser = warnUser;
 // Get Audit Logs
 const getLogs = async (req, res) => {
     try {
-        const { action, startDate, endDate, search } = req.query;
+        const { action, startDate, endDate, search, page = '1', limit = '20' } = req.query;
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
         const where = {};
         // Filter by Action
         if (action && action !== 'ALL') {
-            // If comma separated? For now assume single or we can use "contains" if we want flexible matching
-            // Ideally the frontend sends specific action or "category"
             where.action = action;
         }
         // Filter by Date
@@ -222,7 +223,6 @@ const getLogs = async (req, res) => {
             if (endDate)
                 where.createdAt.lte = new Date(endDate);
         }
-        // Filter by Search (User Name or Email)
         // Filter by Search (User Name, Email, Action, or Details)
         if (search) {
             where.OR = [
@@ -232,6 +232,8 @@ const getLogs = async (req, res) => {
                 { details: { contains: search, mode: 'insensitive' } }
             ];
         }
+        // Get total count for pagination
+        const total = await prisma_1.prisma.auditLog.count({ where });
         const logs = await prisma_1.prisma.auditLog.findMany({
             where,
             include: {
@@ -245,9 +247,18 @@ const getLogs = async (req, res) => {
                 }
             },
             orderBy: { createdAt: 'desc' },
-            take: 200 // Increased limit
+            skip,
+            take: limitNum
         });
-        res.json(logs);
+        res.json({
+            logs,
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum)
+            }
+        });
     }
     catch (error) {
         logger_1.logger.error('Error fetching audit logs', error);

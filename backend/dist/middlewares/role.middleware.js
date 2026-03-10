@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireRole = void 0;
+exports.isAdmin = exports.requireRole = void 0;
 const requireRole = (roles) => {
     return (req, res, next) => {
         if (!req.user) {
@@ -14,3 +14,4 @@ const requireRole = (roles) => {
     };
 };
 exports.requireRole = requireRole;
+exports.isAdmin = (0, exports.requireRole)('ADMIN');

@@ -21,6 +21,8 @@ const admin_routes_1 = __importDefault(require("./routes/admin.routes"));
 const review_routes_1 = __importDefault(require("./routes/review.routes"));
 const notification_routes_1 = __importDefault(require("./routes/notification.routes"));
 const community_routes_1 = require("./routes/community.routes");
+const blacklist_routes_1 = __importDefault(require("./routes/blacklist.routes"));
+const analytics_routes_1 = __importDefault(require("./routes/analytics.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 4000;
@@ -59,6 +61,8 @@ app.use('/api/notifications', notification_routes_1.default);
 app.use('/api/community', community_routes_1.communityRoutes);
 app.use('/api/upload', upload_routes_1.default);
 app.use('/api/banners', banner_routes_1.default);
+app.use('/api/blacklist', blacklist_routes_1.default);
+app.use('/api/analytics', analytics_routes_1.default);
 // Serve uploads
 const path_1 = __importDefault(require("path"));
 app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));

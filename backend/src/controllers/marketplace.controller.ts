@@ -277,7 +277,7 @@ export const getListings = async (req: Request, res: Response) => {
         });
 
         // Better sorting: sort ACTIVE subscriptions at the top manually if prisma order is tricky
-        listings.sort((a, b) => {
+        listings.sort((a: any, b: any) => {
             const aActive = a.seller.subscription?.status === 'ACTIVE' ? 1 : 0;
             const bActive = b.seller.subscription?.status === 'ACTIVE' ? 1 : 0;
             return bActive - aActive; // Descending order of active status

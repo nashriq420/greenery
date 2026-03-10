@@ -56,7 +56,7 @@ export const getFeed = async (req: Request, res: Response) => {
         });
 
         // Transform for easier frontend consumption
-        const feed = posts.map(post => ({
+        const feed = posts.map((post: any) => ({
             ...post,
             isLiked: userId && (post as any).likes ? (post as any).likes.length > 0 : false,
             likesCount: post._count.likes,

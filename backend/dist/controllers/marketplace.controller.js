@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getListingById = exports.deleteListing = exports.updateListing = exports.getMyListings = exports.getListings = exports.createListing = exports.getSellersNearby = void 0;
+exports.getSellerById = exports.getListingById = exports.relistListing = exports.delistListing = exports.deleteListing = exports.updateListing = exports.getMyListings = exports.getListings = exports.createListing = exports.getSellersNearby = void 0;
 const prisma_1 = require("../utils/prisma");
 const zod_1 = require("zod");
 const logger_1 = require("../utils/logger");
@@ -11,6 +11,7 @@ const createListingSchema = zod_1.z.object({
     description: zod_1.z.string().min(10, "Description must be at least 10 characters long"),
     price: zod_1.z.number().min(0, "Price cannot be negative"),
     imageUrl: zod_1.z.string().url("Image URL must be a valid URL").optional().or(zod_1.z.literal('')),
+    videoUrl: zod_1.z.string().url("Video URL must be a valid URL").optional().or(zod_1.z.literal('')),
     // Promotion & Requirements
     discountPrice: zod_1.z.number().min(0).optional(),
     promotionStart: zod_1.z.coerce.date().optional(),
@@ -21,6 +22,11 @@ const createListingSchema = zod_1.z.object({
     strainType: zod_1.z.enum(['Indica', 'Sativa', 'Hybrid']).optional(),
     thcContent: zod_1.z.number().min(0).max(100).optional(),
     cbdContent: zod_1.z.number().min(0).max(100).optional(),
+    // New Fields
+    type: zod_1.z.string().optional(),
+    flavors: zod_1.z.string().optional(),
+    effects: zod_1.z.string().optional(),
+    sku: zod_1.z.string().optional(),
 });
 const getSellersQuerySchema = zod_1.z.object({
     lat: zod_1.z.coerce.number().min(-90).max(90),
@@ -35,6 +41,7 @@ const getListingsQuerySchema = zod_1.z.object({
     minPrice: zod_1.z.coerce.number().min(0).optional(),
     maxPrice: zod_1.z.coerce.number().min(0).optional(),
     strainType: zod_1.z.string().optional(),
+    type: zod_1.z.string().optional(),
     deliveryAvailable: zod_1.z.enum(['true', 'false']).transform((val) => val === 'true').optional(),
     thcMin: zod_1.z.coerce.number().min(0).max(100).optional(),
     cbdMin: zod_1.z.coerce.number().min(0).max(100).optional(),
@@ -63,6 +70,7 @@ const getSellersNearby = async (req, res) => {
                 u.name, 
                 u.email,
                 u."profilePicture",
+                sub.status as "subscriptionStatus",
                 (SELECT "createdAt" FROM "LoginHistory" WHERE "userId" = u.id ORDER BY "createdAt" DESC LIMIT 1) as "lastSeen",
                 (
                     SELECT CAST(AVG(r.rating) AS DOUBLE PRECISION)
@@ -79,6 +87,7 @@ const getSellersNearby = async (req, res) => {
                 ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) AS distance
             FROM "SellerProfile" s
             JOIN "User" u ON s."userId" = u.id
+            LEFT JOIN "Subscription" sub ON u.id = sub."userId"
             WHERE u.status = 'ACTIVE'
             AND ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) < ${radiusKm}
             ORDER BY distance ASC
@@ -103,9 +112,17 @@ const createListing = async (req, res) => {
         console.log('[DEBUG] createListing body:', req.body);
         const validated = createListingSchema.parse(req.body);
         const userId = req.user.id;
+        // Auto-generate SKU if not provided
+        let sku = validated.sku;
+        if (!sku) {
+            const cleanTitle = validated.title.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 6);
+            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+            sku = `${cleanTitle}-${randomSuffix}`;
+        }
         const listing = await prisma_1.prisma.listing.create({
             data: {
                 ...validated,
+                sku,
                 sellerId: userId,
                 price: validated.price,
                 active: true,
@@ -122,6 +139,16 @@ const createListing = async (req, res) => {
     }
     catch (error) {
         console.error('[DEBUG] createListing error:', error);
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const logPath = path.join(process.cwd(), 'backend_error.log');
+            const errorMessage = `[${new Date().toISOString()}] Error: ${error.message}\nStack: ${error.stack}\n\n`;
+            fs.appendFileSync(logPath, errorMessage);
+        }
+        catch (e) {
+            console.error('Failed to write to log file', e);
+        }
         // Duck typing for ZodError or similar validation libraries
         if (error.errors || error instanceof zod_1.ZodError) {
             const zodErrors = error.errors || error.issues || [];
@@ -139,7 +166,7 @@ exports.createListing = createListing;
 // Get listings (with optional filters)
 const getListings = async (req, res) => {
     try {
-        const { lat, lng, radius, search, minPrice, maxPrice, strainType, deliveryAvailable, thcMin, cbdMin } = getListingsQuerySchema.parse(req.query);
+        const { lat, lng, radius, search, minPrice, maxPrice, strainType, type, deliveryAvailable, thcMin, cbdMin } = getListingsQuerySchema.parse(req.query);
         const radiusKm = radius || 50;
         // Base Where Clause
         const whereClause = {
@@ -151,7 +178,8 @@ const getListings = async (req, res) => {
             whereClause.OR = [
                 { title: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
-                { strainType: { contains: search, mode: 'insensitive' } }
+                { strainType: { contains: search, mode: 'insensitive' } },
+                { type: { contains: search, mode: 'insensitive' } }
             ];
         }
         // Filters
@@ -165,9 +193,12 @@ const getListings = async (req, res) => {
         if (strainType) {
             whereClause.strainType = strainType;
         }
+        if (type) {
+            whereClause.type = { contains: type, mode: 'insensitive' };
+        }
         // deliveryAvailable is a boolean after transform
-        if (deliveryAvailable !== undefined) {
-            whereClause.deliveryAvailable = deliveryAvailable;
+        if (deliveryAvailable === true) {
+            whereClause.deliveryAvailable = true;
         }
         if (thcMin !== undefined) {
             whereClause.thcContent = { gte: thcMin };
@@ -201,11 +232,25 @@ const getListings = async (req, res) => {
                                 latitude: true,
                                 longitude: true
                             }
+                        },
+                        subscription: {
+                            select: {
+                                status: true
+                            }
                         }
                     }
                 }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: [
+                { seller: { subscription: { status: 'asc' } } }, // Simplistic hack: ACTIVE is before pending_payment etc depending on db text. Needs sorting properly. We can fetch and sort or rely on created at
+                { createdAt: 'desc' }
+            ]
+        });
+        // Better sorting: sort ACTIVE subscriptions at the top manually if prisma order is tricky
+        listings.sort((a, b) => {
+            const aActive = a.seller.subscription?.status === 'ACTIVE' ? 1 : 0;
+            const bActive = b.seller.subscription?.status === 'ACTIVE' ? 1 : 0;
+            return bActive - aActive; // Descending order of active status
         });
         res.json(listings);
     }
@@ -288,6 +333,54 @@ const deleteListing = async (req, res) => {
     }
 };
 exports.deleteListing = deleteListing;
+// Delist Listing
+const delistListing = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const listingId = req.params.id;
+        const listing = await prisma_1.prisma.listing.findUnique({ where: { id: listingId } });
+        if (!listing) {
+            return res.status(404).json({ message: 'Listing not found' });
+        }
+        if (listing.sellerId !== userId) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+        const updated = await prisma_1.prisma.listing.update({
+            where: { id: listingId },
+            data: { active: false }
+        });
+        await (0, audit_1.logActivity)(userId, 'DELIST_LISTING', { listingId }, req);
+        res.json({ message: 'Listing delisted', listing: updated });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.delistListing = delistListing;
+// Relist Listing
+const relistListing = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const listingId = req.params.id;
+        const listing = await prisma_1.prisma.listing.findUnique({ where: { id: listingId } });
+        if (!listing) {
+            return res.status(404).json({ message: 'Listing not found' });
+        }
+        if (listing.sellerId !== userId) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+        const updated = await prisma_1.prisma.listing.update({
+            where: { id: listingId },
+            data: { active: true }
+        });
+        await (0, audit_1.logActivity)(userId, 'RELIST_LISTING', { listingId }, req);
+        res.json({ message: 'Listing relisted', listing: updated });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.relistListing = relistListing;
 // Get Listing by ID
 const getListingById = async (req, res) => {
     try {
@@ -336,3 +429,76 @@ const getListingById = async (req, res) => {
     }
 };
 exports.getListingById = getListingById;
+// Get Seller by ID (Public Profile)
+const getSellerById = async (req, res) => {
+    try {
+        const sellerId = req.params.id;
+        // sellerId here is the userId of the seller
+        // Check if user exists and is a seller (or at least has a profile)
+        // We'll join User and SellerProfile
+        // Also get aggregate rating
+        const seller = await prisma_1.prisma.user.findUnique({
+            where: { id: sellerId },
+            select: {
+                id: true,
+                name: true,
+                username: true,
+                profilePicture: true,
+                createdAt: true, // Joined date
+                sellerProfile: {
+                    select: {
+                        city: true,
+                        state: true,
+                        description: true,
+                        address: true,
+                        latitude: true,
+                        longitude: true,
+                        openingHours: true,
+                        bannerUrl: true
+                    }
+                },
+                loginHistory: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                    select: { createdAt: true }
+                },
+                _count: {
+                    select: {
+                        listings: { where: { active: true, status: 'ACTIVE' } }
+                    }
+                },
+                subscription: {
+                    select: {
+                        status: true
+                    }
+                }
+            }
+        });
+        if (!seller) {
+            return res.status(404).json({ message: 'Seller not found' });
+        }
+        // Calculate Average Rating manually or via raw query for efficiency if needed.
+        // For single seller, aggregation is fine.
+        const aggregations = await prisma_1.prisma.review.aggregate({
+            _avg: { rating: true },
+            _count: { id: true },
+            where: {
+                listing: {
+                    sellerId: sellerId
+                }
+            }
+        });
+        const responseData = {
+            ...seller,
+            averageRating: aggregations._avg.rating || 0,
+            reviewCount: aggregations._count.id || 0,
+            lastSeen: seller.loginHistory[0]?.createdAt || null
+        };
+        res.json(responseData);
+    }
+    catch (error) {
+        logger_1.logger.error('Error fetching seller details', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.getSellerById = getSellerById;

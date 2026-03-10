@@ -21,7 +21,7 @@ async function checkBanners() {
         if (banners.length === 0) {
             log('No banners found.');
         } else {
-            banners.forEach(b => {
+            banners.forEach((b: any) => {
                 log(`ID: ${b.id}`);
                 log(`Title: ${b.title}`);
                 log(`Status: ${b.status}`);

@@ -8,4 +8,5 @@ router.get('/me', auth_middleware_1.authenticateToken, user_controller_1.getMe);
 router.put('/me', auth_middleware_1.authenticateToken, user_controller_1.updateMe);
 router.put('/me/location', auth_middleware_1.authenticateToken, user_controller_1.updateLocation);
 router.put('/me/password', auth_middleware_1.authenticateToken, user_controller_1.updatePassword);
+router.delete('/me', auth_middleware_1.authenticateToken, user_controller_1.deleteMe);
 exports.default = router;

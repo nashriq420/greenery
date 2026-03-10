@@ -29,7 +29,8 @@ const getFeed = async (req, res) => {
                         id: true,
                         name: true,
                         role: true,
-                        profilePicture: true
+                        profilePicture: true,
+                        subscription: { select: { status: true } }
                     }
                 },
                 _count: {
@@ -90,7 +91,9 @@ const createPost = async (req, res) => {
                     select: {
                         id: true,
                         name: true,
-                        profilePicture: true
+                        role: true,
+                        profilePicture: true,
+                        subscription: { select: { status: true } }
                     }
                 }
             }
@@ -140,7 +143,7 @@ const updatePost = async (req, res) => {
                 isEdited: true
             },
             include: {
-                author: { select: { id: true, name: true, role: true, profilePicture: true } }
+                author: { select: { id: true, name: true, role: true, profilePicture: true, subscription: { select: { status: true } } } }
             }
         });
         console.log("Post updated");
@@ -231,7 +234,9 @@ const getComments = async (req, res) => {
                     select: {
                         id: true,
                         name: true,
-                        profilePicture: true
+                        role: true,
+                        profilePicture: true,
+                        subscription: { select: { status: true } }
                     }
                 }
             },
@@ -263,7 +268,9 @@ const addComment = async (req, res) => {
                     select: {
                         id: true,
                         name: true,
-                        profilePicture: true
+                        role: true,
+                        profilePicture: true,
+                        subscription: { select: { status: true } }
                     }
                 }
             }
