@@ -51,7 +51,7 @@ const getFeed = async (req, res) => {
             }
         });
         // Transform for easier frontend consumption
-        const feed = posts.map(post => ({
+        const feed = posts.map((post) => ({
             ...post,
             isLiked: userId && post.likes ? post.likes.length > 0 : false,
             likesCount: post._count.likes,
@@ -76,10 +76,8 @@ const getFeed = async (req, res) => {
 exports.getFeed = getFeed;
 const createPost = async (req, res) => {
     try {
-        console.log("Creating post with body:", req.body);
         const { content, imageUrl } = createPostSchema.parse(req.body);
         const userId = req.user.id;
-        console.log("User ID:", userId);
         const post = await prisma_1.prisma.post.create({
             data: {
                 content,
@@ -98,10 +96,8 @@ const createPost = async (req, res) => {
                 }
             }
         });
-        console.log("Post created:", post.id);
         // Audit Log
         await (0, audit_1.logActivity)(userId, 'CREATE_POST', { postId: post.id }, req);
-        console.log("Audit log created");
         res.status(201).json(post);
     }
     catch (error) {
@@ -114,16 +110,12 @@ const updatePost = async (req, res) => {
     try {
         const postId = req.params.id;
         const userId = req.user.id;
-        console.log(`Updating post ${postId} by user ${userId}`);
-        console.log("Update body:", req.body);
         const { content, imageUrl } = createPostSchema.parse(req.body);
         const post = await prisma_1.prisma.post.findUnique({ where: { id: postId } });
         if (!post) {
-            console.log("Post not found");
             return res.status(404).json({ message: 'Post not found' });
         }
         if (post.authorId !== userId && req.user.role !== 'ADMIN') {
-            console.log("Not authorized");
             return res.status(403).json({ message: 'Not authorized' });
         }
         // Save History
@@ -134,7 +126,6 @@ const updatePost = async (req, res) => {
                 imageUrl: post.imageUrl
             }
         });
-        console.log("History saved");
         const updatedPost = await prisma_1.prisma.post.update({
             where: { id: postId },
             data: {
@@ -146,7 +137,6 @@ const updatePost = async (req, res) => {
                 author: { select: { id: true, name: true, role: true, profilePicture: true, subscription: { select: { status: true } } } }
             }
         });
-        console.log("Post updated");
         // Audit Log
         await (0, audit_1.logActivity)(userId, 'UPDATE_POST', { postId }, req);
         res.json(updatedPost);

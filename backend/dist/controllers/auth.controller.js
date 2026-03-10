@@ -67,7 +67,6 @@ const signup = async (req, res) => {
 exports.signup = signup;
 const login = async (req, res) => {
     try {
-        console.log('[Login Debug] Request body:', req.body);
         const { email, password } = loginSchema.parse(req.body);
         const user = await prisma_1.prisma.user.findUnique({ where: { email } });
         if (!user) {

@@ -5,9 +5,7 @@ const marketplace_controller_1 = require("../controllers/marketplace.controller"
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const rbac_middleware_1 = require("../middlewares/rbac.middleware");
 const router = (0, express_1.Router)();
-console.log('Marketplace routes loaded');
 router.use((req, res, next) => {
-    console.log(`[Marketplace Router] ${req.method} ${req.path}`);
     next();
 });
 router.get('/sellers', auth_middleware_1.authenticateToken, marketplace_controller_1.getSellersNearby);

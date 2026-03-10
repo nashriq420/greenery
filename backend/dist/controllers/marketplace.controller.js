@@ -109,7 +109,6 @@ exports.getSellersNearby = getSellersNearby;
 // Create a listing (Seller only)
 const createListing = async (req, res) => {
     try {
-        console.log('[DEBUG] createListing body:', req.body);
         const validated = createListingSchema.parse(req.body);
         const userId = req.user.id;
         // Auto-generate SKU if not provided
@@ -156,7 +155,6 @@ const createListing = async (req, res) => {
                 path: e.path,
                 message: e.message
             }));
-            console.log('[DEBUG] Formatted errors:', formattedErrors);
             return res.status(400).json({ errors: formattedErrors });
         }
         res.status(500).json({ message: `Debug Error: ${error.message || String(error)} ` });
@@ -385,7 +383,6 @@ exports.relistListing = relistListing;
 const getListingById = async (req, res) => {
     try {
         const listingId = req.params.id;
-        console.log(`[DEBUG] Fetching listing ${listingId} `);
         const listing = await prisma_1.prisma.listing.findUnique({
             where: { id: listingId },
             include: {
@@ -416,10 +413,8 @@ const getListingById = async (req, res) => {
             }
         });
         if (!listing) {
-            console.log(`[DEBUG] Listing ${listingId} not found`);
             return res.status(404).json({ message: 'Listing not found' });
         }
-        console.log(`[DEBUG] Found listing ${listingId} `);
         res.json(listing);
     }
     catch (error) {

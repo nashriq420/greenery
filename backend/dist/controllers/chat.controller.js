@@ -285,7 +285,7 @@ const broadcastMessage = async (req, res) => {
             }
         });
         const chatUserIds = new Set();
-        pastChats.forEach(chat => {
+        pastChats.forEach((chat) => {
             if (chat.participant1Id !== userId)
                 chatUserIds.add(chat.participant1Id);
             if (chat.participant2Id !== userId)
@@ -301,7 +301,7 @@ const broadcastMessage = async (req, res) => {
                 },
                 select: { id: true }
             });
-            stateUserIds = usersInState.map(u => u.id);
+            stateUserIds = usersInState.map((u) => u.id);
         }
         // Combine unique user IDs
         const targetUserIds = Array.from(new Set([...chatUserIds, ...stateUserIds]));

@@ -2,8 +2,17 @@
 
 import { Toaster, ToastBar, toast } from 'react-hot-toast';
 import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function ToastProvider() {
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted) return null;
+
     return (
         <Toaster
             position="top-right"
