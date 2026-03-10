@@ -5,10 +5,10 @@ import { authenticateToken } from '../middlewares/auth.middleware';
 import { requireRole } from '../middlewares/rbac.middleware';
 
 const router = Router();
-console.log('Marketplace routes loaded');
+
 
 router.use((req, res, next) => {
-    console.log(`[Marketplace Router] ${req.method} ${req.path}`);
+
     next();
 });
 

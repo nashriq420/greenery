@@ -16,7 +16,7 @@ const handleResponse = async (res: Response) => {
             console.error(`[DEBUG] API Failed (${res.status} ${res.statusText}):`, text);
         }
 
-        console.log('[DEBUG] API Error Response:', JSON.stringify(data));
+
         let errorMessage = data.message || data.error || `API request failed: ${res.status} ${res.statusText}`;
 
         if (data.errors && Array.isArray(data.errors)) {

@@ -70,7 +70,7 @@ export const signup = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
     try {
-        console.log('[Login Debug] Request body:', req.body);
+
         const { email, password } = loginSchema.parse(req.body);
 
         const user = await prisma.user.findUnique({ where: { email } });

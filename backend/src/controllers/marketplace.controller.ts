@@ -118,7 +118,7 @@ export const getSellersNearby = async (req: Request, res: Response) => {
 // Create a listing (Seller only)
 export const createListing = async (req: AuthRequest, res: Response) => {
     try {
-        console.log('[DEBUG] createListing body:', req.body);
+
         const validated = createListingSchema.parse(req.body);
         const userId = req.user!.id;
 
@@ -169,7 +169,7 @@ export const createListing = async (req: AuthRequest, res: Response) => {
                 path: e.path,
                 message: e.message
             }));
-            console.log('[DEBUG] Formatted errors:', formattedErrors);
+
             return res.status(400).json({ errors: formattedErrors });
         }
         res.status(500).json({ message: `Debug Error: ${error.message || String(error)} ` });
@@ -426,7 +426,7 @@ export const relistListing = async (req: AuthRequest, res: Response) => {
 export const getListingById = async (req: Request, res: Response) => {
     try {
         const listingId = req.params.id as string;
-        console.log(`[DEBUG] Fetching listing ${listingId} `);
+
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },
             include: {
@@ -458,11 +458,11 @@ export const getListingById = async (req: Request, res: Response) => {
         });
 
         if (!listing) {
-            console.log(`[DEBUG] Listing ${listingId} not found`);
+
             return res.status(404).json({ message: 'Listing not found' });
         }
 
-        console.log(`[DEBUG] Found listing ${listingId} `);
+
         res.json(listing);
     } catch (error: any) {
         console.error('[DEBUG] Error fetching listing details:', error);

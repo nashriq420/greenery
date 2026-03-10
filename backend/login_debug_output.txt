@@ -1,2 +1,0 @@
-Status: 404
-Body: {"message":"Email has not been registered, please sign up."}
