@@ -1,7 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/greenery?schema=public';
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+
+const prisma = new PrismaClient({ adapter });
+
 
 async function main() {
     const password = await bcrypt.hash('admin123', 10);
