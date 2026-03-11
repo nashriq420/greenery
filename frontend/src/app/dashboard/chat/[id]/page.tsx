@@ -216,24 +216,24 @@ export default function ChatRoomPage() {
                                         )}
                                     </div>
                                 )}
-                                <div className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-foreground'}`}>
+                                <div className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow-soft ${isMe ? 'bg-primary text-white rounded-br-sm' : 'bg-card border border-border text-foreground rounded-bl-sm'}`}>
                                     {msg.listing && (
-                                        <div className={`mb-2 rounded-lg overflow-hidden border ${isMe ? 'border-primary/50 bg-primary-foreground/10' : 'border-border bg-muted'} p-2 flex gap-3 items-center group cursor-pointer hover:opacity-90 transition`}>
+                                        <div className={`mb-3 rounded-xl overflow-hidden border ${isMe ? 'border-primary-foreground/20 bg-primary-foreground/10' : 'border-border bg-muted'} p-2 flex gap-3 items-center group cursor-pointer hover:opacity-90 transition`}>
                                             {msg.listing.imageUrl ? (
-                                                <div className="w-12 h-12 rounded bg-muted shrink-0 overflow-hidden relative">
+                                                <div className="w-14 h-14 rounded-lg bg-muted shrink-0 overflow-hidden relative">
                                                     <img src={msg.listing.imageUrl} className="absolute inset-0 w-full h-full object-cover" />
                                                 </div>
                                             ) : (
-                                                <div className="w-12 h-12 rounded bg-muted shrink-0 flex items-center justify-center text-xs text-muted-foreground">No Img</div>
+                                                <div className="w-14 h-14 rounded-lg bg-muted shrink-0 flex items-center justify-center text-xs text-muted-foreground font-medium">No Img</div>
                                             )}
-                                            <div className="min-w-0">
+                                            <div className="min-w-0 pr-2">
                                                 <p className="font-bold text-sm truncate">{msg.listing.title}</p>
-                                                <p className="text-xs opacity-80">${msg.listing.price}</p>
+                                                <p className={`text-xs font-semibold ${isMe ? 'text-primary-foreground/90' : 'text-primary'}`}>RM {msg.listing.price}</p>
                                             </div>
                                         </div>
                                     )}
-                                    <p>{msg.content}</p>
-                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                                    <p className="text-inherit font-medium text-[15px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                    <p className={`text-[10px] mt-1.5 font-medium ${isMe ? 'text-white/80' : 'text-muted-foreground'} text-right`}>
                                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>
@@ -245,14 +245,15 @@ export default function ChatRoomPage() {
             </div>
 
             {/* Input Area */}
-            {chatDetails?.isActive === false ? (
-                <div className="bg-muted/50 border-t border-border p-4 flex flex-col items-center justify-center shrink-0 min-h-[80px]">
-                    <p className="text-sm text-muted-foreground mb-3">This chat was closed due to inactivity.</p>
-                    <Button onClick={handleReactivate} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-6 rounded-lg">
-                        Reactivate Chat
-                    </Button>
-                </div>
-            ) : (
+            <div className="shrink-0">
+                {chatDetails?.isActive === false ? (
+                    <div className="bg-muted/50 border-t border-border p-6 flex flex-col items-center justify-center min-h-[100px]">
+                        <p className="text-sm font-medium text-muted-foreground mb-4">This chat was closed due to inactivity.</p>
+                        <Button onClick={handleReactivate} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-8 rounded-full shadow-soft hover-lift active-scale">
+                            Reactivate Chat
+                        </Button>
+                    </div>
+                ) : (
                 <div className="bg-card border-t border-border p-2 sm:p-4 flex gap-2 relative items-center shrink-0">
                     {/* Listing Picker Button */}
                     <div className="relative">
@@ -309,6 +310,7 @@ export default function ChatRoomPage() {
                     </button>
                 </div>
             )}
+            </div>
         </div>
     );
 }

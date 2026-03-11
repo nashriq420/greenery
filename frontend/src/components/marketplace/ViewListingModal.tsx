@@ -13,8 +13,8 @@ export default function ViewListingModal({ listing, onClose }: ViewListingModalP
             <div className="bg-card text-card-foreground rounded-lg p-6 w-full max-w-md shadow-2xl border border-border pointer-events-auto">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold text-foreground">Listing Details</h2>
-                    <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted transition-colors">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 

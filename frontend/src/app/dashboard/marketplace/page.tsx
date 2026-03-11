@@ -395,19 +395,19 @@ export default function MarketplacePage() {
                                                     )}
                                                 </p>
                                                 <p className="text-muted-foreground line-clamp-2 text-sm">{listing.description}</p>
-                                                <div className="mt-4 flex justify-between items-center text-xs text-muted-foreground">
+                                                <div className="mt-4 flex flex-col md:flex-row md:justify-between md:items-center text-sm text-muted-foreground gap-1">
                                                     <span>{listing.seller.sellerProfile?.city || 'Unknown Location'}</span>
-                                                    <span>{new Date(listing.createdAt || Date.now()).toLocaleDateString()}</span>
+                                                    <span>{new Date(listing.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                                                 </div>
-                                                <div className="mt-2 flex flex-wrap gap-1">
+                                                <div className="mt-3 flex flex-wrap gap-2">
                                                     {listing.minQuantity && listing.minQuantity > 1 && (
-                                                        <span className="text-[10px] bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">Min Qty: {listing.minQuantity}</span>
+                                                        <span className="text-xs font-medium bg-muted text-foreground px-2 py-1 rounded-md border border-border">Min Qty: {listing.minQuantity}</span>
                                                     )}
                                                     {listing.strainType && (
-                                                        <span className="text-[10px] bg-purple-100/10 text-purple-400 px-1.5 py-0.5 rounded border border-purple-200/20">{listing.strainType}</span>
+                                                        <span className="text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-1 rounded-md border border-purple-200 dark:border-purple-800/50">{listing.strainType}</span>
                                                     )}
                                                     {(listing.thcContent || listing.cbdContent) && (
-                                                        <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
+                                                        <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-md border border-primary/20">
                                                             {listing.thcContent ? `THC: ${listing.thcContent}%` : ''}
                                                             {listing.thcContent && listing.cbdContent ? ' • ' : ''}
                                                             {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}

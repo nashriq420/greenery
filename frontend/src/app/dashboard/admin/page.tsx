@@ -329,7 +329,10 @@ export default function AdminPage() {
                                     <CardTitle className="text-xl">{selectedListingForView.title}</CardTitle>
                                     <CardDescription>Listing Details</CardDescription>
                                 </div>
-                                <Button variant="ghost" size="icon" onClick={() => setViewListingOpen(false)}>×</Button>
+                                <Button variant="ghost" className="h-12 w-12 rounded-full hover:bg-muted shrink-0" onClick={() => setViewListingOpen(false)}>
+                                    <span className="sr-only">Close</span>
+                                    <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </Button>
                             </CardHeader>
                             <CardContent className="space-y-6 pt-6">
                                 {selectedListingForView.imageUrl && (
@@ -353,7 +356,7 @@ export default function AdminPage() {
                                     <div className="space-y-1">
                                         <span className="text-sm text-gray-500 font-medium">Seller</span>
                                         <p className="text-sm font-medium">{selectedListingForView.seller?.name}</p>
-                                        <p className="text-xs text-blue-600">{selectedListingForView.seller?.email}</p>
+                                        <p className="text-xs font-semibold text-muted-foreground">{selectedListingForView.seller?.email}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <span className="text-sm text-gray-500 font-medium">Created At</span>

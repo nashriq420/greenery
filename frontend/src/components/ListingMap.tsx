@@ -105,7 +105,7 @@ export default function ListingMap({ listings, userLocation }: ListingMapProps) 
                                 <div className="min-w-[240px] p-0">
                                     <div className="relative h-32 w-full mb-3 rounded-t-lg overflow-hidden bg-gray-100">
                                         <img
-                                            src={getImageUrl(listing.images?.[0] || 'https://placehold.co/600x400?text=No+Image')}
+                                            src={listing.imageUrl || getImageUrl(listing.images?.[0]) || 'https://placehold.co/600x400?text=No+Image'}
                                             alt={listing.title}
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
@@ -118,19 +118,24 @@ export default function ListingMap({ listings, userLocation }: ListingMapProps) 
                                             RM {listing.price}
                                         </div>
                                     </div>
-                                    <div className="px-1 pb-1">
-                                        <h3 className="font-bold text-base mb-1 truncate">{listing.title}</h3>
+                                    <div className="px-2 pb-2 text-gray-900">
+                                        <h3 className="font-extrabold text-base mb-1 truncate text-gray-900" style={{ color: '#111827' }}>{listing.title}</h3>
                                         <div className="flex items-center gap-2 mb-3">
                                             <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-200">
                                                 <img
                                                     src={getImageUrl(listing.seller?.sellerProfile?.profilePicture || '/default-avatar.png')}
                                                     alt={listing.seller?.name || 'Seller'}
                                                     className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.onerror = null;
+                                                        target.src = 'https://placehold.co/100x100?text=U';
+                                                    }}
                                                 />
                                             </div>
-                                            <span className="text-xs text-gray-600 truncate">{listing.seller?.name || 'Unknown Seller'}</span>
+                                            <span className="text-xs text-gray-600 truncate font-medium" style={{ color: '#4B5563' }}>{listing.seller?.name || 'Unknown Seller'}</span>
                                         </div>
-                                        <Link href={`/dashboard/marketplace/${listing.id}`} className="block w-full py-2 bg-green-600 text-white text-center text-sm font-semibold rounded hover:bg-green-700 transition">
+                                        <Link href={`/dashboard/marketplace/${listing.id}`} className="block w-full py-2.5 bg-green-700 text-center text-sm font-bold rounded-lg hover:bg-green-800 transition shadow-sm" style={{ color: '#ffffff', textDecoration: 'none' }}>
                                             View Details
                                         </Link>
                                     </div>

@@ -37,9 +37,9 @@ export default function LandingMapContent() {
             {DUMMY_SELLERS.map((seller) => (
                 <Marker key={seller.id} position={[seller.lat, seller.lng]} icon={customIcon}>
                     <Popup>
-                        <div className="p-1 min-w-[150px]">
-                            <h3 className="font-bold text-base">{seller.name}</h3>
-                            <p className="text-sm text-gray-600">{seller.description}</p>
+                        <div className="p-1 min-w-[150px]" style={{ color: '#111827' }}>
+                            <h3 className="font-bold text-base" style={{ color: '#111827' }}>{seller.name}</h3>
+                            <p className="text-sm text-gray-600" style={{ color: '#4B5563' }}>{seller.description}</p>
                         </div>
                     </Popup>
                 </Marker>
