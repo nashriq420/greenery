@@ -10,18 +10,22 @@ export default function PrivacyPage() {
                     <section>
                         <h2 className="text-2xl font-semibold mb-4 text-foreground">1. Introduction</h2>
                         <p>
-                            At Greenery, we value your privacy and are committed to protecting your personal information. This Privacy Policy
-                            explains how we collect, use, and safeguard your data when you use our platform.
+                            Greenery is a dedicated plant marketplace connecting sellers and enthusiasts. We value your privacy and are committed to protecting your personal information. This Privacy Policy
+                            explains how we collect, use, and safeguard your data when you use our platform to browse, buy, or sell plants.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-2xl font-semibold mb-4 text-foreground">2. Information We Collect</h2>
                         <p>
-                            We collect information that you provide directly to us, such as when you create an account, update your profile,
-                            post content, or communicate with us. This may include your name, email address, location data, and any other
-                            information you choose to provide.
+                            We collect information that you provided directly to us:
                         </p>
+                        <ul className="list-disc pl-6 mt-2 space-y-1">
+                            <li><strong>Account Information:</strong> Name, email address, password, and chosen role (Customer or Seller).</li>
+                            <li><strong>Location Data:</strong> To support our geo-mapping features, we collect location information to show you nearby sellers or to list your shop on our interactive maps.</li>
+                            <li><strong>Listing Content:</strong> Any photos, descriptions, or prices you provide for plant listings.</li>
+                            <li><strong>Subscription Data:</strong> Details regarding your tier (Free or Pro) and related billing information.</li>
+                        </ul>
                     </section>
 
                     <section>
@@ -30,20 +34,18 @@ export default function PrivacyPage() {
                             We use the information we collect to:
                         </p>
                         <ul className="list-disc pl-6 mt-2 space-y-1">
-                            <li>Provide, maintain, and improve our services.</li>
-                            <li>Process transactions and send related information.</li>
-                            <li>Send you technical notices, updates, security alerts, and support messages.</li>
-                            <li>Respond to your comments, questions, and requests.</li>
-                            <li>Monitor and analyze trends, usage, and activities in connection with our services.</li>
+                            <li>Enable our core marketplace and radius-based search functionalities.</li>
+                            <li>Process subscription upgrades and maintain account security.</li>
+                            <li>Send technical notices, updates, and support messages.</li>
+                            <li>Respond to your comments, questions, and marketplace inquiries.</li>
+                            <li>Monitor and analyze trends to improve the Greenery experience.</li>
                         </ul>
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold mb-4 text-foreground">4. Data Sharing</h2>
+                        <h2 className="text-2xl font-semibold mb-4 text-foreground">4. Transparency and Sharing</h2>
                         <p>
-                            We do not share your personal information with third parties except as described in this policy or with your consent.
-                            We may share information with vendors, consultants, and other service providers who need access to such information
-                            to carry out work on our behalf.
+                            Sellers' location data and shop details are made visible to other users on our platform's maps to facilitate local plant trading. We do not share your private personal information with third parties except as required for service provision (e.g., payment processing) or with your explicit consent.
                         </p>
                     </section>
 
