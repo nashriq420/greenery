@@ -500,7 +500,7 @@ export default function MarketplacePage() {
                                         </h3>
                                         <div className="space-y-3">
                                             {premiumSellers.map(seller => (
-                                                <Link href={`/dashboard/community/profile/${seller.userId}`} key={seller.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg transition group">
+                                                <Link href={`/dashboard/seller/${seller.userId}`} key={seller.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg transition group">
                                                     <div className="w-10 h-10 rounded-full bg-primary/10 overflow-hidden border border-primary/20 shrink-0">
                                                         {seller.profilePicture ? (
                                                             <img src={seller.profilePicture} alt={seller.name} className="w-full h-full object-cover" />
@@ -545,7 +545,7 @@ export default function MarketplacePage() {
                                         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Top Rated</h3>
                                         <div className="space-y-3">
                                             {topRatedSellers.map(seller => (
-                                                <Link href={`/dashboard/community/profile/${seller.userId}`} key={seller.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg transition group">
+                                                <Link href={`/dashboard/seller/${seller.userId}`} key={seller.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg transition group">
                                                     <div className="w-10 h-10 rounded-full bg-muted overflow-hidden border border-border shrink-0">
                                                         {seller.profilePicture ? (
                                                             <img src={seller.profilePicture} alt={seller.name} className="w-full h-full object-cover" />
