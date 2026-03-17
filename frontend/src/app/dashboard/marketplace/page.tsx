@@ -512,15 +512,15 @@ export default function MarketplacePage() {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-1">
-                                                            <p className="text-sm font-semibold truncate group-hover:text-primary transition">{seller.name}</p>
-                                                            <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-3 h-3 bg-blue-500 text-white rounded-full text-[8px] shrink-0">
-                                                                <Check size={8} strokeWidth={3} />
+                                                            <p className="text-base font-bold truncate group-hover:text-primary transition">{seller.name}</p>
+                                                            <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white rounded-full text-[10px] shrink-0">
+                                                                <Check size={10} strokeWidth={3} />
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-0.5">
+                                                        <div className="flex items-center text-sm text-muted-foreground gap-1.5 mt-1">
                                                             {seller.averageRating && seller.averageRating > 0 ? (
                                                                 <span className="flex items-center gap-0.5 text-yellow-600 dark:text-yellow-500 font-medium">
-                                                                    <Star size={10} fill="currentColor" /> {Number(seller.averageRating).toFixed(1)}
+                                                                    <Star size={14} fill="currentColor" /> {Number(seller.averageRating).toFixed(1)}
                                                                 </span>
                                                             ) : (
                                                                 <span>New</span>
@@ -529,8 +529,8 @@ export default function MarketplacePage() {
                                                             <span className="truncate">{seller.city || 'Unknown'}</span>
                                                         </div>
                                                         {userLocation && seller.distance !== undefined && (
-                                                            <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                                                                <MapPin size={10} /> {Number(seller.distance).toFixed(1)} km
+                                                            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                                                                <MapPin size={14} /> {Number(seller.distance).toFixed(1)} km
                                                             </p>
                                                         )}
                                                     </div>
@@ -556,17 +556,17 @@ export default function MarketplacePage() {
                                                         )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-semibold truncate group-hover:text-primary transition">{seller.name}</p>
-                                                        <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-0.5">
+                                                        <p className="text-base font-bold truncate group-hover:text-primary transition">{seller.name}</p>
+                                                        <div className="flex items-center text-sm text-muted-foreground gap-1.5 mt-1">
                                                             <span className="flex items-center gap-0.5 text-yellow-600 dark:text-yellow-500 font-medium">
-                                                                <Star size={10} fill="currentColor" /> {Number(seller.averageRating).toFixed(1)}
+                                                                <Star size={14} fill="currentColor" /> {Number(seller.averageRating).toFixed(1)}
                                                             </span>
                                                             <span>•</span>
                                                             <span className="truncate">{seller.city || 'Unknown'}</span>
                                                         </div>
                                                         {userLocation && seller.distance !== undefined && (
-                                                            <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                                                                <MapPin size={10} /> {Number(seller.distance).toFixed(1)} km
+                                                            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                                                                <MapPin size={14} /> {Number(seller.distance).toFixed(1)} km
                                                             </p>
                                                         )}
                                                     </div>
