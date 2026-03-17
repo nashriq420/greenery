@@ -19,7 +19,7 @@ export interface Seller {
     subscriptionStatus?: string | null;
 }
 
-export function useSellers(lat: number, lng: number, radius: number = 50) {
+export function useSellers(lat?: number | null, lng?: number | null, radius: number = 50) {
     const [sellers, setSellers] = useState<Seller[]>([]);
     const [loading, setLoading] = useState(false);
     const { token } = useAuthStore();
@@ -28,10 +28,13 @@ export function useSellers(lat: number, lng: number, radius: number = 50) {
         if (!token) return;
 
         const fetchSellers = async () => {
-            if (!lat || !lng) return; // Guard against missing/invalid coordinates
             setLoading(true);
             try {
-                const data = await api.get(`/marketplace/sellers?lat=${lat}&lng=${lng}&radius=${radius}`, token);
+                let url = `/marketplace/sellers?radius=${radius}`;
+                if (lat !== undefined && lat !== null && lng !== undefined && lng !== null) {
+                    url += `&lat=${lat}&lng=${lng}`;
+                }
+                const data = await api.get(url, token);
                 if (Array.isArray(data)) {
                     setSellers(data);
                 }

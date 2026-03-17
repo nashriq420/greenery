@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useListings, createListing } from '@/hooks/useMarketplace';
+import { useListings, createListing, useSellers } from '@/hooks/useMarketplace';
 import { calculateDistance } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { MapPin, Check, Search, Filter, X, Star } from 'lucide-react';
+import { MapPin, Check, Search, Filter, X, Star, Store } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ const PRODUCT_TYPES = [
 export default function MarketplacePage() {
     const { user, token } = useAuthStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showLocationPrompt, setShowLocationPrompt] = useState(false); // Modal for missing location
 
     // Form State
     const [formData, setFormData] = useState({
@@ -72,6 +73,19 @@ export default function MarketplacePage() {
         radius: 50
     });
 
+    // Fetch Sellers for "Vendor Near You" Sidebar
+    const { sellers: nearbySellers, loading: sellersLoading } = useSellers(userLocation?.lat, userLocation?.lng, 50);
+
+    // Process Sellers
+    const premiumSellers = nearbySellers
+        .filter(s => s.subscriptionStatus === 'ACTIVE')
+        .slice(0, 5);
+        
+    const topRatedSellers = nearbySellers
+        .filter(s => s.subscriptionStatus !== 'ACTIVE' && s.averageRating && s.averageRating > 0)
+        .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
+        .slice(0, 5);
+
     // Sort listings by distance if location is available
     const sortedListings = [...listings].sort((a, b) => {
         if (!userLocation) return 0;
@@ -91,6 +105,21 @@ export default function MarketplacePage() {
         return getDist(a) - getDist(b);
     });
 
+    // Helper to fallback to profile location
+    const fallbackToProfileLocation = () => {
+        if (user?.sellerProfile?.latitude && user?.sellerProfile?.longitude) {
+            setUserLocation({
+                lat: user.sellerProfile.latitude,
+                lng: user.sellerProfile.longitude
+            });
+            setLocationError(null);
+        } else {
+            // Give up and prompt the user to update settings
+            setShowLocationPrompt(true);
+            setLocationError(null); // Clear inline error since we show a modal
+        }
+    };
+
     const handleUseLocation = () => {
         if (userLocation) {
             // Toggle off
@@ -99,7 +128,7 @@ export default function MarketplacePage() {
         }
 
         if (!navigator.geolocation) {
-            setLocationError("Geolocation is not supported by your browser");
+            fallbackToProfileLocation();
             return;
         }
 
@@ -112,7 +141,8 @@ export default function MarketplacePage() {
                 setLocationError(null);
             },
             () => {
-                setLocationError("Unable to retrieve your location");
+                // If browser denies permission or fails, fallback to profile
+                fallbackToProfileLocation();
             }
         );
     };
@@ -319,118 +349,241 @@ export default function MarketplacePage() {
                 </div>
             )}
 
-            {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-pulse">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>)}
-                </div>
-            ) : (
-                <>
-                    {viewMode === 'grid' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {sortedListings.length === 0 ? (
-                                <p className="col-span-full text-center text-muted-foreground py-10">No active listings found.</p>
-                            ) : (
-                                sortedListings.map((listing) => (
-                                    <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="block">
-                                        <div className={`bg-card text-card-foreground border-border border rounded-lg overflow-hidden transition h-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'ring-2 ring-yellow-400 shadow-md hover:shadow-xl relative' : 'hover:shadow-lg'}`}>
-                                            <div className="bg-muted relative">
-                                                {listing.seller.subscription?.status === 'ACTIVE' && (
-                                                    <div className="absolute top-2 left-2 bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-sm uppercase flex items-center gap-1 z-10">
-                                                        <Star size={10} fill="currentColor" /> Premium
-                                                    </div>
-                                                )}
-                                                {listing.imageUrl ? (
-                                                    <div className={`w-full relative ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} bg-muted`}>
-                                                        <img
-                                                            src={listing.imageUrl}
-                                                            alt={listing.title}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div className={`w-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} flex items-center justify-center text-muted-foreground`}>No Image</div>
-                                                )}
-                                                <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
-                                                    <div className="bg-card text-card-foreground px-2 py-1 rounded-full text-sm font-bold shadow">
-                                                        {listing.discountPrice ? (
-                                                            <div className="flex flex-col items-end leading-tight">
-                                                                <span className="text-muted-foreground line-through text-xs">RM {listing.price}</span>
-                                                                <span className="text-red-500 font-bold dark:text-red-400">RM {listing.discountPrice}</span>
-                                                                {listing.promotionEnd && (
-                                                                    <span className="text-[10px] text-red-500 font-normal mt-0.5">Ends {new Date(listing.promotionEnd).toLocaleDateString()}</span>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <span>RM {listing.price}</span>
-                                                        )}
-                                                    </div>
-                                                    {listing.deliveryAvailable && (
-                                                        <div className="bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-400 px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase border border-green-200 dark:border-green-800/60">
-                                                            Delivery
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="p-4">
-                                                <h3 className="font-bold text-lg text-foreground">{listing.title}</h3>
-                                                {userLocation && listing.seller.sellerProfile?.latitude && listing.seller.sellerProfile?.longitude && (
-                                                    <div className="flex items-center gap-1 text-primary text-xs font-semibold mb-1">
-                                                        <MapPin size={12} />
-                                                        <span>
-                                                            {calculateDistance(
-                                                                userLocation.lat,
-                                                                userLocation.lng,
-                                                                listing.seller.sellerProfile.latitude,
-                                                                listing.seller.sellerProfile.longitude
-                                                            )} km away
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                                                    by <span className="text-foreground">{listing.seller.name}</span>
-                                                    {listing.seller.subscription?.status === 'ACTIVE' && (
-                                                        <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-3.5 h-3.5 bg-blue-500 text-white rounded-full text-[8px] shadow-sm">
-                                                            <Check size={8} strokeWidth={3} />
-                                                        </span>
-                                                    )}
-                                                </p>
-                                                <p className="text-muted-foreground line-clamp-2 text-sm">{listing.description}</p>
-                                                <div className="mt-4 flex flex-col md:flex-row md:justify-between md:items-center text-sm text-muted-foreground gap-1">
-                                                    <span>{listing.seller.sellerProfile?.city || 'Unknown Location'}</span>
-                                                    <span>{new Date(listing.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                                </div>
-                                                <div className="mt-3 flex flex-wrap gap-2">
-                                                    {listing.minQuantity && listing.minQuantity > 1 && (
-                                                        <span className="text-xs font-medium bg-muted text-foreground px-2 py-1 rounded-md border border-border">Min Qty: {listing.minQuantity}</span>
-                                                    )}
-                                                    {listing.strainType && (
-                                                        <span className="text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-1 rounded-md border border-purple-200 dark:border-purple-800/50">{listing.strainType}</span>
-                                                    )}
-                                                    {(listing.thcContent || listing.cbdContent) && (
-                                                        <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-md border border-primary/20">
-                                                            {listing.thcContent ? `THC: ${listing.thcContent}%` : ''}
-                                                            {listing.thcContent && listing.cbdContent ? ' • ' : ''}
-                                                            {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="mt-2 text-xs text-muted-foreground space-y-0.5">
-                                                    {listing.type && <p>Type: <span className="font-medium text-foreground">{listing.type}</span></p>}
-                                                    {listing.flavors && <p>Flavor: <span className="font-medium text-foreground">{listing.flavors}</span></p>}
-                                                    {listing.effects && <p>Effect: <span className="font-medium text-foreground">{listing.effects}</span></p>}
-                                                    {listing.sku && <p>SKU: <span className="font-medium text-foreground">{listing.sku}</span></p>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))
-                            )}
+            {/* Main Content Grid with Sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+                
+                {/* Main Listings Area */}
+                <div className="lg:col-span-3 space-y-6">
+                    {loading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+                            {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>)}
                         </div>
                     ) : (
-                        <ListingMap listings={sortedListings} userLocation={userLocation} />
+                        <>
+                            {viewMode === 'grid' ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {sortedListings.length === 0 ? (
+                                        <p className="col-span-full text-center text-muted-foreground py-10">No active listings found.</p>
+                                    ) : (
+                                        sortedListings.map((listing) => (
+                                            <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="block">
+                                                <div className={`bg-card text-card-foreground border-border border rounded-lg overflow-hidden transition h-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'ring-2 ring-yellow-400 shadow-md hover:shadow-xl relative' : 'hover:shadow-lg'}`}>
+                                                    <div className="bg-muted relative">
+                                                        {listing.seller.subscription?.status === 'ACTIVE' && (
+                                                            <div className="absolute top-2 left-2 bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-sm uppercase flex items-center gap-1 z-10">
+                                                                <Star size={10} fill="currentColor" /> Premium
+                                                            </div>
+                                                        )}
+                                                        {listing.imageUrl ? (
+                                                            <div className={`w-full relative ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} bg-muted`}>
+                                                                <img
+                                                                    src={listing.imageUrl}
+                                                                    alt={listing.title}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className={`w-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} flex items-center justify-center text-muted-foreground`}>No Image</div>
+                                                        )}
+                                                        <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
+                                                            <div className="bg-card text-card-foreground px-2 py-1 rounded-full text-sm font-bold shadow">
+                                                                {listing.discountPrice ? (
+                                                                    <div className="flex flex-col items-end leading-tight">
+                                                                        <span className="text-muted-foreground line-through text-xs">RM {listing.price}</span>
+                                                                        <span className="text-red-500 font-bold dark:text-red-400">RM {listing.discountPrice}</span>
+                                                                        {listing.promotionEnd && (
+                                                                            <span className="text-[10px] text-red-500 font-normal mt-0.5">Ends {new Date(listing.promotionEnd).toLocaleDateString()}</span>
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span>RM {listing.price}</span>
+                                                                )}
+                                                            </div>
+                                                            {listing.deliveryAvailable && (
+                                                                <div className="bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-400 px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase border border-green-200 dark:border-green-800/60">
+                                                                    Delivery
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-4">
+                                                        <h3 className="font-bold text-lg text-foreground">{listing.title}</h3>
+                                                        {userLocation && listing.seller.sellerProfile?.latitude && listing.seller.sellerProfile?.longitude && (
+                                                            <div className="flex items-center gap-1 text-primary text-xs font-semibold mb-1">
+                                                                <MapPin size={12} />
+                                                                <span>
+                                                                    {calculateDistance(
+                                                                        userLocation.lat,
+                                                                        userLocation.lng,
+                                                                        listing.seller.sellerProfile.latitude,
+                                                                        listing.seller.sellerProfile.longitude
+                                                                    ).toFixed(1)} km away
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                                                            by <span className="text-foreground">{listing.seller.name}</span>
+                                                            {listing.seller.subscription?.status === 'ACTIVE' && (
+                                                                <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-3.5 h-3.5 bg-blue-500 text-white rounded-full text-[8px] shadow-sm">
+                                                                    <Check size={8} strokeWidth={3} />
+                                                                </span>
+                                                            )}
+                                                        </p>
+                                                        <p className="text-muted-foreground line-clamp-2 text-sm">{listing.description}</p>
+                                                        <div className="mt-4 flex flex-col md:flex-row md:justify-between md:items-center text-sm text-muted-foreground gap-1">
+                                                            <span>{listing.seller.sellerProfile?.city || 'Unknown Location'}</span>
+                                                            <span>{new Date(listing.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                                        </div>
+                                                        <div className="mt-3 flex flex-wrap gap-2">
+                                                            {listing.minQuantity && listing.minQuantity > 1 && (
+                                                                <span className="text-xs font-medium bg-muted text-foreground px-2 py-1 rounded-md border border-border">Min Qty: {listing.minQuantity}</span>
+                                                            )}
+                                                            {listing.strainType && (
+                                                                <span className="text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-1 rounded-md border border-purple-200 dark:border-purple-800/50">{listing.strainType}</span>
+                                                            )}
+                                                            {(listing.thcContent || listing.cbdContent) && (
+                                                                <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-md border border-primary/20">
+                                                                    {listing.thcContent ? `THC: ${listing.thcContent}%` : ''}
+                                                                    {listing.thcContent && listing.cbdContent ? ' • ' : ''}
+                                                                    {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="mt-2 text-xs text-muted-foreground space-y-0.5">
+                                                            {listing.type && <p>Type: <span className="font-medium text-foreground">{listing.type}</span></p>}
+                                                            {listing.flavors && <p>Flavor: <span className="font-medium text-foreground">{listing.flavors}</span></p>}
+                                                            {listing.effects && <p>Effect: <span className="font-medium text-foreground">{listing.effects}</span></p>}
+                                                            {listing.sku && <p>SKU: <span className="font-medium text-foreground">{listing.sku}</span></p>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))
+                                    )}
+                                </div>
+                            ) : (
+                                <ListingMap listings={sortedListings} userLocation={userLocation} />
+                            )}
+                        </>
                     )}
-                </>
-            )}
+                </div>
+
+                {/* Right Sidebar: Vendor Near You / Top Vendors */}
+                <div className="lg:col-span-1 space-y-6">
+                    <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm p-5 sticky top-24">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="font-bold text-lg flex items-center gap-2">
+                                <Store className="text-primary" size={20} />
+                                {userLocation ? 'Vendors Near You' : 'Top Vendors'}
+                            </h2>
+                        </div>
+                        
+                        {sellersLoading ? (
+                            <div className="space-y-4 animate-pulse">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="flex gap-3 items-center">
+                                        <div className="w-10 h-10 bg-muted rounded-full"></div>
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-4 bg-muted rounded w-3/4"></div>
+                                            <div className="h-3 bg-muted rounded w-1/2"></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {premiumSellers.length > 0 && (
+                                    <div className="space-y-3">
+                                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                                            <Star size={12} className="text-yellow-500" fill="currentColor" />
+                                            Premium Sellers
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {premiumSellers.map(seller => (
+                                                <Link href={`/dashboard/community/profile/${seller.userId}`} key={seller.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg transition group">
+                                                    <div className="w-10 h-10 rounded-full bg-primary/10 overflow-hidden border border-primary/20 shrink-0">
+                                                        {seller.profilePicture ? (
+                                                            <img src={seller.profilePicture} alt={seller.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-primary font-bold text-sm">
+                                                                {seller.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-1">
+                                                            <p className="text-sm font-semibold truncate group-hover:text-primary transition">{seller.name}</p>
+                                                            <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-3 h-3 bg-blue-500 text-white rounded-full text-[8px] shrink-0">
+                                                                <Check size={8} strokeWidth={3} />
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-0.5">
+                                                            {seller.averageRating && seller.averageRating > 0 ? (
+                                                                <span className="flex items-center gap-0.5 text-yellow-600 dark:text-yellow-500 font-medium">
+                                                                    <Star size={10} fill="currentColor" /> {Number(seller.averageRating).toFixed(1)}
+                                                                </span>
+                                                            ) : (
+                                                                <span>New</span>
+                                                            )}
+                                                            <span>•</span>
+                                                            <span className="truncate">{seller.city || 'Unknown'}</span>
+                                                        </div>
+                                                        {userLocation && seller.distance !== undefined && (
+                                                            <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                                                                <MapPin size={10} /> {Number(seller.distance).toFixed(1)} km
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {topRatedSellers.length > 0 && (
+                                    <div className="space-y-3">
+                                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Top Rated</h3>
+                                        <div className="space-y-3">
+                                            {topRatedSellers.map(seller => (
+                                                <Link href={`/dashboard/community/profile/${seller.userId}`} key={seller.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg transition group">
+                                                    <div className="w-10 h-10 rounded-full bg-muted overflow-hidden border border-border shrink-0">
+                                                        {seller.profilePicture ? (
+                                                            <img src={seller.profilePicture} alt={seller.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground font-medium text-sm">
+                                                                {seller.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-semibold truncate group-hover:text-primary transition">{seller.name}</p>
+                                                        <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-0.5">
+                                                            <span className="flex items-center gap-0.5 text-yellow-600 dark:text-yellow-500 font-medium">
+                                                                <Star size={10} fill="currentColor" /> {Number(seller.averageRating).toFixed(1)}
+                                                            </span>
+                                                            <span>•</span>
+                                                            <span className="truncate">{seller.city || 'Unknown'}</span>
+                                                        </div>
+                                                        {userLocation && seller.distance !== undefined && (
+                                                            <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                                                                <MapPin size={10} /> {Number(seller.distance).toFixed(1)} km
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!premiumSellers.length && !topRatedSellers.length && !sellersLoading && (
+                                    <p className="text-sm text-center text-muted-foreground py-4">No top vendors found in this area.</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             {/* Simple Modal */}
             {isModalOpen && (
@@ -669,7 +822,7 @@ export default function MarketplacePage() {
                             {/* Reusing MapPin for now, but really need Check icon. Importing types at top. */}
                         </div>
                         <h2 className="text-xl font-bold mb-2">Listing Submitted!</h2>
-                        <p className="text-gray-600 mb-6">
+                        <p className="text-gray-600 mb-6 flex-1 text-sm">
                             Your listing has been submitted and is pending approval from an admin.
                         </p>
                         <button
@@ -678,6 +831,36 @@ export default function MarketplacePage() {
                         >
                             Got it
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Location Prompt Modal */}
+            {showLocationPrompt && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-card text-card-foreground border border-border rounded-lg p-6 w-full max-w-sm text-center shadow-xl">
+                        <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-yellow-600 dark:text-yellow-500">
+                            <MapPin size={32} />
+                        </div>
+                        <h2 className="text-xl font-bold mb-2">Location Required</h2>
+                        <p className="text-muted-foreground mb-6 text-sm">
+                            We couldn&apos;t access your browser&apos;s location and your profile doesn&apos;t have a location saved. 
+                            Please allow browser location access or update your location in settings to see vendors near you.
+                        </p>
+                        <div className="flex flex-col gap-3">
+                            <Link 
+                                href="/dashboard/settings" 
+                                className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium transition text-center"
+                            >
+                                Go to Settings
+                            </Link>
+                            <button
+                                onClick={() => setShowLocationPrompt(false)}
+                                className="w-full bg-muted text-foreground px-4 py-2 rounded-lg hover:bg-muted/80 font-medium transition"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

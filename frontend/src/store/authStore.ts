@@ -16,6 +16,8 @@ interface User {
         state: string | null;
         country: string | null;
         address: string | null;
+        latitude?: number | null;
+        longitude?: number | null;
     } | null;
     subscription?: {
         status: string;

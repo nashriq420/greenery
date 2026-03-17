@@ -29,8 +29,8 @@ const createListingSchema = zod_1.z.object({
     sku: zod_1.z.string().optional(),
 });
 const getSellersQuerySchema = zod_1.z.object({
-    lat: zod_1.z.coerce.number().min(-90).max(90),
-    lng: zod_1.z.coerce.number().min(-180).max(180),
+    lat: zod_1.z.coerce.number().min(-90).max(90).optional(),
+    lng: zod_1.z.coerce.number().min(-180).max(180).optional(),
     radius: zod_1.z.coerce.number().positive().default(50)
 });
 const getListingsQuerySchema = zod_1.z.object({
@@ -51,48 +51,81 @@ const getSellersNearby = async (req, res) => {
     try {
         const { lat, lng, radius } = getSellersQuerySchema.parse(req.query);
         const radiusKm = radius;
-        if (isNaN(lat) || isNaN(lng)) {
-            // Already handled by Zod but keeping for safety/logic flow if Zod fails (which it throws)
-            return res.status(400).json({ message: "Invalid latitude or longitude" });
+        let sellers;
+        if (lat !== undefined && lng !== undefined && !isNaN(lat) && !isNaN(lng)) {
+            // Use raw query for Haversine formula
+            sellers = await prisma_1.prisma.$queryRaw `
+                SELECT 
+                    s.id, 
+                    s."userId", 
+                    s.latitude, 
+                    s.longitude, 
+                    s.description, 
+                    s.address, 
+                    s.city, 
+                    u.name, 
+                    u.email,
+                    u."profilePicture",
+                    sub.status as "subscriptionStatus",
+                    (SELECT "createdAt" FROM "LoginHistory" WHERE "userId" = u.id ORDER BY "createdAt" DESC LIMIT 1) as "lastSeen",
+                    (
+                        SELECT CAST(AVG(r.rating) AS DOUBLE PRECISION)
+                        FROM "Review" r
+                        JOIN "Listing" l ON r."listingId" = l.id
+                        WHERE l."sellerId" = u.id
+                    ) as "averageRating",
+                    (
+                        SELECT CAST(COUNT(r.id) AS INTEGER)
+                        FROM "Review" r
+                        JOIN "Listing" l ON r."listingId" = l.id
+                        WHERE l."sellerId" = u.id
+                    ) as "reviewCount",
+                    ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) AS distance
+                FROM "SellerProfile" s
+                JOIN "User" u ON s."userId" = u.id
+                LEFT JOIN "Subscription" sub ON u.id = sub."userId"
+                WHERE u.status = 'ACTIVE'
+                AND ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) < ${radiusKm}
+                ORDER BY distance ASC
+                LIMIT 50;
+            `;
         }
-        // Use raw query for Haversine formula
-        // Note: Prisma raw query returns raw objects, we need to map them if necessary.
-        // We are selecting valid SellerProfiles.
-        const sellers = await prisma_1.prisma.$queryRaw `
-            SELECT 
-                s.id, 
-                s."userId", 
-                s.latitude, 
-                s.longitude, 
-                s.description, 
-                s.address, 
-                s.city, 
-                u.name, 
-                u.email,
-                u."profilePicture",
-                sub.status as "subscriptionStatus",
-                (SELECT "createdAt" FROM "LoginHistory" WHERE "userId" = u.id ORDER BY "createdAt" DESC LIMIT 1) as "lastSeen",
-                (
-                    SELECT CAST(AVG(r.rating) AS DOUBLE PRECISION)
-                    FROM "Review" r
-                    JOIN "Listing" l ON r."listingId" = l.id
-                    WHERE l."sellerId" = u.id
-                ) as "averageRating",
-                (
-                    SELECT CAST(COUNT(r.id) AS INTEGER)
-                    FROM "Review" r
-                    JOIN "Listing" l ON r."listingId" = l.id
-                    WHERE l."sellerId" = u.id
-                ) as "reviewCount",
-                ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) AS distance
-            FROM "SellerProfile" s
-            JOIN "User" u ON s."userId" = u.id
-            LEFT JOIN "Subscription" sub ON u.id = sub."userId"
-            WHERE u.status = 'ACTIVE'
-            AND ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) < ${radiusKm}
-            ORDER BY distance ASC
-            LIMIT 50;
-        `;
+        else {
+            // no location provided, get top rated/premium sellers globally
+            sellers = await prisma_1.prisma.$queryRaw `
+                SELECT 
+                    s.id, 
+                    s."userId", 
+                    s.latitude, 
+                    s.longitude, 
+                    s.description, 
+                    s.address, 
+                    s.city, 
+                    u.name, 
+                    u.email,
+                    u."profilePicture",
+                    sub.status as "subscriptionStatus",
+                    (SELECT "createdAt" FROM "LoginHistory" WHERE "userId" = u.id ORDER BY "createdAt" DESC LIMIT 1) as "lastSeen",
+                    (
+                        SELECT CAST(AVG(r.rating) AS DOUBLE PRECISION)
+                        FROM "Review" r
+                        JOIN "Listing" l ON r."listingId" = l.id
+                        WHERE l."sellerId" = u.id
+                    ) as "averageRating",
+                    (
+                        SELECT CAST(COUNT(r.id) AS INTEGER)
+                        FROM "Review" r
+                        JOIN "Listing" l ON r."listingId" = l.id
+                        WHERE l."sellerId" = u.id
+                    ) as "reviewCount"
+                FROM "SellerProfile" s
+                JOIN "User" u ON s."userId" = u.id
+                LEFT JOIN "Subscription" sub ON u.id = sub."userId"
+                WHERE u.status = 'ACTIVE'
+                ORDER BY sub.status ASC, "averageRating" DESC NULLS LAST
+                LIMIT 50;
+            `;
+        }
         // Needed to handle BigInt if any, though standard float math here normally fine.
         // Prisma returns Decimal/Floats fine usually.
         res.json(sellers);
