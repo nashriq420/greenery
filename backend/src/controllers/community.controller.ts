@@ -9,7 +9,8 @@ import { NotificationType } from '@prisma/client';
 //Schemas
 const createPostSchema = z.object({
     content: z.string().min(1, "Content cannot be empty"),
-    imageUrl: z.string().nullable().optional()
+    imageUrl: z.string().nullable().optional(),
+    tag: z.string().optional()
 });
 
 const createCommentSchema = z.object({
@@ -22,10 +23,12 @@ export const getFeed = async (req: Request, res: Response) => {
         const limit = 20;
         const skip = (page - 1) * limit;
         const userId = (req as any).user?.id;
+        const tag = req.query.tag as string | undefined;
 
         const posts = await prisma.post.findMany({
             skip,
             take: limit,
+            where: tag ? { tag } : undefined,
             orderBy: { createdAt: 'desc' },
             include: {
                 author: {
@@ -45,12 +48,8 @@ export const getFeed = async (req: Request, res: Response) => {
                 },
                 // Only fetch likes for the current user to determine 'isLiked'
                 likes: userId ? {
-                    where: {
-                        userId: userId
-                    },
-                    select: {
-                        userId: true
-                    }
+                    where: { userId },
+                    select: { userId: true }
                 } : false
             }
         });
@@ -61,19 +60,82 @@ export const getFeed = async (req: Request, res: Response) => {
             isLiked: userId && (post as any).likes ? (post as any).likes.length > 0 : false,
             likesCount: post._count.likes,
             commentsCount: post._count.comments,
-            likes: undefined, // Remove raw likes array
+            likes: undefined,
             _count: undefined
         }));
 
         res.json(feed);
     } catch (error) {
         console.error("Get feed error:", error);
-        try {
-            const fs = require('fs');
-            fs.appendFileSync('feed_error_log.txt', `${new Date().toISOString()} - ${String(error)}\n${(error as any).stack}\n\n`);
-        } catch (e) {
-            console.error('Failed to log error to file', e);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const getTrendingTopics = async (req: Request, res: Response) => {
+    try {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        // Get all posts from last 7 days that have a tag
+        const posts = await prisma.post.findMany({
+            where: {
+                tag: { not: null },
+                createdAt: { gte: sevenDaysAgo }
+            },
+            select: { tag: true }
+        });
+
+        // Count by tag
+        const tagCounts: Record<string, number> = {};
+        for (const post of posts) {
+            if (post.tag) {
+                tagCounts[post.tag] = (tagCounts[post.tag] || 0) + 1;
+            }
         }
+
+        // Also get total post count per tag (all time)
+        const allPosts = await prisma.post.findMany({
+            where: { tag: { not: null } },
+            select: { tag: true }
+        });
+        const totalTagCounts: Record<string, number> = {};
+        for (const post of allPosts) {
+            if (post.tag) {
+                totalTagCounts[post.tag] = (totalTagCounts[post.tag] || 0) + 1;
+            }
+        }
+
+        const TAG_LABELS: Record<string, string> = {
+            'general': '💬 General',
+            'marketplace': '🛒 Marketplace',
+            'listing': '📋 Listing',
+            'vendor': '🏪 Vendor',
+            'growing-tips': '🌱 Growing Tips',
+            'questions': '❓ Questions'
+        };
+
+        // Sort by recent count descending
+        const trending = Object.entries(tagCounts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 6)
+            .map(([tag, recentCount]) => ({
+                tag,
+                label: TAG_LABELS[tag] || tag,
+                recentCount,
+                totalCount: totalTagCounts[tag] || 0
+            }));
+
+        // Also include total counts for all tags (even if 0 recent)
+        const allTagStats = Object.keys(TAG_LABELS).map(tag => ({
+            tag,
+            label: TAG_LABELS[tag],
+            recentCount: tagCounts[tag] || 0,
+            totalCount: totalTagCounts[tag] || 0
+        }));
+
+        res.json({ trending, allTags: allTagStats });
+    } catch (error) {
+        console.error('Get trending topics error:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -81,7 +143,7 @@ export const getFeed = async (req: Request, res: Response) => {
 export const createPost = async (req: AuthRequest, res: Response) => {
     try {
 
-        const { content, imageUrl } = createPostSchema.parse(req.body);
+        const { content, imageUrl, tag } = createPostSchema.parse(req.body);
         const userId = req.user!.id;
 
 
@@ -89,6 +151,7 @@ export const createPost = async (req: AuthRequest, res: Response) => {
             data: {
                 content,
                 imageUrl,
+                tag: tag || 'general',
                 authorId: userId
             },
             include: {

@@ -107,6 +107,7 @@ model Post {
   content   String   @db.Text
   imageUrl  String?
   isEdited  Boolean  @default(false)
+  tag       String?  // e.g. general, marketplace, listing, vendor, growing-tips, questions
   
   likes     Like[]
   comments  Comment[]
