@@ -22,7 +22,11 @@ export default function PrivacyPage() {
                         </p>
                         <ul className="list-disc pl-6 mt-2 space-y-1">
                             <li><strong>Account Information:</strong> Name, email address, password, and chosen role (Customer or Seller).</li>
-                            <li><strong>Location Data:</strong> To support our geo-mapping features, we collect location information to show you nearby sellers or to list your shop on our interactive maps.</li>
+                            <li>
+                                <strong>Location Data & Maps:</strong> When you use our interactive marketplace map, our site will prompt for your device's geographical location. 
+                                By granting access, your real-time location may be used and temporarily displayed on the map to help you find nearby sellers. 
+                                For sellers, shop locations will be visibly listed on the map to help customers navigate to your store.
+                            </li>
                             <li><strong>Listing Content:</strong> Any photos, descriptions, or prices you provide for plant listings.</li>
                             <li><strong>Subscription Data:</strong> Details regarding your tier (Free or Pro) and related billing information.</li>
                         </ul>
@@ -66,10 +70,10 @@ export default function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold mb-4 text-foreground">7. Cookies</h2>
+                        <h2 className="text-2xl font-semibold mb-4 text-foreground">7. Cookies and Tracking Technologies</h2>
                         <p>
-                            We use cookies and similar technologies to collect information about your activity, browser, and device.
-                            You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
+                            We use cookies and similar technologies to collect information about your activity, browser, and device. This includes storing your preferences, such as your acknowledgement of our cookie and location policies via the consent banner.
+                            You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent, but this may affect some interactive functionality, such as our location maps.
                         </p>
                     </section>
 
