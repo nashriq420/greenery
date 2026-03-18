@@ -310,3 +310,70 @@ export const getLogs = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: 'Internal server error', error: (error as any).message });
     }
 };
+
+// Get all post reports (Admin)
+export const getCommunityReports = async (req: AuthRequest, res: Response) => {
+    try {
+        const rawStatus = req.query.status;
+        const status = Array.isArray(rawStatus) ? rawStatus[0] : rawStatus as string | undefined;
+
+        const reports = await prisma.postReport.findMany({
+            where: status ? { status: status as 'PENDING' | 'REVIEWED' } : undefined,
+            include: {
+                post: {
+                    select: {
+                        id: true,
+                        content: true,
+                        tag: true,
+                        status: true,
+                        imageUrl: true,
+                        createdAt: true,
+                        author: {
+                            select: { id: true, name: true, email: true }
+                        }
+                    }
+                },
+                reporter: {
+                    select: { id: true, name: true, email: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json(reports);
+    } catch (error) {
+        logger.error('Error fetching community reports', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Suspend or restore a community post (Admin)
+export const updatePostStatus = async (req: AuthRequest, res: Response) => {
+    try {
+        const postId = req.params.id as string;
+        const { status } = req.body as { status: 'ACTIVE' | 'SUSPENDED' };
+
+        if (!['ACTIVE', 'SUSPENDED'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status. Use ACTIVE or SUSPENDED.' });
+        }
+
+        const post = await prisma.post.update({
+            where: { id: postId },
+            data: { status: status as any }
+        });
+
+        // Mark all PENDING reports on this post as REVIEWED
+        await prisma.postReport.updateMany({
+            where: { postId, status: 'PENDING' },
+            data: { status: 'REVIEWED' }
+        });
+
+        await logActivity(req.user?.id, 'UPDATE_POST_STATUS', { postId, status }, req);
+
+        res.json({ message: `Post ${status === 'SUSPENDED' ? 'suspended' : 'restored'} successfully`, post });
+    } catch (error) {
+        logger.error('Error updating post status', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+

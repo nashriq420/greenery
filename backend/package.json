@@ -14,7 +14,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "7.4.2",
     "axios": "^1.13.6",
     "bcrypt": "^6.0.0",
@@ -40,7 +40,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.1.0",
-    "@types/node": "^25.4.0",
+    "@types/node": "^25.5.0",
     "@types/pg": "^8.18.0",
     "nodemon": "^3.1.14",
     "prisma": "7.4.2",

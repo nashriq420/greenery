@@ -26,6 +26,7 @@ interface Post {
     likesCount: number;
     commentsCount: number;
     isLiked: boolean;
+    status: string;
 }
 
 const POST_TAGS = [
@@ -147,37 +148,38 @@ export default function CommunityPage() {
     return (
         <div className="max-w-7xl mx-auto">
 
-            {/* Mobile Sidebar Toggle */}
-            <div className="lg:hidden mb-4 flex items-center gap-2">
-                <button
-                    onClick={() => setShowSidebar(!showSidebar)}
-                    className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-xl text-sm font-medium text-foreground shadow-sm hover:bg-muted transition"
-                >
-                    {showSidebar ? <X size={16} /> : <Menu size={16} />}
-                    {showSidebar ? 'Close' : 'Topics & Tags'}
-                </button>
-                {selectedTag && selectedTagInfo && (
-                    <span className={`px-3 py-1 rounded-full text-xs border font-semibold ${selectedTagInfo.color}`}>
-                        {selectedTagInfo.label}
-                    </span>
-                )}
-            </div>
-
-            {/* Mobile Sidebar Dropdown */}
+            {/* Mobile Sidebar — full-screen overlay drawer */}
             {showSidebar && (
-                <div className="lg:hidden mb-4">
-                    <CommunitySidebar
-                        selectedTag={selectedTag}
-                        onTagSelect={handleTagSelect}
-                        postCount={posts.length}
+                <div className="lg:hidden fixed inset-0 z-10000 flex">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        onClick={() => setShowSidebar(false)}
                     />
+                    {/* Drawer panel */}
+                    <div className="relative z-10 w-[85vw] max-w-sm bg-background h-full overflow-y-auto p-4 shadow-2xl">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="font-bold text-base text-foreground">Topics &amp; Tags</h2>
+                            <button
+                                onClick={() => setShowSidebar(false)}
+                                className="p-2 rounded-full hover:bg-muted text-muted-foreground"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <CommunitySidebar
+                            selectedTag={selectedTag}
+                            onTagSelect={handleTagSelect}
+                            postCount={posts.length}
+                        />
+                    </div>
                 </div>
             )}
 
             <div className="flex gap-6">
                 {/* Left Sidebar - Desktop */}
                 <aside className="hidden lg:block w-72 shrink-0">
-                    <div className="sticky top-24">
+                    <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
                         <CommunitySidebar
                             selectedTag={selectedTag}
                             onTagSelect={handleTagSelect}
@@ -187,11 +189,32 @@ export default function CommunityPage() {
                 </aside>
 
                 {/* Main Feed */}
-                <main className="flex-1 min-w-0 space-y-4">
+                <main className="flex-1 min-w-0 space-y-3">
 
-                    {/* Active Filter Banner */}
+                    {/* Mobile sticky toolbar */}
+                    <div className="lg:hidden sticky top-16 z-30 flex items-center gap-2 bg-background/95 backdrop-blur-sm py-2">
+                        <button
+                            onClick={() => setShowSidebar(true)}
+                            className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-xl text-sm font-medium text-foreground shadow-sm active:scale-95 transition"
+                        >
+                            <Menu size={16} />
+                            Topics
+                        </button>
+                        {selectedTag && selectedTagInfo ? (
+                            <span className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs border font-semibold ${selectedTagInfo.color}`}>
+                                {selectedTagInfo.label}
+                                <button onClick={() => setSelectedTag(null)} className="ml-1 opacity-70 hover:opacity-100">
+                                    <X size={12} />
+                                </button>
+                            </span>
+                        ) : (
+                            <span className="text-xs text-muted-foreground">All Posts</span>
+                        )}
+                    </div>
+
+                    {/* Active Filter Banner — desktop only */}
                     {selectedTag && selectedTagInfo && (
-                        <div className={`flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm font-medium ${selectedTagInfo.color}`}>
+                        <div className={`hidden lg:flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm font-medium ${selectedTagInfo.color}`}>
                             <span>Showing posts tagged: {selectedTagInfo.label}</span>
                             <button
                                 onClick={() => setSelectedTag(null)}
@@ -210,7 +233,8 @@ export default function CommunityPage() {
                             </h2>
                             <form onSubmit={handleCreatePost} className="space-y-3">
                                 <div className="flex gap-3">
-                                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-700 dark:text-green-300 font-bold shrink-0 overflow-hidden border border-green-200 dark:border-green-700">
+                                    {/* Avatar hidden on very small screens */}
+                                    <div className="hidden sm:flex w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full items-center justify-center text-green-700 dark:text-green-300 font-bold shrink-0 overflow-hidden border border-green-200 dark:border-green-700">
                                         {user.profilePicture && !imageError ? (
                                             <img
                                                 src={user.profilePicture}
@@ -233,13 +257,13 @@ export default function CommunityPage() {
                                 {/* Tag Selector */}
                                 <div>
                                     <p className="text-xs font-medium text-muted-foreground mb-2">Choose a tag:</p>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="grid grid-cols-3 gap-1.5">
                                         {POST_TAGS.map(t => (
                                             <button
                                                 key={t.tag}
                                                 type="button"
                                                 onClick={() => setSelectedPostTag(t.tag)}
-                                                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                                                className={`px-2 py-2 rounded-lg text-xs font-semibold border transition-all text-center ${
                                                     selectedPostTag === t.tag
                                                         ? `${t.color} ring-2 ring-offset-1 ring-current`
                                                         : 'bg-muted text-muted-foreground border-border hover:bg-muted/80'
@@ -360,13 +384,11 @@ export default function CommunityPage() {
                 <aside className="hidden xl:block w-64 shrink-0">
                     <div className="sticky top-24 space-y-4">
                         <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
-                            <h3 className="font-bold text-sm text-foreground mb-3">🏷️ Tags Guide</h3>
-                            <div className="space-y-2">
-                                {POST_TAGS.map(t => (
-                                    <div key={t.tag} className="flex items-center gap-2">
-                                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${t.color}`}>{t.label}</span>
-                                    </div>
-                                ))}
+                            <h3 className="font-bold text-sm text-foreground mb-3">🔗 Quick Links</h3>
+                            <div className="space-y-3">
+                                <a href="#" className="block text-sm text-muted-foreground hover:text-primary transition">Community Guidelines</a>
+                                <a href="#" className="block text-sm text-muted-foreground hover:text-primary transition">Frequently Asked Questions</a>
+                                <a href="#" className="block text-sm text-muted-foreground hover:text-primary transition">Contact Support</a>
                             </div>
                         </div>
                         <div className="bg-linear-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 shadow-sm">

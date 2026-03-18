@@ -61,7 +61,8 @@ export const getFeed = async (req: Request, res: Response) => {
             likesCount: post._count.likes,
             commentsCount: post._count.comments,
             likes: undefined,
-            _count: undefined
+            _count: undefined,
+            status: post.status ?? 'ACTIVE'
         }));
 
         res.json(feed);
@@ -308,6 +309,45 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
         }
     } catch (error) {
         res.status(500).json({ message: 'Error toggling like' });
+    }
+};
+
+const reportPostSchema = z.object({
+    reason: z.enum(['spam', 'harassment', 'illegal', 'misinformation', 'other']),
+    details: z.string().max(500).optional()
+});
+
+export const reportPost = async (req: AuthRequest, res: Response) => {
+    try {
+        const postId = req.params.id as string;
+        const reporterId = req.user?.id;
+        const { reason, details } = reportPostSchema.parse(req.body);
+
+        // Verify post exists
+        const post = await prisma.post.findUnique({ where: { id: postId } });
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
+        // Prevent duplicate reports from same user
+        if (reporterId) {
+            const existing = await prisma.postReport.findFirst({
+                where: { postId, reporterId }
+            });
+            if (existing) return res.status(409).json({ message: 'You have already reported this post' });
+        }
+
+        const report = await prisma.postReport.create({
+            data: {
+                postId,
+                reporterId: reporterId || null,
+                reason,
+                details
+            }
+        });
+
+        res.status(201).json({ message: 'Post reported successfully', reportId: report.id });
+    } catch (error) {
+        console.error('Report post error:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 

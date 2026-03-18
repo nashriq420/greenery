@@ -65,6 +65,7 @@ export default function AdminPage() {
     const [customers, setCustomers] = useState<User[]>([]);
     const [sellers, setSellers] = useState<User[]>([]);
     const [listings, setListings] = useState<Listing[]>([]);
+    const [communityReports, setCommunityReports] = useState<any[]>([]);
 
     const [loading, setLoading] = useState(true);
 
@@ -125,6 +126,10 @@ export default function AdminPage() {
                 const url = `/admin/listings?${search ? `search=${search}` : ''}`;
                 const res = await api.get(url, token || undefined);
                 if (Array.isArray(res)) setListings(res);
+            } else if (mainTab === 'community') {
+                const url = `/admin/community/reports${search ? `?search=${search}` : ''}`;
+                const res = await api.get(url, token || undefined);
+                if (Array.isArray(res)) setCommunityReports(res);
             }
         } catch (err) {
             console.error("Failed to fetch data", err);
@@ -158,6 +163,15 @@ export default function AdminPage() {
         }
     };
 
+    const handlePostStatusUpdate = async (postId: string, newStatus: string) => {
+        try {
+            await api.put(`/admin/posts/${postId}/status`, { status: newStatus }, token || undefined);
+            fetchData();
+        } catch (err) {
+            alert("Failed to update post status");
+        }
+    };
+
     if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) return null;
 
     return (
@@ -177,10 +191,11 @@ export default function AdminPage() {
             </div>
 
             <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-6">
-                <TabsList className="grid w-full grid-cols-5 lg:w-[650px]">
+                <TabsList className="flex flex-wrap lg:grid lg:grid-cols-6 lg:w-[800px]">
                     <TabsTrigger value="customers">Customers</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers</TabsTrigger>
                     <TabsTrigger value="listings">Listings</TabsTrigger>
+                    <TabsTrigger value="community">Community</TabsTrigger>
                     <TabsTrigger value="blacklist">Blacklist</TabsTrigger>
                     <TabsTrigger value="logs">Logs</TabsTrigger>
                 </TabsList>
@@ -275,6 +290,32 @@ export default function AdminPage() {
                                 onUpdateStatus={handleListingStatusUpdate}
                                 onWarnSeller={handleWarnUser}
                                 onViewListing={handleViewListing}
+                                loading={loading}
+                            />
+                        </TabsContent>
+                    </Tabs>
+                </TabsContent>
+
+                {/* COMMUNITY CONTENT */}
+                <TabsContent value="community" className="space-y-4">
+                    <Tabs defaultValue="PENDING" className="w-full">
+                        <div className="flex items-center justify-between">
+                            <TabsList>
+                                <TabsTrigger value="PENDING">Pending Approval ({communityReports.filter(r => r.status === 'PENDING').length})</TabsTrigger>
+                                <TabsTrigger value="REVIEWED">Reviewed ({communityReports.filter(r => r.status === 'REVIEWED').length})</TabsTrigger>
+                            </TabsList>
+                        </div>
+                        <TabsContent value="PENDING" className="mt-4">
+                            <CommunityReportsList
+                                reports={communityReports.filter(r => r.status === 'PENDING')}
+                                onUpdatePostStatus={handlePostStatusUpdate}
+                                loading={loading}
+                            />
+                        </TabsContent>
+                        <TabsContent value="REVIEWED" className="mt-4">
+                            <CommunityReportsList
+                                reports={communityReports.filter(r => r.status === 'REVIEWED')}
+                                onUpdatePostStatus={handlePostStatusUpdate}
                                 loading={loading}
                             />
                         </TabsContent>
@@ -562,6 +603,75 @@ function ListingGroupList({ listings, isPending, onUpdateStatus, onWarnSeller, o
                                     )}
                                 </>
                             )}
+                        </div>
+                    </div>
+                </Card>
+            ))}
+        </div>
+    );
+}
+
+function CommunityReportsList({ reports, onUpdatePostStatus, loading }: any) {
+    if (loading) return <div className="p-8 text-center text-gray-500 animate-pulse">Loading data...</div>;
+
+    if (reports.length === 0) {
+        return (
+            <Card>
+                <CardContent className="p-8 text-center text-gray-500">
+                    No reports found in this status.
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <div className="grid gap-4">
+            {reports.map((r: any) => (
+                <Card key={r.id} className="overflow-hidden">
+                    <div className="p-6 flex flex-col sm:flex-row items-start justify-between gap-4">
+                        <div className="space-y-2 flex-1 w-full max-w-3xl">
+                            <div className="flex items-center gap-2">
+                                <span className="font-semibold text-sm px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 rounded uppercase">
+                                    {r.reason}
+                                </span>
+                                <span className="text-xs text-muted-foreground">Reported {new Date(r.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            
+                            {r.details && (
+                                <p className="text-sm text-foreground italic border-l-2 border-border pl-2">"{r.details}"</p>
+                            )}
+
+                            <div className="bg-muted p-3 flex gap-4 rounded-lg border border-border mt-3 relative">
+                                {r.post.status === 'SUSPENDED' && (
+                                    <div className="absolute inset-0 bg-red-500/10 backdrop-blur-[1px] rounded-lg z-10 flex items-center justify-center border border-red-500/50">
+                                        <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Suspended Post</span>
+                                    </div>
+                                )}
+                                {r.post.imageUrl && (
+                                    <img src={r.post.imageUrl} className="w-16 h-16 object-cover rounded-md shrink-0 border border-border" alt="" />
+                                )}
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-semibold text-muted-foreground mb-1">
+                                        Posted by {r.post.author.name} · Tag: {r.post.tag || 'None'}
+                                    </p>
+                                    <p className="text-sm text-foreground line-clamp-2">{r.post.content}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto shrink-0 z-20">
+                            {r.post.status === 'ACTIVE' ? (
+                                <Button onClick={() => onUpdatePostStatus(r.post.id, 'SUSPENDED')} variant="destructive" className="w-full sm:w-auto">
+                                    Suspend Post
+                                </Button>
+                            ) : (
+                                <Button onClick={() => onUpdatePostStatus(r.post.id, 'ACTIVE')} variant="outline" className="w-full sm:w-auto text-green-600 border-green-600 hover:bg-green-50 dark:hover:bg-green-950/30">
+                                    Restore Post
+                                </Button>
+                            )}
+                            <div className="text-[10px] text-muted-foreground text-center mt-1">
+                                Reporter: {r.reporter?.name || 'Unknown'}
+                            </div>
                         </div>
                     </div>
                 </Card>

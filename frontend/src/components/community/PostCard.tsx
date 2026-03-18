@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Heart, MessageCircle, Share2, MoreHorizontal, BadgeCheck } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MoreHorizontal, BadgeCheck, Flag, AlertTriangle, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
@@ -25,6 +25,7 @@ interface Post {
     likesCount: number;
     commentsCount: number;
     isLiked: boolean;
+    status: string;
 }
 
 interface PostCardProps {
@@ -53,6 +54,12 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
     const [commentsLoading, setCommentsLoading] = useState(false);
     const [newComment, setNewComment] = useState('');
     const [commentsCountState, setCommentsCountState] = useState(post.commentsCount);
+
+    // Report State
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState('spam');
+    const [reportDetails, setReportDetails] = useState('');
+    const [isReporting, setIsReporting] = useState(false);
 
     const isAuthor = user?.id === post.author.id;
 
@@ -137,6 +144,39 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
             console.error("Failed to add comment", error);
         }
     };
+
+    const handleReport = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!token) return;
+        setIsReporting(true);
+        try {
+            await api.post(`/community/posts/${post.id}/report`, {
+                reason: reportReason,
+                details: reportDetails
+            }, token);
+            alert('Post reported successfully');
+            setShowReportModal(false);
+            setReportDetails('');
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Failed to report post');
+        } finally {
+            setIsReporting(false);
+        }
+    };
+
+    if (post.status === 'SUSPENDED') {
+        return (
+            <div className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50 border rounded-xl overflow-hidden shadow-sm relative p-4 flex gap-4 items-center">
+                <div className="w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                    <h3 className="text-red-700 dark:text-red-400 font-semibold text-sm">Post Suspended</h3>
+                    <p className="text-red-600/80 dark:text-red-400/80 text-xs mt-0.5">This post has been removed for violating community guidelines.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-card border-border text-card-foreground border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition relative">
@@ -287,9 +327,20 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                     <span>{commentsCountState}</span>
                 </button>
 
-                <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition ml-auto">
-                    <Share2 size={20} />
-                </button>
+                <div className="flex items-center gap-2 ml-auto">
+                    {!isAuthor && user && (
+                        <button 
+                            onClick={() => setShowReportModal(true)}
+                            className="text-muted-foreground hover:text-orange-500 transition p-1"
+                            title="Report post"
+                        >
+                            <Flag size={18} />
+                        </button>
+                    )}
+                    <button className="text-muted-foreground hover:text-primary transition p-1">
+                        <Share2 size={18} />
+                    </button>
+                </div>
             </div>
 
             {/* Comments Section */}
@@ -353,6 +404,62 @@ export default function PostCard({ post, onLikeToggle, onDelete }: PostCardProps
                                 </button>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Report Modal */}
+            {showReportModal && (
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card w-full max-w-sm rounded-xl shadow-xl border border-border overflow-hidden">
+                        <div className="p-4 border-b border-border flex items-center justify-between">
+                            <h3 className="font-semibold text-foreground">Report Post</h3>
+                            <button onClick={() => setShowReportModal(false)} className="text-muted-foreground hover:text-foreground">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleReport} className="p-4 space-y-4">
+                            <div>
+                                <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Reason</label>
+                                <select 
+                                    value={reportReason}
+                                    onChange={(e) => setReportReason(e.target.value)}
+                                    className="w-full border border-border bg-muted rounded-lg p-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-green-500"
+                                >
+                                    <option value="spam">Spam</option>
+                                    <option value="harassment">Harassment</option>
+                                    <option value="illegal">Illegal Content</option>
+                                    <option value="misinformation">Misinformation</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Details (optional)</label>
+                                <textarea 
+                                    value={reportDetails}
+                                    onChange={(e) => setReportDetails(e.target.value)}
+                                    className="w-full border border-border bg-muted rounded-lg p-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-green-500 resize-none h-20"
+                                    placeholder="Provide more details..."
+                                    maxLength={500}
+                                />
+                            </div>
+                            <div className="flex justify-end gap-2 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReportModal(false)}
+                                    className="px-4 py-2 text-sm text-muted-foreground hover:bg-muted rounded-lg transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isReporting}
+                                    className="px-4 py-2 text-sm bg-orange-600 text-white hover:bg-orange-700/90 rounded-lg transition disabled:opacity-50"
+                                >
+                                    {isReporting ? 'Reporting...' : 'Submit Report'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

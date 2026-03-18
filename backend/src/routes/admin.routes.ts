@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getUsers, updateUserStatus, getAdminListings, updateListingStatus, warnUser, getLogs } from '../controllers/admin.controller';
+import { getUsers, updateUserStatus, getAdminListings, updateListingStatus, warnUser, getLogs, getCommunityReports, updatePostStatus } from '../controllers/admin.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 import { requireRole } from '../middlewares/role.middleware'; // Assuming this exists or I use inline check
 
@@ -15,6 +15,9 @@ router.get('/listings', authenticateToken, isAdmin, getAdminListings);
 router.put('/listings/:id/status', authenticateToken, isAdmin, updateListingStatus);
 router.post('/users/:id/warn', authenticateToken, isAdmin, warnUser);
 router.get('/logs', authenticateToken, isAdmin, getLogs);
+
+router.get('/community/reports', authenticateToken, isAdmin, getCommunityReports);
+router.put('/posts/:id/status', authenticateToken, isAdmin, updatePostStatus);
 
 export default router;
 

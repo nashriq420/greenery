@@ -25,6 +25,15 @@ const TAG_COLORS: Record<string, { bg: string; text: string; border: string }> =
     'questions': { bg: 'bg-yellow-100 dark:bg-yellow-900/40', text: 'text-yellow-700 dark:text-yellow-300', border: 'border-yellow-300 dark:border-yellow-600' },
 };
 
+const TAG_DESCRIPTIONS: Record<string, string> = {
+    'general': 'General community discussion',
+    'marketplace': 'Discuss or complain about listings',
+    'listing': 'Highlight specific products',
+    'vendor': 'Vendor announcements and reviews',
+    'growing-tips': 'Share cultivation advice',
+    'questions': 'Ask the community for help',
+};
+
 interface CommunitySidebarProps {
     selectedTag: string | null;
     onTagSelect: (tag: string | null) => void;
@@ -86,8 +95,8 @@ export default function CommunitySidebar({ selectedTag, onTagSelect, postCount =
             {/* Trending Topics */}
             <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                    <Flame size={16} className="text-orange-500" />
-                    <h3 className="font-bold text-sm text-foreground">Hot Topics</h3>
+                    <Flame size={18} className="text-orange-500" />
+                    <h3 className="font-bold text-base text-foreground">Hot Topics</h3>
                     <span className="text-xs text-muted-foreground ml-auto">7 days</span>
                 </div>
 
@@ -125,38 +134,53 @@ export default function CommunitySidebar({ selectedTag, onTagSelect, postCount =
                 )}
             </div>
 
-            {/* Browse by Tag */}
+            {/* Tag Guides */}
             <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                    <Tag size={16} className="text-primary" />
-                    <h3 className="font-bold text-sm text-foreground">Browse by Tag</h3>
+                    <Tag size={18} className="text-primary" />
+                    <h3 className="font-bold text-base text-foreground">Tag Guides</h3>
                 </div>
                 <div className="flex flex-col gap-1.5">
                     <button
                         onClick={() => onTagSelect(null)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all border ${
+                        className={`w-full flex items-start justify-between px-3 py-2 rounded-lg text-sm transition-all border ${
                             !selectedTag
                                 ? 'bg-primary text-primary-foreground border-primary font-semibold'
                                 : 'border-transparent hover:bg-muted text-foreground'
                         }`}
                     >
-                        📰 All Posts
+                        <div className="flex flex-col text-left">
+                            <span>📰 All Posts</span>
+                            <span className={`text-xs font-normal mt-0.5 leading-tight ${!selectedTag ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                                View everything
+                            </span>
+                        </div>
                     </button>
                     {allTags.map(item => {
                         const colors = TAG_COLORS[item.tag] || TAG_COLORS['general'];
+                        const desc = TAG_DESCRIPTIONS[item.tag] || '';
                         return (
                             <button
                                 key={item.tag}
                                 onClick={() => onTagSelect(selectedTag === item.tag ? null : item.tag)}
-                                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all border ${
+                                className={`w-full flex items-start justify-between px-3 py-2 text-left rounded-lg text-sm transition-all border ${
                                     selectedTag === item.tag
-                                        ? `${colors.bg} ${colors.text} ${colors.border} font-semibold`
-                                        : 'border-transparent hover:bg-muted text-foreground'
+                                        ? `${colors.bg} ${colors.border} font-semibold`
+                                        : 'border-transparent hover:bg-muted'
                                 }`}
                             >
-                                <span>{item.label}</span>
+                                <div className="flex flex-col">
+                                    <span className={`${selectedTag === item.tag ? colors.text : 'text-foreground'}`}>
+                                        {item.label}
+                                    </span>
+                                    {desc && (
+                                        <span className="text-xs text-muted-foreground font-normal mt-0.5 leading-tight">
+                                            {desc}
+                                        </span>
+                                    )}
+                                </div>
                                 {item.totalCount > 0 && (
-                                    <span className="text-xs text-muted-foreground">{item.totalCount}</span>
+                                    <span className="text-xs text-muted-foreground mt-0.5 shrink-0 ml-2">{item.totalCount}</span>
                                 )}
                             </button>
                         );
@@ -166,13 +190,13 @@ export default function CommunitySidebar({ selectedTag, onTagSelect, postCount =
 
             {/* Community Rules */}
             <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
-                <h3 className="font-bold text-sm text-foreground mb-3">📜 Community Rules</h3>
-                <ol className="space-y-2 text-xs text-muted-foreground">
-                    <li className="flex gap-2"><span className="text-primary font-bold">1.</span>Be respectful to all members</li>
-                    <li className="flex gap-2"><span className="text-primary font-bold">2.</span>Tag your posts correctly</li>
-                    <li className="flex gap-2"><span className="text-primary font-bold">3.</span>No spam or self-promotion in General</li>
-                    <li className="flex gap-2"><span className="text-primary font-bold">4.</span>Stay on topic for each tag</li>
-                    <li className="flex gap-2"><span className="text-primary font-bold">5.</span>Follow all local laws and regulations</li>
+                <h3 className="font-bold text-base text-foreground mb-3">📜 Community Rules</h3>
+                <ol className="space-y-2.5 text-sm text-muted-foreground">
+                    <li className="flex gap-2 items-start"><span className="text-primary font-bold shrink-0">1.</span>Be respectful to all members</li>
+                    <li className="flex gap-2 items-start"><span className="text-primary font-bold shrink-0">2.</span>Tag your posts correctly</li>
+                    <li className="flex gap-2 items-start"><span className="text-primary font-bold shrink-0">3.</span>No spam or self-promotion in General</li>
+                    <li className="flex gap-2 items-start"><span className="text-primary font-bold shrink-0">4.</span>Stay on topic for each tag</li>
+                    <li className="flex gap-2 items-start"><span className="text-primary font-bold shrink-0">5.</span>Follow all local laws and regulations</li>
                 </ol>
             </div>
         </div>

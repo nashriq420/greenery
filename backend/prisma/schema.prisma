@@ -34,6 +34,16 @@ enum ListingStatus {
   REJECTED
 }
 
+enum PostStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+}
+
 enum BannerStatus {
   PENDING
   APPROVED
@@ -80,6 +90,7 @@ model User {
   posts         Post[]
   comments      Comment[]
   likes         Like[]
+  postReports   PostReport[] @relation("PostReports")
   
   loginHistory  LoginHistory[]
   
@@ -108,13 +119,30 @@ model Post {
   imageUrl  String?
   isEdited  Boolean  @default(false)
   tag       String?  // e.g. general, marketplace, listing, vendor, growing-tips, questions
+  status    PostStatus @default(ACTIVE)
   
   likes     Like[]
   comments  Comment[]
   history   PostHistory[]
+  reports   PostReport[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PostReport {
+  id         String   @id @default(uuid())
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  reporterId String?
+  reporter   User?    @relation("PostReports", fields: [reporterId], references: [id])
+
+  reason     String   // e.g. spam, harassment, illegal, misinformation, other
+  details    String?  @db.Text
+  status     ReportStatus @default(PENDING)
+
+  createdAt  DateTime @default(now())
 }
 
 model PostHistory {
