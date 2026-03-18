@@ -13,10 +13,7 @@ const createListingSchema = z.object({
     imageUrl: z.string().url("Image URL must be a valid URL").optional().or(z.literal('')),
     videoUrl: z.string().url("Video URL must be a valid URL").optional().or(z.literal('')),
 
-    // Promotion & Requirements
-    discountPrice: z.number().min(0).optional(),
-    promotionStart: z.coerce.date().optional(),
-    promotionEnd: z.coerce.date().optional(),
+    // Requirements
     deliveryAvailable: z.boolean().default(false),
     minQuantity: z.number().int().min(1).default(1),
 

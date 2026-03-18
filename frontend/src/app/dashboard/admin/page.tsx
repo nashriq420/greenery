@@ -46,7 +46,6 @@ type Listing = {
     sku?: string;
     thcContent?: number;
     cbdContent?: number;
-    discountPrice?: number;
     deliveryAvailable?: boolean;
     minQuantity?: number;
 }
@@ -410,12 +409,6 @@ export default function AdminPage() {
                                         <div className="space-y-1">
                                             <span className="text-sm text-gray-500 font-medium">Min Quantity</span>
                                             <p className="text-sm">{selectedListingForView.minQuantity}</p>
-                                        </div>
-                                    )}
-                                    {selectedListingForView.discountPrice && (
-                                        <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">Discount Price</span>
-                                            <p className="text-sm">${Number(selectedListingForView.discountPrice).toFixed(2)}</p>
                                         </div>
                                     )}
                                     {selectedListingForView.deliveryAvailable && (

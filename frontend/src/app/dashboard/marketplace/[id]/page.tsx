@@ -28,9 +28,6 @@ interface ListingDetails {
     description: string;
     price: string;
     imageUrl: string | null;
-    discountPrice?: string | number | null;
-    promotionStart?: string | Date | null;
-    promotionEnd?: string | Date | null;
     deliveryAvailable?: boolean;
     minQuantity?: number;
     strainType?: string | null;
@@ -171,19 +168,7 @@ export default function ListingDetailsPage() {
                             </p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                            {listing.discountPrice ? (
-                                <div className="text-right">
-                                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">RM {listing.discountPrice}</div>
-                                    <div className="text-sm text-muted-foreground line-through">RM {listing.price}</div>
-                                    {listing.promotionEnd && (
-                                        <div className="text-xs text-red-500 dark:text-red-400 font-medium mt-1">
-                                            Ends {new Date(listing.promotionEnd).toLocaleDateString()}
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="text-2xl font-bold text-green-700 dark:text-green-400">RM {listing.price}</div>
-                            )}
+                            <div className="text-2xl font-bold text-green-700 dark:text-green-400">RM {listing.price}</div>
                             {!isOwner && (
                                 <button
                                     onClick={handleChat}

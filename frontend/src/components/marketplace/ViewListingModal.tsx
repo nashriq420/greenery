@@ -44,19 +44,7 @@ export default function ViewListingModal({ listing, onClose }: ViewListingModalP
                             )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                            {listing.discountPrice ? (
-                                <div className="flex items-end gap-2">
-                                    <span className="text-xl font-bold text-red-600">RM {listing.discountPrice}</span>
-                                    <span className="text-sm text-muted-foreground line-through mb-1">RM {listing.price}</span>
-                                    {listing.promotionEnd && (
-                                        <span className="text-xs text-red-500 mb-1 ml-1 bg-red-50 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-full">
-                                            Ends {new Date(listing.promotionEnd).toLocaleDateString()}
-                                        </span>
-                                    )}
-                                </div>
-                            ) : (
-                                <p className="text-xl font-bold text-green-600">RM {listing.price}</p>
-                            )}
+                            <p className="text-xl font-bold text-green-600">RM {listing.price}</p>
                         </div>
 
                         <div className="flex flex-wrap gap-2 mt-3">

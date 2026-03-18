@@ -65,9 +65,6 @@ export interface Listing {
     sku?: string | null; // Sku added
 
     // New Fields
-    discountPrice?: string | number | null;
-    promotionStart?: string | Date | null;
-    promotionEnd?: string | Date | null;
     deliveryAvailable?: boolean;
     minQuantity?: number;
     strainType?: 'Indica' | 'Sativa' | 'Hybrid' | null | string;
@@ -196,9 +193,6 @@ export const createListing = async (data: {
     price: number;
     imageUrl?: string;
     sku?: string;
-    discountPrice?: number;
-    promotionStart?: Date;
-    promotionEnd?: Date;
     deliveryAvailable?: boolean;
     minQuantity?: number;
     strainType?: string;

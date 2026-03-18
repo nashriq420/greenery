@@ -31,9 +31,6 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
         price: '',
         imageUrl: '',
         videoUrl: '',
-        discountPrice: '',
-        promotionStart: '',
-        promotionEnd: '',
         deliveryAvailable: false,
         minQuantity: '1',
         strainType: '',
@@ -53,9 +50,6 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                 price: listing.price.toString(),
                 imageUrl: listing.imageUrl || '',
                 videoUrl: listing.videoUrl || '',
-                discountPrice: listing.discountPrice?.toString() || '',
-                promotionStart: listing.promotionStart ? new Date(listing.promotionStart).toISOString().split('T')[0] : '',
-                promotionEnd: listing.promotionEnd ? new Date(listing.promotionEnd).toISOString().split('T')[0] : '',
                 deliveryAvailable: listing.deliveryAvailable || false,
                 minQuantity: listing.minQuantity?.toString() || '1',
                 strainType: listing.strainType || '',
@@ -136,9 +130,6 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
             await api.put(`/marketplace/listings/${listing.id}`, {
                 ...formData,
                 price: parseFloat(formData.price),
-                discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : undefined,
-                promotionStart: formData.promotionStart ? new Date(formData.promotionStart) : undefined,
-                promotionEnd: formData.promotionEnd ? new Date(formData.promotionEnd) : undefined,
                 minQuantity: parseInt(formData.minQuantity) || 1,
                 thcContent: formData.thcContent ? parseFloat(formData.thcContent) : undefined,
                 cbdContent: formData.cbdContent ? parseFloat(formData.cbdContent) : undefined,
@@ -227,42 +218,6 @@ export default function EditListingModal({ listing, onClose, onUpdate }: EditLis
                                 step="0.01"
                                 min="0"
                                 placeholder="0.00"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="discountPrice">Discount Price ($)</Label>
-                            <Input
-                                id="discountPrice"
-                                type="number"
-                                name="discountPrice"
-                                value={formData.discountPrice}
-                                onChange={handleChange}
-                                step="0.01"
-                                min="0"
-                                placeholder="Optional"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="promotionStart">Promotion Start</Label>
-                            <Input
-                                id="promotionStart"
-                                type="date"
-                                name="promotionStart"
-                                value={formData.promotionStart}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="promotionEnd">Promotion End</Label>
-                            <Input
-                                id="promotionEnd"
-                                type="date"
-                                name="promotionEnd"
-                                value={formData.promotionEnd}
-                                onChange={handleChange}
                             />
                         </div>
                     </div>

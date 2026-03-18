@@ -28,9 +28,6 @@ export default function MarketplacePage() {
         description: '',
         price: '',
         imageUrl: '',
-        discountPrice: '',
-        promotionStart: '',
-        promotionEnd: '',
         deliveryAvailable: false,
         minQuantity: '1',
 
@@ -172,7 +169,6 @@ export default function MarketplacePage() {
             setIsModalOpen(false);
             setFormData({
                 title: '', description: '', price: '', imageUrl: '',
-                discountPrice: '', promotionStart: '', promotionEnd: '',
                 deliveryAvailable: false, minQuantity: '1',
                 strainType: '', thcContent: '', cbdContent: '',
                 type: '', flavors: '', effects: '', sku: ''
@@ -387,17 +383,7 @@ export default function MarketplacePage() {
                                                         )}
                                                         <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
                                                             <div className="bg-card text-card-foreground px-2 py-1 rounded-full text-sm font-bold shadow">
-                                                                {listing.discountPrice ? (
-                                                                    <div className="flex flex-col items-end leading-tight">
-                                                                        <span className="text-muted-foreground line-through text-xs">RM {listing.price}</span>
-                                                                        <span className="text-red-500 font-bold dark:text-red-400">RM {listing.discountPrice}</span>
-                                                                        {listing.promotionEnd && (
-                                                                            <span className="text-[10px] text-red-500 font-normal mt-0.5">Ends {new Date(listing.promotionEnd).toLocaleDateString()}</span>
-                                                                        )}
-                                                                    </div>
-                                                                ) : (
-                                                                    <span>RM {listing.price}</span>
-                                                                )}
+                                                                <span>RM {listing.price}</span>
                                                             </div>
                                                             {listing.deliveryAvailable && (
                                                                 <div className="bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-400 px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase border border-green-200 dark:border-green-800/60">
@@ -849,7 +835,7 @@ export default function MarketplacePage() {
                         </p>
                         <div className="flex flex-col gap-3">
                             <Link 
-                                href="/dashboard/settings" 
+                                href="/dashboard/profile" 
                                 className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium transition text-center"
                             >
                                 Go to Settings

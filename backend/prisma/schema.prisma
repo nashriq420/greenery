@@ -206,10 +206,7 @@ model Listing {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Promotion & Requirements
-  discountPrice   Decimal?
-  promotionStart  DateTime?
-  promotionEnd    DateTime?
+  // Requirements
   deliveryAvailable Boolean @default(false)
   minQuantity     Int       @default(1)
 
