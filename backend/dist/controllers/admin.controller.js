@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getLogs = exports.warnUser = exports.updateListingStatus = exports.getAdminListings = exports.updateUserStatus = exports.getUsers = void 0;
+exports.updatePostStatus = exports.getCommunityReports = exports.getLogs = exports.warnUser = exports.updateListingStatus = exports.getAdminListings = exports.updateUserStatus = exports.getUsers = void 0;
 const prisma_1 = require("../utils/prisma");
 const zod_1 = require("zod");
 const logger_1 = require("../utils/logger");
@@ -266,3 +266,64 @@ const getLogs = async (req, res) => {
     }
 };
 exports.getLogs = getLogs;
+// Get all post reports (Admin)
+const getCommunityReports = async (req, res) => {
+    try {
+        const rawStatus = req.query.status;
+        const status = Array.isArray(rawStatus) ? rawStatus[0] : rawStatus;
+        const reports = await prisma_1.prisma.postReport.findMany({
+            where: status ? { status: status } : undefined,
+            include: {
+                post: {
+                    select: {
+                        id: true,
+                        content: true,
+                        tag: true,
+                        status: true,
+                        imageUrl: true,
+                        createdAt: true,
+                        author: {
+                            select: { id: true, name: true, email: true }
+                        }
+                    }
+                },
+                reporter: {
+                    select: { id: true, name: true, email: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(reports);
+    }
+    catch (error) {
+        logger_1.logger.error('Error fetching community reports', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.getCommunityReports = getCommunityReports;
+// Suspend or restore a community post (Admin)
+const updatePostStatus = async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const { status } = req.body;
+        if (!['ACTIVE', 'SUSPENDED'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status. Use ACTIVE or SUSPENDED.' });
+        }
+        const post = await prisma_1.prisma.post.update({
+            where: { id: postId },
+            data: { status: status }
+        });
+        // Mark all PENDING reports on this post as REVIEWED
+        await prisma_1.prisma.postReport.updateMany({
+            where: { postId, status: 'PENDING' },
+            data: { status: 'REVIEWED' }
+        });
+        await (0, audit_1.logActivity)(req.user?.id, 'UPDATE_POST_STATUS', { postId, status }, req);
+        res.json({ message: `Post ${status === 'SUSPENDED' ? 'suspended' : 'restored'} successfully`, post });
+    }
+    catch (error) {
+        logger_1.logger.error('Error updating post status', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.updatePostStatus = updatePostStatus;

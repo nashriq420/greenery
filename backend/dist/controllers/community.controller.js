@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addComment = exports.getComments = exports.toggleLike = exports.deletePost = exports.updatePost = exports.createPost = exports.getFeed = void 0;
+exports.addComment = exports.getComments = exports.reportPost = exports.toggleLike = exports.deletePost = exports.updatePost = exports.createPost = exports.getTrendingTopics = exports.getFeed = void 0;
 const prisma_1 = require("../utils/prisma");
 const zod_1 = require("zod");
 const notification_controller_1 = require("./notification.controller");
@@ -8,7 +8,8 @@ const audit_1 = require("../utils/audit");
 //Schemas
 const createPostSchema = zod_1.z.object({
     content: zod_1.z.string().min(1, "Content cannot be empty"),
-    imageUrl: zod_1.z.string().nullable().optional()
+    imageUrl: zod_1.z.string().nullable().optional(),
+    tag: zod_1.z.string().optional()
 });
 const createCommentSchema = zod_1.z.object({
     content: zod_1.z.string().min(1, "Comment cannot be empty")
@@ -19,9 +20,11 @@ const getFeed = async (req, res) => {
         const limit = 20;
         const skip = (page - 1) * limit;
         const userId = req.user?.id;
+        const tag = req.query.tag;
         const posts = await prisma_1.prisma.post.findMany({
             skip,
             take: limit,
+            where: tag ? { tag } : undefined,
             orderBy: { createdAt: 'desc' },
             include: {
                 author: {
@@ -41,12 +44,8 @@ const getFeed = async (req, res) => {
                 },
                 // Only fetch likes for the current user to determine 'isLiked'
                 likes: userId ? {
-                    where: {
-                        userId: userId
-                    },
-                    select: {
-                        userId: true
-                    }
+                    where: { userId },
+                    select: { userId: true }
                 } : false
             }
         });
@@ -56,32 +55,90 @@ const getFeed = async (req, res) => {
             isLiked: userId && post.likes ? post.likes.length > 0 : false,
             likesCount: post._count.likes,
             commentsCount: post._count.comments,
-            likes: undefined, // Remove raw likes array
-            _count: undefined
+            likes: undefined,
+            _count: undefined,
+            status: post.status ?? 'ACTIVE'
         }));
         res.json(feed);
     }
     catch (error) {
         console.error("Get feed error:", error);
-        try {
-            const fs = require('fs');
-            fs.appendFileSync('feed_error_log.txt', `${new Date().toISOString()} - ${String(error)}\n${error.stack}\n\n`);
-        }
-        catch (e) {
-            console.error('Failed to log error to file', e);
-        }
         res.status(500).json({ message: 'Internal server error' });
     }
 };
 exports.getFeed = getFeed;
+const getTrendingTopics = async (req, res) => {
+    try {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        // Get all posts from last 7 days that have a tag
+        const posts = await prisma_1.prisma.post.findMany({
+            where: {
+                tag: { not: null },
+                createdAt: { gte: sevenDaysAgo }
+            },
+            select: { tag: true }
+        });
+        // Count by tag
+        const tagCounts = {};
+        for (const post of posts) {
+            if (post.tag) {
+                tagCounts[post.tag] = (tagCounts[post.tag] || 0) + 1;
+            }
+        }
+        // Also get total post count per tag (all time)
+        const allPosts = await prisma_1.prisma.post.findMany({
+            where: { tag: { not: null } },
+            select: { tag: true }
+        });
+        const totalTagCounts = {};
+        for (const post of allPosts) {
+            if (post.tag) {
+                totalTagCounts[post.tag] = (totalTagCounts[post.tag] || 0) + 1;
+            }
+        }
+        const TAG_LABELS = {
+            'general': '💬 General',
+            'marketplace': '🛒 Marketplace',
+            'listing': '📋 Listing',
+            'vendor': '🏪 Vendor',
+            'growing-tips': '🌱 Growing Tips',
+            'questions': '❓ Questions'
+        };
+        // Sort by recent count descending
+        const trending = Object.entries(tagCounts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 6)
+            .map(([tag, recentCount]) => ({
+            tag,
+            label: TAG_LABELS[tag] || tag,
+            recentCount,
+            totalCount: totalTagCounts[tag] || 0
+        }));
+        // Also include total counts for all tags (even if 0 recent)
+        const allTagStats = Object.keys(TAG_LABELS).map(tag => ({
+            tag,
+            label: TAG_LABELS[tag],
+            recentCount: tagCounts[tag] || 0,
+            totalCount: totalTagCounts[tag] || 0
+        }));
+        res.json({ trending, allTags: allTagStats });
+    }
+    catch (error) {
+        console.error('Get trending topics error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.getTrendingTopics = getTrendingTopics;
 const createPost = async (req, res) => {
     try {
-        const { content, imageUrl } = createPostSchema.parse(req.body);
+        const { content, imageUrl, tag } = createPostSchema.parse(req.body);
         const userId = req.user.id;
         const post = await prisma_1.prisma.post.create({
             data: {
                 content,
                 imageUrl,
+                tag: tag || 'general',
                 authorId: userId
             },
             include: {
@@ -214,6 +271,43 @@ const toggleLike = async (req, res) => {
     }
 };
 exports.toggleLike = toggleLike;
+const reportPostSchema = zod_1.z.object({
+    reason: zod_1.z.enum(['spam', 'harassment', 'illegal', 'misinformation', 'other']),
+    details: zod_1.z.string().max(500).optional()
+});
+const reportPost = async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const reporterId = req.user?.id;
+        const { reason, details } = reportPostSchema.parse(req.body);
+        // Verify post exists
+        const post = await prisma_1.prisma.post.findUnique({ where: { id: postId } });
+        if (!post)
+            return res.status(404).json({ message: 'Post not found' });
+        // Prevent duplicate reports from same user
+        if (reporterId) {
+            const existing = await prisma_1.prisma.postReport.findFirst({
+                where: { postId, reporterId }
+            });
+            if (existing)
+                return res.status(409).json({ message: 'You have already reported this post' });
+        }
+        const report = await prisma_1.prisma.postReport.create({
+            data: {
+                postId,
+                reporterId: reporterId || null,
+                reason,
+                details
+            }
+        });
+        res.status(201).json({ message: 'Post reported successfully', reportId: report.id });
+    }
+    catch (error) {
+        console.error('Report post error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.reportPost = reportPost;
 const getComments = async (req, res) => {
     try {
         const postId = String(req.params.id);

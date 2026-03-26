@@ -13,4 +13,6 @@ router.get('/listings', auth_middleware_1.authenticateToken, isAdmin, admin_cont
 router.put('/listings/:id/status', auth_middleware_1.authenticateToken, isAdmin, admin_controller_1.updateListingStatus);
 router.post('/users/:id/warn', auth_middleware_1.authenticateToken, isAdmin, admin_controller_1.warnUser);
 router.get('/logs', auth_middleware_1.authenticateToken, isAdmin, admin_controller_1.getLogs);
+router.get('/community/reports', auth_middleware_1.authenticateToken, isAdmin, admin_controller_1.getCommunityReports);
+router.put('/posts/:id/status', auth_middleware_1.authenticateToken, isAdmin, admin_controller_1.updatePostStatus);
 exports.default = router;

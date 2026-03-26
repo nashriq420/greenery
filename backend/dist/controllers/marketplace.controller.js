@@ -12,10 +12,7 @@ const createListingSchema = zod_1.z.object({
     price: zod_1.z.number().min(0, "Price cannot be negative"),
     imageUrl: zod_1.z.string().url("Image URL must be a valid URL").optional().or(zod_1.z.literal('')),
     videoUrl: zod_1.z.string().url("Video URL must be a valid URL").optional().or(zod_1.z.literal('')),
-    // Promotion & Requirements
-    discountPrice: zod_1.z.number().min(0).optional(),
-    promotionStart: zod_1.z.coerce.date().optional(),
-    promotionEnd: zod_1.z.coerce.date().optional(),
+    // Requirements
     deliveryAvailable: zod_1.z.boolean().default(false),
     minQuantity: zod_1.z.number().int().min(1).default(1),
     // Cannabis Metadata
