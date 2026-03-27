@@ -108,14 +108,7 @@ export default function CommunityPage() {
                 const formData = new FormData();
                 formData.append('image', selectedFile);
 
-                const uploadRes = await fetch('http://localhost:4000/api/upload/image', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData
-                });
-
-                if (!uploadRes.ok) throw new Error('Upload failed');
-                const uploadData = await uploadRes.json();
+                const uploadData = await api.upload('/upload/image', formData, token);
                 uploadedImageUrl = uploadData.url;
             }
 
