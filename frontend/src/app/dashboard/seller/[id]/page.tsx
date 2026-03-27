@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Star, MapPin, Calendar, MessageCircle, Clock, Search, Check } from 'lucide-react';
+import { Star, MapPin, Calendar, MessageCircle, Clock, Search, Check, Store } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const SellerLocationMap = dynamic(() => import('@/components/SellerLocationMap'), {
@@ -68,27 +68,27 @@ export default function SellerProfilePage() {
     const reviewCount = seller.reviewCount || 0;
 
     return (
-        <div className="bg-background min-h-screen pb-20">
+        <div className="bg-background min-h-screen pb-20 animate-in fade-in duration-500">
             {/* Banner Area */}
-            <div className="relative w-full h-48 md:h-64 bg-muted overflow-hidden">
+            <div className="relative w-full h-56 md:h-72 bg-muted overflow-hidden">
                 <img
                     src={bannerUrl}
                     alt="Cover Banner"
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                        // Fallback if image fails
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1603569283847-aa295f0d016a?q=80&w=1000&auto=format&fit=crop";
                     }}
                 />
+                <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent"></div>
             </div>
 
             {/* Profile Header Info */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="relative -mt-16 mb-6">
-                    <div className="flex flex-col md:flex-row items-start md:items-end gap-6">
+                <div className="relative -mt-20 mb-6">
+                    <div className="flex flex-col md:flex-row items-start md:items-end gap-6 md:gap-8">
                         {/* Profile Picture */}
-                        <div className="relative z-10">
-                            <div className="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 border-background shadow-md overflow-hidden bg-background">
+                        <div className="relative z-10 shrink-0">
+                            <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl border-4 border-background shadow-xl overflow-hidden bg-muted">
                                 <img
                                     src={seller.profilePicture || `https://ui-avatars.com/api/?name=${seller.name}&background=random`}
                                     alt={seller.name}
@@ -98,109 +98,98 @@ export default function SellerProfilePage() {
                         </div>
 
                         {/* Name and Handle */}
-                        <div className="flex-1 mt-4 md:mt-0 md:mb-2">
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-3xl font-bold text-foreground leading-tight">{seller.name}</h1>
-                                {seller.subscription?.status === 'ACTIVE' && (
-                                    <div className="flex items-center gap-2">
-                                        <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-[12px] shadow-sm">
-                                            <Check className="w-4 h-4" strokeWidth={3} />
-                                        </span>
-                                        <span className="bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0">
-                                            <Star size={12} fill="currentColor" /> Premium
-                                        </span>
+                        <div className="flex-1 mt-4 md:mt-0 md:mb-2 w-full">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <h1 className="text-3xl font-bold text-foreground leading-tight tracking-tight">{seller.name}</h1>
+                                        {seller.subscription?.status === 'ACTIVE' && (
+                                            <div className="flex items-center gap-1.5">
+                                                <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-5 h-5 bg-primary text-primary-foreground rounded-full text-[10px] shadow-sm">
+                                                    <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                                                </span>
+                                                <span className="bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1">
+                                                    <Star size={10} fill="currentColor" /> Premium
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p className="text-muted-foreground font-medium text-lg">@{seller.username || seller.name.replace(/\s+/g, '').toLowerCase()}</p>
+                                </div>
+                                
+                                {/* Action Buttons */}
+                                <div className="flex flex-wrap gap-3 shrink-0">
+                                    <button className="px-6 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-semibold rounded-xl flex items-center gap-2 transition-all shadow-sm">
+                                        <Star className="w-4 h-4" /> Favorite
+                                    </button>
+                                    {user?.id !== id && (
+                                        <button
+                                            onClick={async () => {
+                                                if (!token) return alert('Please login to chat');
+                                                try {
+                                                    const chat = await api.post('/chat', { participantId: id }, token);
+                                                    window.location.href = `/dashboard/chat/${chat.id}`;
+                                                } catch (e) {
+                                                    alert('Failed to start chat');
+                                                }
+                                            }}
+                                            className="px-6 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl flex items-center gap-2 hover:bg-primary/90 transition-all shadow-sm"
+                                        >
+                                            <MessageCircle className="w-4 h-4" /> Message
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Info Section */}
+                            <div className="mt-6 flex flex-wrap items-center gap-y-3 gap-x-6 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1.5 bg-muted/50 px-3 py-1.5 rounded-lg border border-border/50">
+                                    <div className="flex text-yellow-500">
+                                        <Star className="w-4 h-4 fill-current" />
+                                    </div>
+                                    <span className="font-bold text-foreground">{rating}</span>
+                                    <span>({reviewCount} reviews)</span>
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                    <MapPin className="w-4 h-4 text-primary" />
+                                    <span className="font-medium text-foreground">{seller.sellerProfile?.city || 'Location hidden'}</span>
+                                    {seller.sellerProfile?.state && <span>, {seller.sellerProfile.state}</span>}
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                                    <span>Joined {joinedDate}</span>
+                                </div>
+                                
+                                {openingHours ? (
+                                    <div className="flex items-center gap-2 text-foreground font-medium">
+                                        <Clock className="w-4 h-4 text-green-500" />
+                                        <span>{days}</span>
+                                        <span className="text-muted-foreground">•</span>
+                                        <span>{timeRange}</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-1.5 italic">
+                                        <Clock className="w-4 h-4" />
+                                        <span>Hours not set</span>
                                     </div>
                                 )}
                             </div>
-                            <p className="text-muted-foreground font-medium">@{seller.username || seller.name.replace(/\s+/g, '').toLowerCase()}</p>
-                        </div>
-                    </div>
-
-                    {/* Info Section */}
-                    <div className="mt-6 space-y-4">
-                        {/* Status / Hours */}
-                        {openingHours ? (
-                            <div className="flex items-center gap-2 text-foreground font-medium">
-                                <span className="text-red-500 text-lg">💈</span>
-                                <span>{days}</span>
-                                <span className="text-red-500 text-lg">💈</span>
-                                <span>{timeRange}</span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2 text-muted-foreground font-medium italic">
-                                <Clock className="w-4 h-4" />
-                                <span>Hours not set</span>
-                            </div>
-                        )}
-
-                        {/* Action Buttons */}
-                        {/* ... */}
-
-
-                        {/* Action Buttons */}
-                        <div className="flex flex-wrap gap-3">
-                            <button className="px-6 py-2 bg-muted hover:bg-muted/80 text-foreground font-semibold rounded-full flex items-center gap-2 transition">
-                                <span className="text-lg">♡</span> Favorite
-                            </button>
-                            {user?.id !== id && (
-                                <button
-                                    onClick={async () => {
-                                        if (!token) return alert('Please login to chat');
-                                        try {
-                                            const chat = await api.post('/chat', { participantId: id }, token);
-                                            window.location.href = `/dashboard/chat/${chat.id}`;
-                                        } catch (e) {
-                                            alert('Failed to start chat');
-                                        }
-                                    }}
-                                    className="px-6 py-2 bg-green-50 text-green-700 font-semibold rounded-full flex items-center gap-2 hover:bg-green-100 border border-green-200 transition"
-                                >
-                                    <MessageCircle className="w-4 h-4" /> Message
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-2 gap-x-8 text-sm text-muted-foreground mt-4">
-                            <div className="flex items-center gap-2">
-                                <div className="flex text-green-500">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className={`w-4 h-4 ${i < Math.round(Number(seller.averageRating || 0)) ? 'fill-current' : 'text-muted'}`} />
-                                    ))}
-                                </div>
-                                <span className="font-semibold text-foreground">{rating}</span>
-                                <span>of {reviewCount} reviews</span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-muted-foreground" />
-                                <span>{seller.sellerProfile?.city || 'Location hidden'}, {seller.sellerProfile?.state || ''}</span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-muted-foreground" />
-                                <span>Joined {joinedDate}</span>
-                            </div>
-
-                            {/* Placeholder for Following count as requested in screenshot design, though strictly "except follow" was requested, static consistency usually preferred */}
-                            {/* <div className="flex items-center gap-2">
-                                <span className="font-bold text-gray-900">356</span> Following
-                            </div> */}
                         </div>
                     </div>
                 </div>
 
-                {/* Tabs Navigation */}
                 <div className="border-b border-border mt-8">
-                    <nav className="flex -mb-px space-x-8 overflow-x-auto">
+                    <nav className="flex -mb-px space-x-8 overflow-x-auto custom-scrollbar">
                         {['Home', 'Menus', 'Reviews', 'Show on Map'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`
-                                    whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                                    whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm transition-all duration-200
                                     ${activeTab === tab
-                                        ? 'border-green-500 text-green-600'
+                                        ? 'border-primary text-primary'
                                         : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'}
                                 `}
                             >
@@ -211,36 +200,61 @@ export default function SellerProfilePage() {
                 </div>
 
                 {/* Tab Content */}
-                <div className="py-6 min-h-[400px]">
+                <div className="py-8 min-h-[400px]">
                     {activeTab === 'Home' && (
-                        <div className="prose max-w-none text-muted-foreground">
-                            <h3 className="text-xl font-semibold text-foreground mb-4">About the Seller</h3>
-                            <p>{seller.sellerProfile?.description || "No description provided."}</p>
-                            <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
-                                <h4 className="font-medium text-foreground mb-2">Location & Details</h4>
-                                <p className="text-sm">Address: {seller.sellerProfile?.address || "Hiddent for privacy"}</p>
-                                <p className="text-sm">City: {seller.sellerProfile?.city}</p>
+                        <div className="max-w-3xl space-y-6">
+                            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+                                <h3 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                                    <Store className="w-5 h-5 text-primary" /> About the Seller
+                                </h3>
+                                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{seller.sellerProfile?.description || "No description provided."}</p>
+                            </div>
+                            
+                            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+                                <h4 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                                    <MapPin className="w-5 h-5 text-primary" /> Location Details
+                                </h4>
+                                <div className="space-y-3 text-muted-foreground">
+                                    <div className="flex items-start gap-3">
+                                        <span className="font-medium text-foreground w-20">Address:</span>
+                                        <span>{seller.sellerProfile?.address || "Hidden for privacy"}</span>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <span className="font-medium text-foreground w-20">City:</span>
+                                        <span>{seller.sellerProfile?.city || "Unknown"}</span>
+                                    </div>
+                                    {seller.sellerProfile?.state && (
+                                        <div className="flex items-start gap-3">
+                                            <span className="font-medium text-foreground w-20">State:</span>
+                                            <span>{seller.sellerProfile?.state}</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {activeTab === 'Menus' && (
                         <div>
-                            <div className="bg-green-600 text-white p-3 rounded-t-lg mb-4 flex justify-between items-center shadow-sm">
-                                <span className="font-bold text-lg">Cannabis Menus</span>
-                                {/* Search/Filter placeholder if needed */}
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xl font-bold text-foreground">Active Listings</h3>
+                                <span className="bg-muted text-foreground px-3 py-1 rounded-full text-xs font-bold border border-border">
+                                    {listings.length} Items
+                                </span>
                             </div>
 
                             {listings.length === 0 ? (
-                                <div className="text-center py-10 text-muted-foreground bg-muted/30 rounded-lg border-2 border-dashed border-border">
-                                    No active listings found for this seller.
+                                <div className="text-center py-16 text-muted-foreground bg-card rounded-2xl border border-border shadow-sm">
+                                    <Store className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                    <p className="text-lg font-medium text-foreground">No active listings</p>
+                                    <p className="text-sm">This seller has not posted any items yet.</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                     {listings.map((listing) => (
                                         <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="group block h-full">
-                                            <div className="bg-card border-border rounded-xl overflow-hidden flex flex-col h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                                                <div className="h-48 bg-muted relative overflow-hidden">
+                                            <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col h-full hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1">
+                                                <div className="h-48 bg-muted relative overflow-hidden shrink-0">
                                                     {listing.imageUrl ? (
                                                         <img
                                                             src={listing.imageUrl}
@@ -249,21 +263,22 @@ export default function SellerProfilePage() {
                                                         />
                                                     ) : (
                                                         <div className="flex items-center justify-center h-full text-muted-foreground">
-                                                            <span className="text-sm">No Image</span>
+                                                            <span className="text-sm opacity-50">No Image</span>
                                                         </div>
                                                     )}
                                                     {listing.strainType && (
-                                                        <span className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                                                        <span className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-lg backdrop-blur-md shadow-sm border border-white/10">
                                                             {listing.strainType}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="p-4 flex flex-col flex-1">
-                                                    <h3 className="font-bold text-foreground mb-1 group-hover:text-green-600 transition-colors line-clamp-1">{listing.title}</h3>
+                                                <div className="p-5 flex flex-col flex-1">
+                                                    <h3 className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-1 text-lg">{listing.title}</h3>
+                                                    <p className="text-xs text-muted-foreground mb-4 line-clamp-1">{listing.type || 'Product'}</p>
                                                     <div className="flex justify-between items-center mt-auto">
-                                                        <p className="text-green-600 font-bold text-lg">${Number(listing.price).toFixed(2)}</p>
+                                                        <p className="text-foreground font-bold text-lg">${Number(listing.price).toFixed(2)}</p>
                                                         {listing.minQuantity > 1 && (
-                                                            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Min: {listing.minQuantity}</span>
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider bg-muted px-2 py-1 rounded-md border border-border">Min: {listing.minQuantity}</span>
                                                         )}
                                                     </div>
                                                 </div>

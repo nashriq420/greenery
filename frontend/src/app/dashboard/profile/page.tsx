@@ -709,175 +709,191 @@ export default function ProfilePage() {
                     </Card>
 
                     {profile.role === 'SELLER' && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Seller Location & Info</CardTitle>
-                                <CardDescription>Update your location to be visible on the map.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-4 pb-4">
-                                    <Label>Location Search & Map</Label>
-                                    <LocationPicker
-                                        initialLat={sellerProfile.lat || 51.505}
-                                        initialLng={sellerProfile.lng || -0.09}
-                                        onLocationSelect={(data) => {
-                                            setSellerProfile(prev => ({
-                                                ...prev,
-                                                lat: data.lat,
-                                                lng: data.lng,
-                                                address: data.address,
-                                                city: data.city,
-                                                state: data.state,
-                                                country: data.country
-                                            }));
-                                        }}
-                                    />
-                                    <div className="text-xs text-gray-500 flex gap-4">
-                                        <span>Selected Latitude: {sellerProfile.lat.toFixed(6)}</span>
-                                        <span>Selected Longitude: {sellerProfile.lng.toFixed(6)}</span>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Address</Label>
-                                    <Input
-                                        value={sellerProfile.address}
-                                        onChange={(e) => setSellerProfile({ ...sellerProfile, address: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>City</Label>
-                                        <Input
-                                            value={sellerProfile.city}
-                                            onChange={(e) => setSellerProfile({ ...sellerProfile, city: e.target.value })}
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Location Details</CardTitle>
+                                    <CardDescription>Update your physical location to be visible on the map.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="space-y-4 pb-4">
+                                        <Label>Location Search & Map</Label>
+                                        <LocationPicker
+                                            initialLat={sellerProfile.lat || 51.505}
+                                            initialLng={sellerProfile.lng || -0.09}
+                                            onLocationSelect={(data) => {
+                                                setSellerProfile(prev => ({
+                                                    ...prev,
+                                                    lat: data.lat,
+                                                    lng: data.lng,
+                                                    address: data.address,
+                                                    city: data.city,
+                                                    state: data.state,
+                                                    country: data.country
+                                                }));
+                                            }}
                                         />
+                                        <div className="text-xs text-gray-500 flex gap-4">
+                                            <span>Selected Latitude: {sellerProfile.lat.toFixed(6)}</span>
+                                            <span>Selected Longitude: {sellerProfile.lng.toFixed(6)}</span>
+                                        </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>State</Label>
+                                        <Label>Address</Label>
                                         <Input
-                                            value={sellerProfile.state}
-                                            onChange={(e) => setSellerProfile({ ...sellerProfile, state: e.target.value })}
+                                            value={sellerProfile.address}
+                                            onChange={(e) => setSellerProfile({ ...sellerProfile, address: e.target.value })}
                                         />
                                     </div>
-                                </div>
-                                <div className="space-y-4 pt-4 border-t">
-                                    <Label className="text-base font-semibold">Opening Hours</Label>
-                                    <div className="space-y-3">
-                                        <div className="flex flex-wrap gap-2">
-                                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                                                <button
-                                                    key={day}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setOpeningDays(prev =>
-                                                            prev.includes(day)
-                                                                ? prev.filter((d: string) => d !== day)
-                                                                : [...prev, day]
-                                                        );
-                                                    }}
-                                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors border ${openingDays.includes(day)
-                                                        ? 'bg-green-600 text-white border-green-600 shadow-sm'
-                                                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                                                        }`}
-                                                >
-                                                    {day}
-                                                </button>
-                                            ))}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>City</Label>
+                                            <Input
+                                                value={sellerProfile.city}
+                                                onChange={(e) => setSellerProfile({ ...sellerProfile, city: e.target.value })}
+                                            />
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <div className="grid gap-1.5">
-                                                <Label htmlFor="openTime" className="text-xs text-muted-foreground">Open</Label>
-                                                <Input
-                                                    type="time"
-                                                    id="openTime"
-                                                    value={openTime}
-                                                    onChange={(e) => setOpenTime(e.target.value)}
-                                                    className="w-32"
-                                                />
-                                            </div>
-                                            <span className="pt-6 text-gray-400">-</span>
-                                            <div className="grid gap-1.5">
-                                                <Label htmlFor="closeTime" className="text-xs text-muted-foreground">Close</Label>
-                                                <Input
-                                                    type="time"
-                                                    id="closeTime"
-                                                    value={closeTime}
-                                                    onChange={(e) => setCloseTime(e.target.value)}
-                                                    className="w-32"
-                                                />
-                                            </div>
+                                        <div className="space-y-2">
+                                            <Label>State</Label>
+                                            <Input
+                                                value={sellerProfile.state}
+                                                onChange={(e) => setSellerProfile({ ...sellerProfile, state: e.target.value })}
+                                            />
                                         </div>
-                                        <p className="text-xs text-muted-foreground">
-                                            Preview: {sellerProfile.openingHours || "Closed"}
-                                        </p>
                                     </div>
-                                </div>
+                                    <div className="pt-2">
+                                        <Button onClick={handleUpdateLocation}>Save Location</Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                                <div className="space-y-4 pt-4 border-t">
-                                    <Label className="text-base font-semibold">Shop Banner</Label>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Shop Branding</CardTitle>
+                                    <CardDescription>Manage your shop's appearance, hours, and description.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
                                     <div className="space-y-4">
-                                        <div className="relative w-full aspect-4/1 bg-muted rounded-lg border overflow-hidden shadow-sm group">
-                                            {sellerProfile.bannerUrl ? (
-                                                <img src={sellerProfile.bannerUrl} alt="Banner Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center w-full h-full text-muted-foreground">
-                                                    <Upload className="w-10 h-10 opacity-20 mb-2" />
-                                                    <span className="text-sm opacity-50">No banner uploaded</span>
+                                        <Label className="text-base font-semibold">Opening Hours</Label>
+                                        <div className="space-y-3">
+                                            <div className="flex flex-wrap gap-2">
+                                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                                    <button
+                                                        key={day}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setOpeningDays(prev =>
+                                                                prev.includes(day)
+                                                                    ? prev.filter((d: string) => d !== day)
+                                                                    : [...prev, day]
+                                                            );
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${openingDays.includes(day)
+                                                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                                                            : 'bg-card text-foreground border-border hover:bg-muted'
+                                                            }`}
+                                                    >
+                                                        {day}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="grid gap-1.5">
+                                                    <Label htmlFor="openTime" className="text-xs text-muted-foreground">Open</Label>
+                                                    <Input
+                                                        type="time"
+                                                        id="openTime"
+                                                        value={openTime}
+                                                        onChange={(e) => setOpenTime(e.target.value)}
+                                                        className="w-32"
+                                                    />
                                                 </div>
-                                            )}
+                                                <span className="pt-6 text-muted-foreground">-</span>
+                                                <div className="grid gap-1.5">
+                                                    <Label htmlFor="closeTime" className="text-xs text-muted-foreground">Close</Label>
+                                                    <Input
+                                                        type="time"
+                                                        id="closeTime"
+                                                        value={closeTime}
+                                                        onChange={(e) => setCloseTime(e.target.value)}
+                                                        className="w-32"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">
+                                                Preview: {sellerProfile.openingHours || "Closed"}
+                                            </p>
                                         </div>
+                                    </div>
 
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-xs text-muted-foreground">Recommended size: 1200x300px. JPG, PNG or WebP.</p>
+                                    <div className="space-y-4 pt-4 border-t">
+                                        <Label className="text-base font-semibold">Shop Banner</Label>
+                                        <div className="space-y-4">
+                                            <div className="relative w-full aspect-4/1 bg-muted rounded-xl border border-border overflow-hidden shadow-sm group">
+                                                {sellerProfile.bannerUrl ? (
+                                                    <img src={sellerProfile.bannerUrl} alt="Banner Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center w-full h-full text-muted-foreground">
+                                                        <Upload className="w-10 h-10 opacity-20 mb-2" />
+                                                        <span className="text-sm opacity-50">No banner uploaded</span>
+                                                    </div>
+                                                )}
+                                            </div>
 
-                                            <div className="flex gap-2">
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={async (e) => {
-                                                        if (e.target.files && e.target.files[0]) {
-                                                            const file = e.target.files[0];
-                                                            const uploadData = new FormData();
-                                                            uploadData.append('image', file);
-                                                            try {
-                                                                const res = await api.upload('/upload/image', uploadData, token!);
-                                                                if (res.url) {
-                                                                    setSellerProfile(prev => ({ ...prev, bannerUrl: res.url }));
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs text-muted-foreground">Recommended size: 1200x300px. JPG, PNG or WebP.</p>
+
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={async (e) => {
+                                                            if (e.target.files && e.target.files[0]) {
+                                                                const file = e.target.files[0];
+                                                                const uploadData = new FormData();
+                                                                uploadData.append('image', file);
+                                                                try {
+                                                                    const res = await api.upload('/upload/image', uploadData, token!);
+                                                                    if (res.url) {
+                                                                        setSellerProfile(prev => ({ ...prev, bannerUrl: res.url }));
+                                                                    }
+                                                                } catch (err) {
+                                                                    console.error("Banner upload failed", err);
                                                                 }
-                                                            } catch (err) {
-                                                                console.error("Banner upload failed", err);
                                                             }
-                                                        }
-                                                    }}
-                                                    className="hidden"
-                                                    id="banner-upload"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    onClick={() => document.getElementById('banner-upload')?.click()}
-                                                >
-                                                    <Upload className="w-4 h-4 mr-2" />
-                                                    {sellerProfile.bannerUrl ? 'Change Banner' : 'Upload Banner'}
-                                                </Button>
+                                                        }}
+                                                        className="hidden"
+                                                        id="banner-upload"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        onClick={() => document.getElementById('banner-upload')?.click()}
+                                                    >
+                                                        <Upload className="w-4 h-4 mr-2" />
+                                                        {sellerProfile.bannerUrl ? 'Change Banner' : 'Upload Banner'}
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="space-y-2 pt-4 border-t">
-                                    <Label className="text-base font-semibold">About Your Shop</Label>
-                                    <Textarea
-                                        value={sellerProfile.description}
-                                        onChange={(e) => setSellerProfile({ ...sellerProfile, description: e.target.value })}
-                                        placeholder="Tell buyers about your shop..."
-                                        rows={4}
-                                    />
-                                </div>
+                                    <div className="space-y-2 pt-4 border-t">
+                                        <Label className="text-base font-semibold">About Your Shop</Label>
+                                        <Textarea
+                                            value={sellerProfile.description}
+                                            onChange={(e) => setSellerProfile({ ...sellerProfile, description: e.target.value })}
+                                            placeholder="Tell buyers about your shop..."
+                                            rows={4}
+                                        />
+                                    </div>
 
-                                <Button onClick={handleUpdateLocation}>Update Location Info</Button>
-                            </CardContent>
-                        </Card>
+                                    <div className="pt-2">
+                                        <Button onClick={handleUpdateLocation}>Save Branding Info</Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     )}
                 </TabsContent>
 
@@ -886,168 +902,200 @@ export default function ProfilePage() {
                         <CardHeader>
                             <CardTitle>Create New Listing</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label>Title</Label>
-                                <Input
-                                    value={newListing.title}
-                                    onChange={(e) => setNewListing({ ...newListing, title: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Type</Label>
-                                <select
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    value={newListing.type}
-                                    onChange={(e) => setNewListing({ ...newListing, type: e.target.value })}
-                                >
-                                    <option value="">Select a type...</option>
-                                    <option value="Concentrates">Concentrates</option>
-                                    <option value="Clones">Clones</option>
-                                    <option value="Extract">Extract</option>
-                                    <option value="Edible">Edible</option>
-                                    <option value="Flower">Flower</option>
-                                    <option value="Topicals">Topicals</option>
-                                    <option value="Grow">Grow</option>
-                                    <option value="Gear">Gear</option>
-                                    <option value="Preroll">Preroll</option>
-                                    <option value="Smoking">Smoking</option>
-                                    <option value="Tinctures">Tinctures</option>
-                                    <option value="Vaporizers">Vaporizers</option>
-                                    <option value="Unidentified">Unidentified</option>
-                                    <option value="Others">Others</option>
-                                </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Price ($)</Label>
-                                <Input
-                                    type="number"
-                                    value={newListing.price}
-                                    onChange={(e) => setNewListing({ ...newListing, price: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Min Quantity</Label>
-                                    <Input
-                                        type="number"
-                                        value={newListing.minQuantity}
-                                        onChange={(e) => setNewListing({ ...newListing, minQuantity: e.target.value })}
-                                        min="1"
-                                    />
+                        <CardContent className="space-y-8">
+                            {/* Basic Info */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold border-b border-border pb-2">Basic Info</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Title</Label>
+                                        <Input
+                                            value={newListing.title}
+                                            onChange={(e) => setNewListing({ ...newListing, title: e.target.value })}
+                                            placeholder="e.g. Premium Blue Dream"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Type</Label>
+                                        <select
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                            value={newListing.type}
+                                            onChange={(e) => setNewListing({ ...newListing, type: e.target.value })}
+                                        >
+                                            <option value="">Select a type...</option>
+                                            <option value="Concentrates">Concentrates</option>
+                                            <option value="Clones">Clones</option>
+                                            <option value="Extract">Extract</option>
+                                            <option value="Edible">Edible</option>
+                                            <option value="Flower">Flower</option>
+                                            <option value="Topicals">Topicals</option>
+                                            <option value="Grow">Grow</option>
+                                            <option value="Gear">Gear</option>
+                                            <option value="Preroll">Preroll</option>
+                                            <option value="Smoking">Smoking</option>
+                                            <option value="Tinctures">Tinctures</option>
+                                            <option value="Vaporizers">Vaporizers</option>
+                                            <option value="Unidentified">Unidentified</option>
+                                            <option value="Others">Others</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div className="flex items-center space-x-2 pt-8">
+                            </div>
+
+                            {/* Product Details */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold border-b border-border pb-2">Product Details</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Strain Type</Label>
+                                        <select
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                            value={newListing.strainType}
+                                            onChange={(e) => setNewListing({ ...newListing, strainType: e.target.value })}
+                                        >
+                                            <option value="">Select...</option>
+                                            <option value="Indica">Indica</option>
+                                            <option value="Sativa">Sativa</option>
+                                            <option value="Hybrid">Hybrid</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>THC (%)</Label>
+                                        <Input
+                                            type="number"
+                                            value={newListing.thcContent}
+                                            onChange={(e) => setNewListing({ ...newListing, thcContent: e.target.value })}
+                                            step="0.1"
+                                            min="0"
+                                            max="100"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>CBD (%)</Label>
+                                        <Input
+                                            type="number"
+                                            value={newListing.cbdContent}
+                                            onChange={(e) => setNewListing({ ...newListing, cbdContent: e.target.value })}
+                                            step="0.1"
+                                            min="0"
+                                            max="100"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Flavours</Label>
+                                        <Input
+                                            value={newListing.flavors}
+                                            onChange={(e) => setNewListing({ ...newListing, flavors: e.target.value })}
+                                            placeholder="E.g., Citrus, Berry"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Effects</Label>
+                                        <Input
+                                            value={newListing.effects}
+                                            onChange={(e) => setNewListing({ ...newListing, effects: e.target.value })}
+                                            placeholder="E.g., Relaxed, Happy"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Logistics & Handling */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold border-b border-border pb-2">Logistics & Handling</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Price ($)</Label>
+                                        <Input
+                                            type="number"
+                                            value={newListing.price}
+                                            onChange={(e) => setNewListing({ ...newListing, price: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Min Quantity</Label>
+                                        <Input
+                                            type="number"
+                                            value={newListing.minQuantity}
+                                            onChange={(e) => setNewListing({ ...newListing, minQuantity: e.target.value })}
+                                            min="1"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>SKU (Optional)</Label>
+                                        <Input
+                                            value={newListing.sku}
+                                            onChange={(e) => setNewListing({ ...newListing, sku: e.target.value })}
+                                            placeholder="Auto-generate if blank"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-2 pt-2">
                                     <input
                                         type="checkbox"
                                         id="create-delivery"
                                         checked={newListing.deliveryAvailable}
                                         onChange={(e) => setNewListing({ ...newListing, deliveryAvailable: e.target.checked })}
-                                        className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
+                                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                     />
                                     <Label htmlFor="create-delivery">Delivery Available</Label>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
+                            {/* Description */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold border-b border-border pb-2">Description</h3>
                                 <div className="space-y-2">
-                                    <Label>Strain Type</Label>
-                                    <select
-                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                        value={newListing.strainType}
-                                        onChange={(e) => setNewListing({ ...newListing, strainType: e.target.value })}
-                                    >
-                                        <option value="">Select...</option>
-                                        <option value="Indica">Indica</option>
-                                        <option value="Sativa">Sativa</option>
-                                        <option value="Hybrid">Hybrid</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>THC (%)</Label>
-                                    <Input
-                                        type="number"
-                                        value={newListing.thcContent}
-                                        onChange={(e) => setNewListing({ ...newListing, thcContent: e.target.value })}
-                                        step="0.1"
-                                        min="0"
-                                        max="100"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>CBD (%)</Label>
-                                    <Input
-                                        type="number"
-                                        value={newListing.cbdContent}
-                                        onChange={(e) => setNewListing({ ...newListing, cbdContent: e.target.value })}
-                                        step="0.1"
-                                        min="0"
-                                        max="100"
+                                    <Textarea
+                                        value={newListing.description}
+                                        onChange={(e) => setNewListing({ ...newListing, description: e.target.value })}
+                                        placeholder="Add a detailed description..."
+                                        rows={4}
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Flavours</Label>
-                                    <Input
-                                        value={newListing.flavors}
-                                        onChange={(e) => setNewListing({ ...newListing, flavors: e.target.value })}
-                                        placeholder="E.g., Citrus, Berry"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Effects</Label>
-                                    <Input
-                                        value={newListing.effects}
-                                        onChange={(e) => setNewListing({ ...newListing, effects: e.target.value })}
-                                        placeholder="E.g., Relaxed, Happy"
-                                    />
+                            {/* Media */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold border-b border-border pb-2">Media</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <Label>Product Image</Label>
+                                        <div className="border border-dashed border-border rounded-xl p-4 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition">
+                                            <Input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => handleImageUpload(e)}
+                                                className="w-full text-xs"
+                                            />
+                                            {newListing.imageUrl && <p className="text-sm text-green-600 mt-2 font-medium">✓ Image ready</p>}
+                                        </div>
+                                    </div>
+                                    {user?.subscription?.status === 'ACTIVE' && (
+                                        <div className="space-y-2">
+                                            <Label className="flex items-center gap-2">Product Video <span className="text-[10px] bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-500 px-1.5 py-0.5 rounded border border-yellow-200 dark:border-yellow-900/50 uppercase tracking-wider font-bold shadow-sm">Premium</span></Label>
+                                            <div className="border border-dashed border-border rounded-xl p-4 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition">
+                                                <Input
+                                                    type="file"
+                                                    accept="video/*"
+                                                    onChange={(e) => handleVideoUpload(e)}
+                                                    className="w-full text-xs"
+                                                />
+                                                <p className="text-xs text-muted-foreground mt-1">Max size: 10MB</p>
+                                                {newListing.videoUrl && <p className="text-sm text-green-600 mt-2 font-medium">✓ Video ready</p>}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>SKU (Optional - Auto-generated if blank)</Label>
-                                <Input
-                                    value={newListing.sku}
-                                    onChange={(e) => setNewListing({ ...newListing, sku: e.target.value })}
-                                    placeholder="Leave blank to auto-generate"
-                                />
+                            <div className="pt-6 border-t border-border flex justify-end">
+                                <Button onClick={handleCreateListing} disabled={loading} className="w-full md:w-auto hover:-translate-y-0.5 transition-transform duration-200">
+                                    {loading ? 'Creating...' : 'Create Listing'}
+                                </Button>
                             </div>
-
-                            <div className="space-y-2">
-                                <Label>Description</Label>
-                                <Textarea
-                                    value={newListing.description}
-                                    onChange={(e) => setNewListing({ ...newListing, description: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Image (Upload)</Label>
-                                <Input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => handleImageUpload(e)}
-                                />
-                                {newListing.imageUrl && <p className="text-sm text-green-600">Image uploaded successfully!</p>}
-                            </div>
-                            {user?.subscription?.status === 'ACTIVE' && (
-                                <div className="space-y-2">
-                                    <Label className="flex items-center gap-2">Video (Premium Feature) <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold">Premium</span></Label>
-                                    <Input
-                                        type="file"
-                                        accept="video/*"
-                                        onChange={(e) => handleVideoUpload(e)}
-                                    />
-                                    <p className="text-xs text-muted-foreground">Max size: 10MB</p>
-                                    {newListing.videoUrl && <p className="text-sm text-green-600">Video uploaded successfully!</p>}
-                                </div>
-                            )}
-                            <Button onClick={handleCreateListing} disabled={loading}>
-                                {loading ? 'Creating...' : 'Create Listing'}
-                            </Button>
                         </CardContent>
                     </Card>
 

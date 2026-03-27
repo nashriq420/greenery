@@ -172,7 +172,7 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                     }
 
                     return (
-                        <div key={key} className="text-xs break-words">
+                        <div key={key} className="text-xs wrap-break-word">
                             <span className="font-semibold text-gray-600 dark:text-gray-400 capitalize">{displayKey.replace(/([A-Z])/g, ' $1').trim()}: </span>
                             <span className="text-gray-800 dark:text-gray-200">{displayValue}</span>
                         </div>
@@ -221,11 +221,11 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                 <div className="mt-4">
                     <Tabs defaultValue="ALL" onValueChange={setCategory} className="w-full">
                         <TabsList className="w-full h-auto flex flex-wrap justify-start gap-1 p-1 bg-muted/50">
-                            <TabsTrigger value="ALL" className="flex-grow sm:flex-grow-0">All Activities</TabsTrigger>
-                            <TabsTrigger value="AUTH" className="flex-grow sm:flex-grow-0">Authentication</TabsTrigger>
-                            <TabsTrigger value="MARKETPLACE" className="flex-grow sm:flex-grow-0">Marketplace</TabsTrigger>
-                            <TabsTrigger value="COMMUNITY" className="flex-grow sm:flex-grow-0">Community</TabsTrigger>
-                            <TabsTrigger value="ADMIN" className="flex-grow sm:flex-grow-0">Admin Actions</TabsTrigger>
+                            <TabsTrigger value="ALL" className="grow sm:grow-0">All Activities</TabsTrigger>
+                            <TabsTrigger value="AUTH" className="grow sm:grow-0">Authentication</TabsTrigger>
+                            <TabsTrigger value="MARKETPLACE" className="grow sm:grow-0">Marketplace</TabsTrigger>
+                            <TabsTrigger value="COMMUNITY" className="grow sm:grow-0">Community</TabsTrigger>
+                            <TabsTrigger value="ADMIN" className="grow sm:grow-0">Admin Actions</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
@@ -238,117 +238,119 @@ export default function ActivityLogs({ token }: { token: string | null }) {
                 ) : (
                     <>
                         {/* Desktop Table View */}
-                        <div className="hidden md:block rounded-md border overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                                    <tr>
-                                        <th className="px-4 py-3 font-medium whitespace-nowrap">Date & Time</th>
-                                        <th className="px-4 py-3 font-medium">Action</th>
-                                        <th className="px-4 py-3 font-medium">User</th>
-                                        <th className="px-4 py-3 font-medium w-[300px]">Details</th>
-                                        <th className="px-4 py-3 font-medium">IP Address</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {displayLogs.map((log) => (
-                                        <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                            <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                                                {new Date(log.createdAt).toLocaleString()}
-                                            </td>
-                                            <td className="px-4 py-3 font-medium">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${log.action.includes('REJECT') || log.action.includes('DELETE') ? 'bg-red-100 text-red-800' :
-                                                    log.action.includes('APPROVE') || log.action.includes('CREATE') ? 'bg-green-100 text-green-800' :
-                                                        log.action.includes('WARN') ? 'bg-yellow-100 text-yellow-800' :
-                                                            'bg-blue-100 text-blue-800'
-                                                    }`}>
-                                                    {log.action}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                {log.user ? (
-                                                    <div className="flex items-center gap-2">
-                                                        {log.user.profilePicture ? (
-                                                            <img
-                                                                src={log.user.profilePicture}
-                                                                alt={log.user.name}
-                                                                className="w-6 h-6 rounded-full object-cover border"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-                                                                {log.user.name.charAt(0).toUpperCase()}
-                                                            </div>
-                                                        )}
-                                                        <div>
-                                                            <div className="font-medium">{log.user.name}</div>
-                                                            <div className="text-xs text-gray-500">{log.user.email}</div>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <span className="italic text-gray-400">System</span>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                {renderDetails(log.details)}
-                                            </td>
-                                            <td className="px-4 py-3 font-mono text-xs text-gray-500">
-                                                {log.ipAddress}
-                                            </td>
+                        <Card className="hidden md:block overflow-hidden shadow-sm border">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted/50 border-b border-border text-xs uppercase text-muted-foreground whitespace-nowrap">
+                                        <tr>
+                                            <th className="px-6 py-4 font-semibold">Date & Time</th>
+                                            <th className="px-6 py-4 font-semibold">Action</th>
+                                            <th className="px-6 py-4 font-semibold">User</th>
+                                            <th className="px-6 py-4 font-semibold w-[300px]">Details</th>
+                                            <th className="px-6 py-4 font-semibold">IP Address</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-border/50">
+                                        {displayLogs.map((log) => (
+                                            <tr key={log.id} className="group even:bg-muted/20 odd:bg-transparent hover:bg-muted/40 transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
+                                                    {new Date(log.createdAt).toLocaleString()}
+                                                </td>
+                                                <td className="px-6 py-4 font-medium">
+                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${log.action.includes('REJECT') || log.action.includes('DELETE') ? 'bg-red-500/10 text-red-600 border-red-500/20' :
+                                                        log.action.includes('APPROVE') || log.action.includes('CREATE') ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                                                            log.action.includes('WARN') ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' :
+                                                                'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                                                        }`}>
+                                                        {log.action}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {log.user ? (
+                                                        <div className="flex items-center gap-3">
+                                                            {log.user.profilePicture ? (
+                                                                <img
+                                                                    src={log.user.profilePicture}
+                                                                    alt={log.user.name}
+                                                                    className="w-8 h-8 rounded-full object-cover border border-border"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold border border-primary/20">
+                                                                    {log.user.name.charAt(0).toUpperCase()}
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <div className="font-medium text-foreground">{log.user.name}</div>
+                                                                <div className="text-xs text-muted-foreground">{log.user.email}</div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="italic text-muted-foreground">System</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {renderDetails(log.details)}
+                                                </td>
+                                                <td className="px-6 py-4 font-mono text-xs text-muted-foreground">
+                                                    {log.ipAddress}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
 
                         {/* Mobile Card View */}
                         <div className="md:hidden space-y-4">
                             {displayLogs.map((log) => (
-                                <div key={log.id} className="border rounded-lg p-4 space-y-3 bg-white dark:bg-gray-900 shadow-sm">
-                                    <div className="flex justify-between items-start">
-                                        <span className={`px-2 py-1 rounded text-xs font-bold ${log.action.includes('REJECT') || log.action.includes('DELETE') ? 'bg-red-100 text-red-800' :
-                                            log.action.includes('APPROVE') || log.action.includes('CREATE') ? 'bg-green-100 text-green-800' :
-                                                log.action.includes('WARN') ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-blue-100 text-blue-800'
-                                            }`}>
-                                            {log.action}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                            {new Date(log.createdAt).toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs text-gray-500 uppercase font-semibold mb-1">User</div>
-                                        {log.user ? (
-                                            <div className="flex items-center gap-2">
-                                                {log.user.profilePicture ? (
-                                                    <img
-                                                        src={log.user.profilePicture}
-                                                        alt={log.user.name}
-                                                        className="w-6 h-6 rounded-full object-cover border"
-                                                    />
-                                                ) : (
-                                                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-                                                        {log.user.name.charAt(0).toUpperCase()}
+                                <Card key={log.id} className="overflow-hidden shadow-sm">
+                                    <div className="p-4 space-y-4">
+                                        <div className="flex justify-between items-start border-b border-border/40 pb-3">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${log.action.includes('REJECT') || log.action.includes('DELETE') ? 'bg-red-500/10 text-red-600 border-red-500/20' :
+                                                log.action.includes('APPROVE') || log.action.includes('CREATE') ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                                                    log.action.includes('WARN') ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' :
+                                                        'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                                                }`}>
+                                                {log.action}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                                {new Date(log.createdAt).toLocaleString()}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-2">User</div>
+                                            {log.user ? (
+                                                <div className="flex items-center gap-3 bg-muted/30 p-2 rounded-md">
+                                                    {log.user.profilePicture ? (
+                                                        <img
+                                                            src={log.user.profilePicture}
+                                                            alt={log.user.name}
+                                                            className="w-8 h-8 rounded-full object-cover border border-border"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold border border-primary/20">
+                                                            {log.user.name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <div className="text-sm font-medium text-foreground">{log.user.name}</div>
+                                                        <div className="text-xs text-muted-foreground">{log.user.email}</div>
                                                     </div>
-                                                )}
-                                                <div>
-                                                    <div className="text-sm font-medium">{log.user.name}</div>
-                                                    <div className="text-xs text-gray-500">{log.user.email}</div>
                                                 </div>
-                                            </div>
-                                        ) : (
-                                            <span className="italic text-gray-400 text-sm">System</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Details</div>
-                                        <div className="bg-gray-50 dark:bg-gray-800/50 p-2 rounded text-sm">
+                                            ) : (
+                                                <span className="italic text-muted-foreground text-sm">System</span>
+                                            )}
+                                        </div>
+                                        <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-2">Details</div>
+                                        <div className="bg-muted p-2 rounded text-sm text-foreground">
                                             {renderDetails(log.details)}
                                         </div>
                                     </div>
-                                    <div className="pt-2 border-t flex justify-end">
-                                        <span className="text-xs font-mono text-gray-400">IP: {log.ipAddress}</span>
+                                    <div className="pt-2 border-t border-border/40 flex justify-end">
+                                        <span className="text-[10px] font-mono text-muted-foreground">IP: {log.ipAddress}</span>
                                     </div>
-                                </div>
+                                </Card>
                             ))}
                         </div>
 

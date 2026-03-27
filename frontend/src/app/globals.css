@@ -117,58 +117,58 @@
 
 .dark {
   /* Premium Dark Mode Colors - Deep Slate/Forest */
-  --background: #121614;              /* Deep slate/forest, preventing AMOLED smearing */
-  --foreground: #F1F5F9;              /* Soft off-white */
+  --background: #0B0F0C;
+  --foreground: #F1F5F9;
 
-  --card: #1A1F1D;                    /* Elevated cards */
+  --card: #111815;
   --card-foreground: #F1F5F9;
 
-  --popover: #1A1F1D;
+  --popover: #111815;
   --popover-foreground: #F1F5F9;
 
   /* Primary Brand: Vibrant Leaf Green for Dark Mode */
-  --primary: oklch(0.80 0.14 145);    /* Vibrant pop of green */
-  --primary-foreground: #121614;
+  --primary: #22C55E;
+  --primary-foreground: #0B0F0C;
 
   /* Secondary: Rich Forest Tint */
-  --secondary: #1F2824;
+  --secondary: #17201b;
   --secondary-foreground: #F1F5F9;
 
   /* Muted / Neutral */
-  --muted: #1F2824;
+  --muted: #17201b;
   --muted-foreground: #94A3B8;
 
   /* Accent Elements */
-  --accent: #2A322E;
+  --accent: #1F2A24;
   --accent-foreground: #F1F5F9;
 
   /* Semantics */
   --destructive: oklch(0.65 0.18 28);
   --destructive-foreground: #FFFFFF;
   --success: oklch(0.70 0.18 150);
-  --success-foreground: #121614;
+  --success-foreground: #0B0F0C;
   --warning: oklch(0.80 0.18 80);
-  --warning-foreground: #121614;
+  --warning-foreground: #0B0F0C;
 
-  --border: #2A322E;                  /* Subtle borders */
-  --input: #2A322E;
-  --ring: oklch(0.80 0.14 145);       /* Focus Ring */
+  --border: #1F2A24;                  /* Subtle borders */
+  --input: #1F2A24;
+  --ring: #22C55E;       /* Focus Ring */
 
-  --chart-1: oklch(0.80 0.14 145);
+  --chart-1: #22C55E;
   --chart-2: oklch(0.65 0.15 150);
   --chart-3: oklch(0.55 0.12 160);
   --chart-4: oklch(0.80 0.15 130);
   --chart-5: oklch(0.90 0.10 140);
 
   /* Sidebar Settings */
-  --sidebar: #121614;
+  --sidebar: #0B0F0C;
   --sidebar-foreground: #F1F5F9;
-  --sidebar-primary: oklch(0.80 0.14 145);
-  --sidebar-primary-foreground: #121614;
-  --sidebar-accent: #2A322E;
+  --sidebar-primary: #22C55E;
+  --sidebar-primary-foreground: #0B0F0C;
+  --sidebar-accent: #17201b;
   --sidebar-accent-foreground: #F1F5F9;
-  --sidebar-border: #2A322E;
-  --sidebar-ring: oklch(0.80 0.14 145);
+  --sidebar-border: #1F2A24;
+  --sidebar-ring: #22C55E;
 }
 
 @layer base {

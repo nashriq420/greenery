@@ -220,14 +220,11 @@ export default function CommunityPage() {
 
                     {/* Create Post Widget */}
                     {user ? (
-                        <div className="bg-card border border-border rounded-xl shadow-sm p-4">
-                            <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                                <span>✍️</span> Create a post
-                            </h2>
-                            <form onSubmit={handleCreatePost} className="space-y-3">
-                                <div className="flex gap-3">
-                                    {/* Avatar hidden on very small screens */}
-                                    <div className="hidden sm:flex w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full items-center justify-center text-green-700 dark:text-green-300 font-bold shrink-0 overflow-hidden border border-green-200 dark:border-green-700">
+                        <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col transition-all focus-within:ring-1 focus-within:ring-primary/30 focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+                            <form onSubmit={handleCreatePost}>
+                                <div className="p-4 sm:p-5 flex gap-4">
+                                    {/* Avatar */}
+                                    <div className="hidden sm:flex w-10 h-10 bg-primary/10 rounded-full items-center justify-center text-primary font-bold shrink-0 overflow-hidden border border-primary/20">
                                         {user.profilePicture && !imageError ? (
                                             <img
                                                 src={user.profilePicture}
@@ -239,87 +236,88 @@ export default function CommunityPage() {
                                             user.name.charAt(0)
                                         )}
                                     </div>
-                                    <textarea
-                                        value={newContent}
-                                        onChange={(e) => setNewContent(e.target.value)}
-                                        placeholder="What's growing on?"
-                                        className="flex-1 bg-muted text-foreground rounded-lg p-3 border border-border focus:outline-none focus:ring-1 focus:ring-green-500 resize-none h-20 text-sm"
-                                    />
-                                </div>
-
-                                {/* Tag Selector */}
-                                <div>
-                                    <p className="text-xs font-medium text-muted-foreground mb-2">Choose a tag:</p>
-                                    <div className="grid grid-cols-3 gap-1.5">
-                                        {POST_TAGS.map(t => (
-                                            <button
-                                                key={t.tag}
-                                                type="button"
-                                                onClick={() => setSelectedPostTag(t.tag)}
-                                                className={`px-2 py-2 rounded-lg text-xs font-semibold border transition-all text-center ${
-                                                    selectedPostTag === t.tag
-                                                        ? `${t.color} ring-2 ring-offset-1 ring-current`
-                                                        : 'bg-muted text-muted-foreground border-border hover:bg-muted/80'
-                                                }`}
-                                            >
-                                                {t.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Image Upload */}
-                                {showImageInput && (
-                                    <div className="space-y-2">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleFileSelect}
-                                            className="block w-full text-sm text-muted-foreground
-                                                file:mr-4 file:py-1.5 file:px-3
-                                                file:rounded-full file:border-0
-                                                file:text-xs file:font-semibold
-                                                file:bg-primary/20 file:text-primary
-                                                hover:file:bg-primary/30"
+                                    <div className="flex-1 min-w-0 flex flex-col pt-1">
+                                        <textarea
+                                            value={newContent}
+                                            onChange={(e) => setNewContent(e.target.value)}
+                                            placeholder="What's growing on?"
+                                            className="w-full bg-transparent text-foreground placeholder:text-muted-foreground/70 resize-none outline-none text-base min-h-[60px]"
                                         />
+                                        
+                                        {/* Image Preview Container */}
                                         {previewUrl && (
-                                            <div className="relative w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                                            <div className="relative w-full max-w-sm h-48 mt-3 bg-muted rounded-xl overflow-hidden border border-border shadow-sm group">
                                                 <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                                                 <button
                                                     type="button"
                                                     onClick={() => { setSelectedFile(null); setPreviewUrl(null); }}
-                                                    className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                                                    className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 shadow-sm"
+                                                    title="Remove image"
                                                 >
-                                                    ×
+                                                    <X size={14} />
                                                 </button>
                                             </div>
                                         )}
                                     </div>
-                                )}
+                                </div>
+                                
+                                <div className="bg-muted/30 px-4 sm:px-5 py-3 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+                                        {/* Tag Selector Dropdown (simpler UI) */}
+                                        <div className="relative">
+                                            <select
+                                                value={selectedPostTag}
+                                                onChange={(e) => setSelectedPostTag(e.target.value)}
+                                                className="appearance-none bg-background border border-border text-foreground text-xs font-semibold py-1.5 pl-3 pr-8 rounded-full focus:outline-none focus:ring-1 focus:ring-primary shadow-sm hover:bg-muted/50 transition-colors"
+                                            >
+                                                {POST_TAGS.map(t => (
+                                                    <option key={t.tag} value={t.tag}>
+                                                        {t.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                                        </div>
 
-                                <div className="flex items-center justify-between pt-1 border-t border-border">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowImageInput(!showImageInput)}
-                                        className={`p-2 rounded-full transition text-sm flex items-center gap-1 ${showImageInput ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-muted'}`}
-                                    >
-                                        <ImageIcon size={18} />
-                                        <span className="text-xs">Photo</span>
-                                    </button>
+                                        {/* File Input trigger */}
+                                        <div className="relative overflow-hidden inline-[block]">
+                                            <button
+                                                type="button"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 rounded-full transition-colors"
+                                                onClick={() => {
+                                                    const input = document.getElementById('post-image-upload');
+                                                    if(input) input.click();
+                                                }}
+                                            >
+                                                <ImageIcon size={14} />
+                                                {selectedFile ? 'Change Photo' : 'Add Photo'}
+                                            </button>
+                                            <input
+                                                id="post-image-upload"
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileSelect}
+                                                className="absolute inset-0 opacity-0 cursor-pointer hidden"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Action Button */}
                                     <button
                                         type="submit"
                                         disabled={isPosting || (!newContent.trim() && !selectedFile)}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition"
+                                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-full text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-sm sm:w-auto w-full shrink-0"
                                     >
-                                        <Send size={15} />
+                                        <Send size={14} />
                                         {isPosting ? 'Posting...' : 'Post'}
                                     </button>
                                 </div>
                             </form>
                         </div>
                     ) : (
-                        <div className="bg-card border border-border rounded-xl p-5 text-center text-muted-foreground text-sm shadow-sm">
-                            Please <a href="/login" className="text-primary underline font-semibold">login</a> to post in the community.
+                        <div className="bg-card border border-border rounded-2xl p-6 text-center text-muted-foreground text-sm shadow-sm flex flex-col items-center justify-center gap-3">
+                            <span className="text-3xl">👋</span>
+                            <p>Join the conversation! <a href="/login" className="text-primary hover:underline font-bold">Log in</a> to post and interact.</p>
                         </div>
                     )}
 

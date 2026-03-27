@@ -362,41 +362,61 @@ export default function MarketplacePage() {
                                         <p className="col-span-full text-center text-muted-foreground py-10">No active listings found.</p>
                                     ) : (
                                         sortedListings.map((listing) => (
-                                            <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="block">
-                                                <div className={`bg-card text-card-foreground border-border border rounded-lg overflow-hidden transition h-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'ring-2 ring-yellow-400 shadow-md hover:shadow-xl relative' : 'hover:shadow-lg'}`}>
-                                                    <div className="bg-muted relative">
+                                            <Link href={`/dashboard/marketplace/${listing.id}`} key={listing.id} className="block group h-full">
+                                                <div className={`flex flex-col bg-card text-card-foreground border border-border rounded-2xl overflow-hidden transition-all duration-300 h-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'ring-1 ring-primary/20 shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 relative block' : 'hover:shadow-lg hover:-translate-y-1 block'}`}>
+                                                    
+                                                    {/* Image Container */}
+                                                    <div className="relative overflow-hidden shrink-0">
                                                         {listing.seller.subscription?.status === 'ACTIVE' && (
-                                                            <div className="absolute top-2 left-2 bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-sm uppercase flex items-center gap-1 z-10">
+                                                            <div className="absolute top-3 left-3 bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-2.5 py-1 rounded-full text-[10px] font-bold shadow-sm uppercase flex items-center gap-1 z-10 tracking-widest">
                                                                 <Star size={10} fill="currentColor" /> Premium
                                                             </div>
                                                         )}
                                                         {listing.imageUrl ? (
-                                                            <div className={`w-full relative ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} bg-muted`}>
+                                                            <div className={`w-full relative ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-64' : 'h-52'} bg-muted`}>
                                                                 <img
                                                                     src={listing.imageUrl}
                                                                     alt={listing.title}
-                                                                    className="w-full h-full object-cover"
+                                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                                 />
                                                             </div>
                                                         ) : (
-                                                            <div className={`w-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-60' : 'h-48'} flex items-center justify-center text-muted-foreground`}>No Image</div>
-                                                        )}
-                                                        <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
-                                                            <div className="bg-card text-card-foreground px-2 py-1 rounded-full text-sm font-bold shadow">
-                                                                <span>RM {listing.price}</span>
+                                                            <div className={`w-full ${listing.seller.subscription?.status === 'ACTIVE' ? 'h-64' : 'h-52'} flex items-center justify-center text-muted-foreground bg-muted`}>
+                                                                <span className="opacity-50 text-sm">No Image Available</span>
                                                             </div>
+                                                        )}
+                                                        
+                                                        <div className="absolute bottom-3 right-3 flex items-center gap-2 z-10">
                                                             {listing.deliveryAvailable && (
-                                                                <div className="bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-400 px-2 py-1 rounded-full text-[10px] font-bold shadow uppercase border border-green-200 dark:border-green-800/60">
+                                                                <div className="bg-black/40 backdrop-blur-md text-white px-2 py-1.5 rounded-lg text-xs font-semibold shadow-sm border border-white/10 uppercase tracking-widest">
                                                                     Delivery
                                                                 </div>
                                                             )}
+                                                            <div className="bg-primary/90 backdrop-blur-md text-primary-foreground px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border border-primary/20">
+                                                                ${listing.price}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div className="p-4">
-                                                        <h3 className="font-bold text-lg text-foreground">{listing.title}</h3>
+
+                                                    {/* Content Container */}
+                                                    <div className="p-5 flex flex-col grow">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <h3 className="font-semibold text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors">{listing.title}</h3>
+                                                        </div>
+
+                                                        <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1.5 font-medium">
+                                                            <Store size={14} className="opacity-70" />
+                                                            <span className="text-foreground">{listing.seller.name}</span>
+                                                            {listing.seller.subscription?.status === 'ACTIVE' && (
+                                                                <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-4 h-4 bg-primary text-primary-foreground rounded-full text-[8px] shadow-sm ml-0.5">
+                                                                    <Check size={10} strokeWidth={3} />
+                                                                </span>
+                                                            )}
+                                                        </p>
+
                                                         {userLocation && listing.seller.sellerProfile?.latitude && listing.seller.sellerProfile?.longitude && (
-                                                            <div className="flex items-center gap-1 text-primary text-xs font-semibold mb-1">
-                                                                <MapPin size={12} />
+                                                            <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium mb-3">
+                                                                <MapPin size={12} className="text-primary/70" />
                                                                 <span>
                                                                     {calculateDistance(
                                                                         userLocation.lat,
@@ -405,41 +425,47 @@ export default function MarketplacePage() {
                                                                         listing.seller.sellerProfile.longitude
                                                                     ).toFixed(1)} km away
                                                                 </span>
+                                                                <span className="opacity-30">•</span>
+                                                                <span className="truncate">{listing.seller.sellerProfile?.city || 'Local Area'}</span>
                                                             </div>
                                                         )}
-                                                        <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                                                            by <span className="text-foreground">{listing.seller.name}</span>
-                                                            {listing.seller.subscription?.status === 'ACTIVE' && (
-                                                                <span title="Verified Premium Seller" className="inline-flex items-center justify-center w-3.5 h-3.5 bg-blue-500 text-white rounded-full text-[8px] shadow-sm">
-                                                                    <Check size={8} strokeWidth={3} />
-                                                                </span>
-                                                            )}
+                                                        {!userLocation && listing.seller.sellerProfile?.city && (
+                                                            <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium mb-3">
+                                                                <MapPin size={12} className="text-primary/70" />
+                                                                <span className="truncate">{listing.seller.sellerProfile.city}</span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Description */}
+                                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+                                                            {listing.description || "No description provided."}
                                                         </p>
-                                                        <p className="text-muted-foreground line-clamp-2 text-sm">{listing.description}</p>
-                                                        <div className="mt-4 flex flex-col md:flex-row md:justify-between md:items-center text-sm text-muted-foreground gap-1">
-                                                            <span>{listing.seller.sellerProfile?.city || 'Unknown Location'}</span>
-                                                            <span>{new Date(listing.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                                        </div>
-                                                        <div className="mt-3 flex flex-wrap gap-2">
-                                                            {listing.minQuantity && listing.minQuantity > 1 && (
-                                                                <span className="text-xs font-medium bg-muted text-foreground px-2 py-1 rounded-md border border-border">Min Qty: {listing.minQuantity}</span>
-                                                            )}
-                                                            {listing.strainType && (
-                                                                <span className="text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-1 rounded-md border border-purple-200 dark:border-purple-800/50">{listing.strainType}</span>
-                                                            )}
+
+                                                        <div className="mt-auto space-y-3 pt-4 border-t border-border/50">
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {listing.strainType && (
+                                                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2.5 py-1 rounded-md border border-primary/20">
+                                                                        {listing.strainType}
+                                                                    </span>
+                                                                )}
+                                                                {listing.type && (
+                                                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-card text-card-foreground px-2.5 py-1 rounded-md border border-border/60">
+                                                                        {listing.type}
+                                                                    </span>
+                                                                )}
+                                                                {listing.minQuantity && listing.minQuantity > 1 && (
+                                                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-card text-card-foreground px-2.5 py-1 rounded-md border border-border/60">
+                                                                        Min Qty: {listing.minQuantity}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            
                                                             {(listing.thcContent || listing.cbdContent) && (
-                                                                <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-md border border-primary/20">
-                                                                    {listing.thcContent ? `THC: ${listing.thcContent}%` : ''}
-                                                                    {listing.thcContent && listing.cbdContent ? ' • ' : ''}
-                                                                    {listing.cbdContent ? `CBD: ${listing.cbdContent}%` : ''}
-                                                                </span>
+                                                                <div className="flex gap-4 text-xs font-semibold text-muted-foreground bg-muted/30 p-2 rounded-lg border border-border/30">
+                                                                    {listing.thcContent && <span className="flex gap-1.5 items-center"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>THC {listing.thcContent}%</span>}
+                                                                    {listing.cbdContent && <span className="flex gap-1.5 items-center"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>CBD {listing.cbdContent}%</span>}
+                                                                </div>
                                                             )}
-                                                        </div>
-                                                        <div className="mt-2 text-xs text-muted-foreground space-y-0.5">
-                                                            {listing.type && <p>Type: <span className="font-medium text-foreground">{listing.type}</span></p>}
-                                                            {listing.flavors && <p>Flavor: <span className="font-medium text-foreground">{listing.flavors}</span></p>}
-                                                            {listing.effects && <p>Effect: <span className="font-medium text-foreground">{listing.effects}</span></p>}
-                                                            {listing.sku && <p>SKU: <span className="font-medium text-foreground">{listing.sku}</span></p>}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -571,79 +597,37 @@ export default function MarketplacePage() {
                 </div>
             </div>
 
-            {/* Simple Modal */}
+            {/* Premium Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-card text-card-foreground rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border border-border">
-                        <h2 className="text-xl font-bold mb-4">New Listing</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">
-                                    Title <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    required
-                                    className="w-full border rounded p-2"
-                                    value={formData.title}
-                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 text-foreground">
-                                    Price ($) <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    required
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    className="w-full border rounded p-2"
-                                    value={formData.price}
-                                    onChange={e => setFormData({ ...formData, price: e.target.value })}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Min Qty</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        className="w-full border rounded p-2"
-                                        value={formData.minQuantity}
-                                        onChange={e => setFormData({ ...formData, minQuantity: e.target.value })}
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-card text-card-foreground rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-border shadow-2xl">
+                        <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
+                            <h2 className="text-xl font-bold">Create New Listing</h2>
+                            <button type="button" onClick={() => setIsModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            
+                            {/* Basic Info */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5 ">
+                                    <label className="text-sm font-semibold text-foreground">
+                                        Title <span className="text-primary">*</span>
+                                    </label>
+                                    <Input
+                                        required
+                                        placeholder="e.g. Premium Blue Dream"
+                                        value={formData.title}
+                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
                                     />
                                 </div>
-                                <div className="flex items-center pt-6">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={formData.deliveryAvailable}
-                                            onChange={e => setFormData({ ...formData, deliveryAvailable: e.target.checked })}
-                                            className="w-4 h-4 text-green-600 rounded"
-                                        />
-                                        <span className="text-sm font-medium">Delivery Available</span>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-foreground">
+                                        Product Type <span className="text-primary">*</span>
                                     </label>
-                                </div>
-                            </div>
-                            <div className="space-y-3 pt-2 border-t border-border">
-                                <h3 className="text-sm font-semibold text-foreground">Product Details</h3>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 text-foreground">Strain Type</label>
                                     <select
-                                        className="w-full border rounded p-2"
-                                        value={formData.strainType}
-                                        onChange={e => setFormData({ ...formData, strainType: e.target.value })}
-                                    >
-                                        <option value="">Select...</option>
-                                        <option value="Indica">Indica</option>
-                                        <option value="Sativa">Sativa</option>
-                                        <option value="Hybrid">Hybrid</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 text-foreground">Product Type</label>
-                                    <select
-                                        className="w-full border rounded p-2"
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                         value={formData.type}
                                         onChange={e => setFormData({ ...formData, type: e.target.value })}
                                     >
@@ -653,146 +637,193 @@ export default function MarketplacePage() {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 text-foreground">THC (%)</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            step="0.1"
-                                            className="w-full border rounded p-2"
-                                            value={formData.thcContent}
-                                            onChange={e => setFormData({ ...formData, thcContent: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 text-foreground">CBD (%)</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            step="0.1"
-                                            className="w-full border rounded p-2"
-                                            value={formData.cbdContent}
-                                            onChange={e => setFormData({ ...formData, cbdContent: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
+                            </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 text-foreground">Flavors</label>
-                                        <input
-                                            className="w-full border rounded p-2"
-                                            value={formData.flavors}
-                                            onChange={e => setFormData({ ...formData, flavors: e.target.value })}
-                                            placeholder="E.g. Citrus, Berry"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 text-foreground">Effects</label>
-                                        <input
-                                            className="w-full border rounded p-2"
-                                            value={formData.effects}
-                                            onChange={e => setFormData({ ...formData, effects: e.target.value })}
-                                            placeholder="E.g. Relaxed, Happy"
-                                        />
-                                    </div>
+                            {/* Details */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-foreground">Strain Type</label>
+                                    <select
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                        value={formData.strainType}
+                                        onChange={e => setFormData({ ...formData, strainType: e.target.value })}
+                                    >
+                                        <option value="">Select...</option>
+                                        <option value="Indica">Indica</option>
+                                        <option value="Sativa">Sativa</option>
+                                        <option value="Hybrid">Hybrid</option>
+                                    </select>
                                 </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 text-foreground">SKU</label>
-                                    <input
-                                        className="w-full border rounded p-2"
-                                        value={formData.sku}
-                                        onChange={e => setFormData({ ...formData, sku: e.target.value })}
-                                        placeholder="Optional SKU"
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-foreground">THC (%)</label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.1"
+                                        value={formData.thcContent}
+                                        onChange={e => setFormData({ ...formData, thcContent: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-foreground">CBD (%)</label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.1"
+                                        value={formData.cbdContent}
+                                        onChange={e => setFormData({ ...formData, cbdContent: e.target.value })}
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">
-                                    Description <span className="text-red-500">*</span>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-foreground">Flavors</label>
+                                    <Input
+                                        value={formData.flavors}
+                                        onChange={e => setFormData({ ...formData, flavors: e.target.value })}
+                                        placeholder="E.g. Citrus, Berry"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-foreground">Effects</label>
+                                    <Input
+                                        value={formData.effects}
+                                        onChange={e => setFormData({ ...formData, effects: e.target.value })}
+                                        placeholder="E.g. Relaxed, Happy"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Logistics */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-foreground">
+                                        Price ($) <span className="text-primary">*</span>
+                                    </label>
+                                    <Input
+                                        required
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={formData.price}
+                                        onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-foreground">Min Qty</label>
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        value={formData.minQuantity}
+                                        onChange={e => setFormData({ ...formData, minQuantity: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-foreground">SKU</label>
+                                    <Input
+                                        value={formData.sku}
+                                        onChange={e => setFormData({ ...formData, sku: e.target.value })}
+                                        placeholder="Auto-generated"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-6 pb-2 border-b border-border">
+                                <label className="flex items-center gap-2 cursor-pointer pb-6">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.deliveryAvailable}
+                                        onChange={e => setFormData({ ...formData, deliveryAvailable: e.target.checked })}
+                                        className="w-4 h-4 text-primary rounded border-border focus:ring-primary"
+                                    />
+                                    <span className="text-sm font-medium">Delivery Available</span>
                                 </label>
-                                <textarea
-                                    required
-                                    className="w-full border rounded p-2"
-                                    rows={3}
-                                    value={formData.description}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Image</label>
-                                <input
-                                    type="file"
-                                    accept="image/png, image/jpeg, image/gif, image/webp"
-                                    onChange={async (e) => {
-                                        if (e.target.files && e.target.files[0]) {
-                                            const file = e.target.files[0];
 
-                                            // Validation
-                                            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                                            if (!validTypes.includes(file.type)) {
-                                                alert("Invalid file type. Please upload JPG, PNG, GIF, or WebP.");
-                                                return;
-                                            }
-                                            if (file.size > 5 * 1024 * 1024) {
-                                                alert("File is too large. Maximum size is 5MB.");
-                                                return;
-                                            }
+                            {/* Long Details */}
+                            <div className="space-y-6 pt-2">
+                                <div className="space-y-1.5">
+                                    <label className="block text-sm font-semibold">
+                                        Description <span className="text-primary">*</span>
+                                    </label>
+                                    <textarea
+                                        required
+                                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                        rows={4}
+                                        placeholder="Provide all details, rules, or warnings..."
+                                        value={formData.description}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-sm font-semibold">Product Image</label>
+                                    <div className="border border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition">
+                                        <div className="mb-4">
+                                            {formData.imageUrl ? (
+                                                <div className="relative w-32 h-32 rounded-lg overflow-hidden border shadow-sm group">
+                                                    <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                                                        className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="w-32 h-32 rounded-lg border bg-muted flex items-center justify-center text-muted-foreground">
+                                                    <Store className="opacity-20" size={32} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <Input
+                                            type="file"
+                                            accept="image/png, image/jpeg, image/gif, image/webp"
+                                            className="max-w-[250px] text-xs file:bg-primary file:text-primary-foreground file:border-0 file:rounded-md file:px-3 file:py-1 hover:file:bg-primary/90"
+                                            onChange={async (e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    const file = e.target.files[0];
+                                                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                                                    if (!validTypes.includes(file.type)) return alert("Invalid file type.");
+                                                    if (file.size > 5 * 1024 * 1024) return alert("File max 5MB.");
 
-                                            setSubmitting(true); // Reuse submitting state to show loading
-                                            const uploadData = new FormData();
-                                            uploadData.append('image', file);
+                                                    setSubmitting(true);
+                                                    const uploadData = new FormData();
+                                                    uploadData.append('image', file);
 
-                                            try {
-                                                const res = await api.upload('/upload/image', uploadData, token || undefined);
-                                                setFormData((prev) => ({ ...prev, imageUrl: res.url }));
-                                            } catch (err) {
-                                                alert("Failed to upload image");
-                                            } finally {
-                                                setSubmitting(false);
-                                            }
-                                        }
-                                    }}
-                                    className="block w-full text-sm text-gray-500
-                                        file:mr-4 file:py-2 file:px-4
-                                        file:rounded-full file:border-0
-                                        file:text-sm file:font-semibold
-                                        file:bg-green-50 file:text-green-700
-                                        hover:file:bg-green-100"
-                                />
-                                {formData.imageUrl && (
-                                    <div className="mt-2 relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border">
-                                        <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, imageUrl: '' })}
-                                            className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
-                                        >
-                                            ×
-                                        </button>
+                                                    try {
+                                                        const res = await api.upload('/upload/image', uploadData, token || undefined);
+                                                        setFormData((prev) => ({ ...prev, imageUrl: res.url }));
+                                                    } catch (err) {
+                                                        alert("Failed to upload image");
+                                                    } finally {
+                                                        setSubmitting(false);
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <p className="text-xs text-muted-foreground mt-2">JPG, PNG, GIF, WebP up to 5MB</p>
                                     </div>
-                                )}
-                                <p className="text-xs text-gray-500 mt-1">Supported: JPG, PNG, GIF (Max 5MB)</p>
+                                </div>
                             </div>
-                            <div className="flex gap-2 justify-end mt-6">
-                                <button
+                            
+                            <div className="flex gap-3 justify-end pt-6 border-t border-border mt-6">
+                                <Button
                                     type="button"
+                                    variant="outline"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                                 >
                                     Cancel
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     type="submit"
                                     disabled={submitting}
-                                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                                 >
-                                    {submitting ? 'Creating...' : 'Create'}
-                                </button>
+                                    {submitting ? 'Authenticating...' : 'Publish Listing'}
+                                </Button>
                             </div>
                         </form>
                     </div>

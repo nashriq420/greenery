@@ -8,9 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-// import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import BlacklistManagement from '@/components/admin/BlacklistManagement';
+import { 
+    LayoutDashboard, Users, Store, ShoppingBag, 
+    MessageSquare, ShieldAlert, FileText, Activity, 
+    CheckCircle2, XCircle, AlertTriangle, UserCheck, 
+    UserX, AlertCircle, Search 
+} from 'lucide-react';
 
 // Types
 type User = {
@@ -57,9 +62,8 @@ export default function AdminPage() {
 
     const router = useRouter();
 
-    // ... inside component
-    const [mainTab, setMainTab] = useState('customers');
-    const [search, setSearch] = useState(''); // Added Search State
+    const [mainTab, setMainTab] = useState('overview');
+    const [search, setSearch] = useState('');
 
     // Data States
     const [customers, setCustomers] = useState<User[]>([]);
@@ -114,7 +118,18 @@ export default function AdminPage() {
         try {
             // Fetch everything in parallel or smart fetch based on tab?
             // For simplicity and small scale, let's fetch based on group
-            if (mainTab === 'customers') {
+            if (mainTab === 'overview') {
+                const [custRes, sellRes, listRes, comRes] = await Promise.all([
+                    api.get('/admin/users?role=CUSTOMER', token || undefined).catch(() => []),
+                    api.get('/admin/users?role=SELLER', token || undefined).catch(() => []),
+                    api.get('/admin/listings', token || undefined).catch(() => []),
+                    api.get('/admin/community/reports', token || undefined).catch(() => [])
+                ]);
+                if (Array.isArray(custRes)) setCustomers(custRes);
+                if (Array.isArray(sellRes)) setSellers(sellRes);
+                if (Array.isArray(listRes)) setListings(listRes);
+                if (Array.isArray(comRes)) setCommunityReports(comRes);
+            } else if (mainTab === 'customers') {
                 const url = `/admin/users?role=CUSTOMER${search ? `&search=${search}` : ''}`;
                 const res = await api.get(url, token || undefined);
                 if (Array.isArray(res)) setCustomers(res);
@@ -175,163 +190,233 @@ export default function AdminPage() {
     if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) return null;
 
     return (
-        <div className="container mx-auto py-10 space-y-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-                {mainTab !== 'logs' && (
-                    <div className="w-full md:w-auto">
-                        <Input
-                            placeholder="Search..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full md:w-[300px]"
-                        />
+        <div className="flex flex-col md:flex-row min-h-[calc(100vh-4rem)] bg-background -mx-6 -my-6">
+            {/* Sidebar */}
+            <aside className="w-full md:w-64 border-r border-border bg-card flex flex-col shrink-0 md:sticky md:top-16 md:h-[calc(100vh-4rem)] z-10 transition-colors">
+                <div className="p-6 border-b border-border relative overflow-hidden hidden md:block">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="relative">
+                        <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                            <ShieldAlert className="w-5 h-5 text-primary" />
+                            Admin Center
+                        </h2>
+                        <p className="text-xs text-muted-foreground mt-1.5 font-medium">Greenery Management</p>
                     </div>
-                )}
-            </div>
+                </div>
+                <nav className="flex-1 p-4 flex flex-row md:flex-col gap-1.5 overflow-x-auto md:overflow-y-auto no-scrollbar">
+                    <SidebarButton icon={LayoutDashboard} label="Overview" isActive={mainTab === 'overview'} onClick={() => setMainTab('overview')} />
+                    <SidebarButton icon={Users} label="Customers" isActive={mainTab === 'customers'} onClick={() => setMainTab('customers')} />
+                    <SidebarButton icon={Store} label="Sellers" isActive={mainTab === 'sellers'} onClick={() => setMainTab('sellers')} />
+                    <SidebarButton icon={ShoppingBag} label="Listings" isActive={mainTab === 'listings'} onClick={() => setMainTab('listings')} />
+                    <SidebarButton icon={MessageSquare} label="Community" isActive={mainTab === 'community'} onClick={() => setMainTab('community')} />
+                    <SidebarButton icon={ShieldAlert} label="Blacklist" isActive={mainTab === 'blacklist'} onClick={() => setMainTab('blacklist')} />
+                    <SidebarButton icon={FileText} label="Activity Logs" isActive={mainTab === 'logs'} onClick={() => setMainTab('logs')} />
+                </nav>
+            </aside>
 
-            <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-6">
-                <TabsList className="flex flex-wrap lg:grid lg:grid-cols-6 lg:w-[800px]">
-                    <TabsTrigger value="customers">Customers</TabsTrigger>
-                    <TabsTrigger value="sellers">Sellers</TabsTrigger>
-                    <TabsTrigger value="listings">Listings</TabsTrigger>
-                    <TabsTrigger value="community">Community</TabsTrigger>
-                    <TabsTrigger value="blacklist">Blacklist</TabsTrigger>
-                    <TabsTrigger value="logs">Logs</TabsTrigger>
-                </TabsList>
-
-                {/* CUSTOMERS CONTENT */}
-                <TabsContent value="customers" className="space-y-4">
-                    <Tabs defaultValue="pending" className="w-full">
-                        <div className="flex items-center justify-between">
-                            <TabsList>
-                                <TabsTrigger value="pending">Pending Approval ({customers.filter(c => c.status === 'PENDING').length})</TabsTrigger>
-                                <TabsTrigger value="all">All Customers ({customers.length})</TabsTrigger>
-                            </TabsList>
+            {/* Main Content Space */}
+            <main className="flex-1 min-w-0 flex flex-col bg-background md:bg-[#0A0A0A]/30">
+                <div className="w-full max-w-7xl mx-auto p-6 md:p-8 space-y-8 flex-1">
+                    
+                    {/* Top Bar Area */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-border/40">
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight text-foreground capitalize flex items-center gap-2">
+                                {mainTab.replace('-', ' ')}
+                            </h1>
                         </div>
-                        <TabsContent value="pending" className="mt-4">
-                            <UserGroupList
-                                users={customers.filter(c => c.status === 'PENDING')}
-                                type="CUSTOMER"
-                                isPending={true}
-                                onUpdateStatus={handleUserStatusUpdate}
-                                onWarn={handleWarnUser}
-                                loading={loading}
-                            />
-                        </TabsContent>
-                        <TabsContent value="all" className="mt-4">
-                            <UserGroupList
-                                users={customers}
-                                type="CUSTOMER"
-                                isPending={false}
-                                onUpdateStatus={handleUserStatusUpdate}
-                                onWarn={handleWarnUser}
-                                loading={loading}
-                            />
-                        </TabsContent>
-                    </Tabs>
-                </TabsContent>
+                        {mainTab !== 'logs' && mainTab !== 'overview' && mainTab !== 'blacklist' && (
+                            <div className="w-full sm:w-auto relative group">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Input
+                                    placeholder={`Search ${mainTab}...`}
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-full sm:w-[280px] bg-card border-border pl-9 rounded-full focus-visible:ring-1 focus-visible:ring-primary shadow-sm"
+                                />
+                            </div>
+                        )}
+                    </div>
 
-                {/* SELLERS CONTENT */}
-                <TabsContent value="sellers" className="space-y-4">
-                    <Tabs defaultValue="pending" className="w-full">
-                        <div className="flex items-center justify-between">
-                            <TabsList>
-                                <TabsTrigger value="pending">Pending Approval ({sellers.filter(s => s.status === 'PENDING').length})</TabsTrigger>
-                                <TabsTrigger value="all">All Sellers ({sellers.length})</TabsTrigger>
-                            </TabsList>
+                    {/* Content Views */}
+                    
+                    {mainTab === 'overview' && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <MetricCard 
+                                    title="Total Customers" 
+                                    value={customers.length} 
+                                    icon={Users} 
+                                    trend="+Active" 
+                                    color="text-blue-500"
+                                    bgColor="bg-blue-500/10"
+                                />
+                                <MetricCard 
+                                    title="Total Sellers" 
+                                    value={sellers.length} 
+                                    icon={Store} 
+                                    trend={`${sellers.filter(s => s.status === 'PENDING').length} Pending`}
+                                    color="text-purple-500"
+                                    bgColor="bg-purple-500/10"
+                                />
+                                <MetricCard 
+                                    title="Total Listings" 
+                                    value={listings.length} 
+                                    icon={ShoppingBag} 
+                                    trend={`${listings.filter(l => l.status === 'ACTIVE').length} Active`}
+                                    color="text-green-500"
+                                    bgColor="bg-green-500/10"
+                                />
+                                <MetricCard 
+                                    title="Pending Reports" 
+                                    value={communityReports.filter(r => r.status === 'PENDING').length} 
+                                    icon={AlertTriangle} 
+                                    trend="Requires Action"
+                                    color="text-yellow-500"
+                                    bgColor="bg-yellow-500/10"
+                                />
+                                <MetricCard 
+                                    title="Suspended Users" 
+                                    value={sellers.filter(s => s.status === 'SUSPENDED').length + customers.filter(c => c.status === 'SUSPENDED').length} 
+                                    icon={UserX} 
+                                    trend="Platform Banned"
+                                    color="text-red-500"
+                                    bgColor="bg-red-500/10"
+                                />
+                            </div>
                         </div>
-                        <TabsContent value="pending" className="mt-4">
-                            <UserGroupList
-                                users={sellers.filter(c => c.status === 'PENDING')}
-                                type="SELLER"
-                                isPending={true}
-                                onUpdateStatus={handleUserStatusUpdate}
-                                onWarn={handleWarnUser}
-                                loading={loading}
-                            />
-                        </TabsContent>
-                        <TabsContent value="all" className="mt-4">
-                            <UserGroupList
-                                users={sellers}
-                                type="SELLER"
-                                isPending={false}
-                                onUpdateStatus={handleUserStatusUpdate}
-                                onWarn={handleWarnUser}
-                                loading={loading}
-                            />
-                        </TabsContent>
-                    </Tabs>
-                </TabsContent>
+                    )}
 
-                {/* LISTINGS CONTENT */}
-                <TabsContent value="listings" className="space-y-4">
-                    <Tabs defaultValue="pending" className="w-full">
-                        <div className="flex items-center justify-between">
-                            <TabsList>
-                                <TabsTrigger value="pending">Pending Approval ({listings.filter(l => l.status === 'PENDING').length})</TabsTrigger>
-                                <TabsTrigger value="all">All Listings ({listings.length})</TabsTrigger>
-                            </TabsList>
+                    {mainTab === 'customers' && (
+                        <div className="space-y-6">
+                            <Tabs defaultValue="pending" className="w-full">
+                                <TabsList className="bg-muted/50 p-1 border border-border/50">
+                                    <TabsTrigger value="pending" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">Pending Approval ({customers.filter(c => c.status === 'PENDING').length})</TabsTrigger>
+                                    <TabsTrigger value="all" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">All Customers ({customers.length})</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="pending" className="mt-4">
+                                    <UserGroupList
+                                        users={customers.filter(c => c.status === 'PENDING')}
+                                        type="CUSTOMER"
+                                        isPending={true}
+                                        onUpdateStatus={handleUserStatusUpdate}
+                                        onWarn={handleWarnUser}
+                                        loading={loading}
+                                    />
+                                </TabsContent>
+                                <TabsContent value="all" className="mt-4">
+                                    <UserGroupList
+                                        users={customers}
+                                        type="CUSTOMER"
+                                        isPending={false}
+                                        onUpdateStatus={handleUserStatusUpdate}
+                                        onWarn={handleWarnUser}
+                                        loading={loading}
+                                    />
+                                </TabsContent>
+                            </Tabs>
                         </div>
-                        <TabsContent value="pending" className="mt-4">
-                            <ListingGroupList
-                                listings={listings.filter(l => l.status === 'PENDING')}
-                                isPending={true}
-                                onUpdateStatus={handleListingStatusUpdate}
-                                onWarnSeller={handleWarnUser}
-                                onViewListing={handleViewListing}
-                                loading={loading}
-                            />
-                        </TabsContent>
-                        <TabsContent value="all" className="mt-4">
-                            <ListingGroupList
-                                listings={listings}
-                                isPending={false}
-                                onUpdateStatus={handleListingStatusUpdate}
-                                onWarnSeller={handleWarnUser}
-                                onViewListing={handleViewListing}
-                                loading={loading}
-                            />
-                        </TabsContent>
-                    </Tabs>
-                </TabsContent>
+                    )}
 
-                {/* COMMUNITY CONTENT */}
-                <TabsContent value="community" className="space-y-4">
-                    <Tabs defaultValue="PENDING" className="w-full">
-                        <div className="flex items-center justify-between">
-                            <TabsList>
-                                <TabsTrigger value="PENDING">Pending Approval ({communityReports.filter(r => r.status === 'PENDING').length})</TabsTrigger>
-                                <TabsTrigger value="REVIEWED">Reviewed ({communityReports.filter(r => r.status === 'REVIEWED').length})</TabsTrigger>
-                            </TabsList>
+                    {mainTab === 'sellers' && (
+                        <div className="space-y-6">
+                            <Tabs defaultValue="pending" className="w-full">
+                                <TabsList className="bg-muted/50 p-1 border border-border/50">
+                                    <TabsTrigger value="pending" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">Pending Approval ({sellers.filter(c => c.status === 'PENDING').length})</TabsTrigger>
+                                    <TabsTrigger value="all" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">All Sellers ({sellers.length})</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="pending" className="mt-4">
+                                    <UserGroupList
+                                        users={sellers.filter(c => c.status === 'PENDING')}
+                                        type="SELLER"
+                                        isPending={true}
+                                        onUpdateStatus={handleUserStatusUpdate}
+                                        onWarn={handleWarnUser}
+                                        loading={loading}
+                                    />
+                                </TabsContent>
+                                <TabsContent value="all" className="mt-4">
+                                    <UserGroupList
+                                        users={sellers}
+                                        type="SELLER"
+                                        isPending={false}
+                                        onUpdateStatus={handleUserStatusUpdate}
+                                        onWarn={handleWarnUser}
+                                        loading={loading}
+                                    />
+                                </TabsContent>
+                            </Tabs>
                         </div>
-                        <TabsContent value="PENDING" className="mt-4">
-                            <CommunityReportsList
-                                reports={communityReports.filter(r => r.status === 'PENDING')}
-                                onUpdatePostStatus={handlePostStatusUpdate}
-                                loading={loading}
-                            />
-                        </TabsContent>
-                        <TabsContent value="REVIEWED" className="mt-4">
-                            <CommunityReportsList
-                                reports={communityReports.filter(r => r.status === 'REVIEWED')}
-                                onUpdatePostStatus={handlePostStatusUpdate}
-                                loading={loading}
-                            />
-                        </TabsContent>
-                    </Tabs>
-                </TabsContent>
+                    )}
 
-                {/* BLACKLIST CONTENT */}
-                <TabsContent value="blacklist" className="space-y-4">
-                    <BlacklistManagement />
-                </TabsContent>
+                    {mainTab === 'listings' && (
+                        <div className="space-y-6">
+                            <Tabs defaultValue="pending" className="w-full">
+                                <TabsList className="bg-muted/50 p-1 border border-border/50">
+                                    <TabsTrigger value="pending" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">Pending Approval ({listings.filter(l => l.status === 'PENDING').length})</TabsTrigger>
+                                    <TabsTrigger value="all" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">All Listings ({listings.length})</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="pending" className="mt-4">
+                                    <ListingGroupList
+                                        listings={listings.filter(l => l.status === 'PENDING')}
+                                        isPending={true}
+                                        onUpdateStatus={handleListingStatusUpdate}
+                                        onWarnSeller={handleWarnUser}
+                                        onViewListing={handleViewListing}
+                                        loading={loading}
+                                    />
+                                </TabsContent>
+                                <TabsContent value="all" className="mt-4">
+                                    <ListingGroupList
+                                        listings={listings}
+                                        isPending={false}
+                                        onUpdateStatus={handleListingStatusUpdate}
+                                        onWarnSeller={handleWarnUser}
+                                        onViewListing={handleViewListing}
+                                        loading={loading}
+                                    />
+                                </TabsContent>
+                            </Tabs>
+                        </div>
+                    )}
 
-                {/* LOGS CONTENT */}
-                <TabsContent value="logs" className="space-y-4">
-                    <ActivityLogs token={token} />
-                </TabsContent>
-            </Tabs>
+                    {mainTab === 'community' && (
+                        <div className="space-y-6">
+                            <Tabs defaultValue="PENDING" className="w-full">
+                                <TabsList className="bg-muted/50 p-1 border border-border/50">
+                                    <TabsTrigger value="PENDING" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">Pending Approval ({communityReports.filter(r => r.status === 'PENDING').length})</TabsTrigger>
+                                    <TabsTrigger value="REVIEWED" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">Reviewed ({communityReports.filter(r => r.status === 'REVIEWED').length})</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="PENDING" className="mt-4">
+                                    <CommunityReportsList
+                                        reports={communityReports.filter(r => r.status === 'PENDING')}
+                                        onUpdatePostStatus={handlePostStatusUpdate}
+                                        loading={loading}
+                                    />
+                                </TabsContent>
+                                <TabsContent value="REVIEWED" className="mt-4">
+                                    <CommunityReportsList
+                                        reports={communityReports.filter(r => r.status === 'REVIEWED')}
+                                        onUpdatePostStatus={handlePostStatusUpdate}
+                                        loading={loading}
+                                    />
+                                </TabsContent>
+                            </Tabs>
+                        </div>
+                    )}
+
+                    {mainTab === 'blacklist' && (
+                        <div className="space-y-6">
+                            <BlacklistManagement />
+                        </div>
+                    )}
+
+                    {mainTab === 'logs' && (
+                        <div className="space-y-6">
+                            <ActivityLogs token={token} />
+                        </div>
+                    )}
+                </div>
 
             {/* Warning Modal */}
             {
@@ -364,97 +449,97 @@ export default function AdminPage() {
                 viewListingOpen && selectedListingForView && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm p-4">
                         <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                            <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-white dark:bg-zinc-950 z-10 border-b">
+                            <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-card z-10 border-b">
                                 <div>
                                     <CardTitle className="text-xl">{selectedListingForView.title}</CardTitle>
                                     <CardDescription>Listing Details</CardDescription>
                                 </div>
                                 <Button variant="ghost" className="h-12 w-12 rounded-full hover:bg-muted shrink-0" onClick={() => setViewListingOpen(false)}>
                                     <span className="sr-only">Close</span>
-                                    <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    <XCircle className="w-8 h-8 text-muted-foreground" />
                                 </Button>
                             </CardHeader>
                             <CardContent className="space-y-6 pt-6">
                                 {selectedListingForView.imageUrl && (
-                                    <div className="w-full h-64 relative rounded-md overflow-hidden bg-gray-100">
+                                    <div className="w-full h-64 relative rounded-md overflow-hidden bg-muted">
                                         <img src={selectedListingForView.imageUrl} alt={selectedListingForView.title} className="w-full h-full object-cover" />
                                     </div>
                                 )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <span className="text-sm text-gray-500 font-medium">Price</span>
-                                        <p className="font-semibold text-lg">${Number(selectedListingForView.price).toFixed(2)}</p>
+                                        <span className="text-sm text-muted-foreground font-medium">Price</span>
+                                        <p className="font-semibold text-lg text-foreground">${Number(selectedListingForView.price).toFixed(2)}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <span className="text-sm text-gray-500 font-medium">Status</span>
+                                        <span className="text-sm text-muted-foreground font-medium">Status</span>
                                         <div><StatusBadge status={selectedListingForView.status} /></div>
                                     </div>
                                     <div className="space-y-1 col-span-1 md:col-span-2">
-                                        <span className="text-sm text-gray-500 font-medium">Description</span>
-                                        <p className="text-sm whitespace-pre-wrap">{selectedListingForView.description}</p>
+                                        <span className="text-sm text-muted-foreground font-medium">Description</span>
+                                        <p className="text-sm text-foreground whitespace-pre-wrap">{selectedListingForView.description}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <span className="text-sm text-gray-500 font-medium">Seller</span>
-                                        <p className="text-sm font-medium">{selectedListingForView.seller?.name}</p>
+                                        <span className="text-sm text-muted-foreground font-medium">Seller</span>
+                                        <p className="text-sm font-medium text-foreground">{selectedListingForView.seller?.name}</p>
                                         <p className="text-xs font-semibold text-muted-foreground">{selectedListingForView.seller?.email}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <span className="text-sm text-gray-500 font-medium">Created At</span>
-                                        <p className="text-sm">{new Date(selectedListingForView.createdAt).toLocaleString()}</p>
+                                        <span className="text-sm text-muted-foreground font-medium">Created At</span>
+                                        <p className="text-sm text-foreground">{new Date(selectedListingForView.createdAt).toLocaleString()}</p>
                                     </div>
 
                                     {/* Cannabis Metadata & Extras */}
                                     {selectedListingForView.type && (
                                         <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">Type</span>
-                                            <p className="text-sm">{selectedListingForView.type}</p>
+                                            <span className="text-sm text-muted-foreground font-medium">Type</span>
+                                            <p className="text-sm text-foreground">{selectedListingForView.type}</p>
                                         </div>
                                     )}
                                     {selectedListingForView.strainType && (
                                         <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">Strain</span>
-                                            <p className="text-sm">{selectedListingForView.strainType}</p>
+                                            <span className="text-sm text-muted-foreground font-medium">Strain</span>
+                                            <p className="text-sm text-foreground">{selectedListingForView.strainType}</p>
                                         </div>
                                     )}
                                     {selectedListingForView.flavors && (
                                         <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">Flavors</span>
-                                            <p className="text-sm">{selectedListingForView.flavors}</p>
+                                            <span className="text-sm text-muted-foreground font-medium">Flavors</span>
+                                            <p className="text-sm text-foreground">{selectedListingForView.flavors}</p>
                                         </div>
                                     )}
                                     {selectedListingForView.effects && (
                                         <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">Effects</span>
-                                            <p className="text-sm">{selectedListingForView.effects}</p>
+                                            <span className="text-sm text-muted-foreground font-medium">Effects</span>
+                                            <p className="text-sm text-foreground">{selectedListingForView.effects}</p>
                                         </div>
                                     )}
                                     {selectedListingForView.thcContent !== undefined && selectedListingForView.thcContent !== null && (
                                         <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">THC Content</span>
-                                            <p className="text-sm">{selectedListingForView.thcContent}%</p>
+                                            <span className="text-sm text-muted-foreground font-medium">THC Content</span>
+                                            <p className="text-sm text-foreground">{selectedListingForView.thcContent}%</p>
                                         </div>
                                     )}
                                     {selectedListingForView.cbdContent !== undefined && selectedListingForView.cbdContent !== null && (
                                         <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">CBD Content</span>
-                                            <p className="text-sm">{selectedListingForView.cbdContent}%</p>
+                                            <span className="text-sm text-muted-foreground font-medium">CBD Content</span>
+                                            <p className="text-sm text-foreground">{selectedListingForView.cbdContent}%</p>
                                         </div>
                                     )}
                                     {selectedListingForView.sku && (
                                         <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">SKU</span>
-                                            <p className="text-sm">{selectedListingForView.sku}</p>
+                                            <span className="text-sm text-muted-foreground font-medium">SKU</span>
+                                            <p className="text-sm text-foreground">{selectedListingForView.sku}</p>
                                         </div>
                                     )}
                                     {(selectedListingForView.minQuantity !== undefined) && (
                                         <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">Min Quantity</span>
-                                            <p className="text-sm">{selectedListingForView.minQuantity}</p>
+                                            <span className="text-sm text-muted-foreground font-medium">Min Quantity</span>
+                                            <p className="text-sm text-foreground">{selectedListingForView.minQuantity}</p>
                                         </div>
                                     )}
                                     {selectedListingForView.deliveryAvailable && (
                                         <div className="space-y-1">
-                                            <span className="text-sm text-gray-500 font-medium">Delivery</span>
+                                            <span className="text-sm text-muted-foreground font-medium">Delivery</span>
                                             <p className="text-sm text-green-600 font-medium">Available</p>
                                         </div>
                                     )}
@@ -464,7 +549,8 @@ export default function AdminPage() {
                     </div>
                 )
             }
-        </div >
+            </main>
+        </div>
     );
 }
 
@@ -682,14 +768,14 @@ function CommunityReportsList({ reports, onUpdatePostStatus, loading }: any) {
 
 function StatusBadge({ status }: { status: string }) {
     const styles: Record<string, string> = {
-        PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
-        ACTIVE: "bg-green-100 text-green-800 border-green-200",
-        REJECTED: "bg-red-100 text-red-800 border-red-200",
-        SUSPENDED: "bg-red-100 text-red-800 border-red-200",
-        SOLD: "bg-blue-100 text-blue-800 border-blue-200",
+        PENDING: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+        ACTIVE: "bg-green-500/10 text-green-600 border-green-500/20",
+        REJECTED: "bg-red-500/10 text-red-600 border-red-500/20",
+        SUSPENDED: "bg-red-500/10 text-red-600 border-red-500/20",
+        SOLD: "bg-blue-500/10 text-blue-600 border-blue-500/20",
     };
 
-    const defaultStyle = "bg-gray-100 text-gray-800 border-gray-200";
+    const defaultStyle = "bg-muted text-muted-foreground border-border";
 
     return (
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${styles[status] || defaultStyle}`}>
@@ -698,5 +784,41 @@ function StatusBadge({ status }: { status: string }) {
     );
 }
 
+function SidebarButton({ icon: Icon, label, isActive, onClick }: any) {
+    return (
+        <button 
+            onClick={onClick}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive 
+                ? 'bg-primary/10 text-primary' 
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+            }`}
+        >
+            <Icon className="w-4 h-4" />
+            <span className="whitespace-nowrap">{label}</span>
+        </button>
+    );
+}
+
+function MetricCard({ title, value, icon: Icon, trend, color, bgColor }: any) {
+    return (
+        <Card className="border shadow-sm">
+            <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+                        <p className="text-2xl font-bold text-foreground">{value}</p>
+                    </div>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${bgColor}`}>
+                        <Icon className={`w-6 h-6 ${color}`} />
+                    </div>
+                </div>
+                <div className="mt-4 flex items-center text-sm">
+                    <span className="font-medium text-muted-foreground">{trend}</span>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
 
