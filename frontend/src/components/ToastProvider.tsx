@@ -16,6 +16,10 @@ export default function ToastProvider() {
     return (
         <Toaster
             position="top-right"
+            containerStyle={{
+                zIndex: 99999,
+                marginTop: '1rem',
+            }}
             toastOptions={{
                 duration: 4000,
                 style: {

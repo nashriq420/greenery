@@ -15,7 +15,7 @@ export default function MobileMenu({ user, onLogout }: { user: any, onLogout: ()
             </button>
 
             {isOpen && (
-                <div className="absolute top-[60px] md:top-16 left-0 w-full bg-white dark:bg-[#1A1A1A] border-b dark:border-gray-800 shadow-lg flex flex-col p-4 gap-4 z-[9999]">
+                <div className="absolute top-[60px] md:top-16 left-0 w-full bg-white dark:bg-[#1A1A1A] border-b dark:border-gray-800 shadow-lg flex flex-col p-4 gap-4 z-50">
                     <Link href="/dashboard" onClick={() => setIsOpen(false)} className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400 p-2 border-b dark:border-gray-800">Dashboard</Link>
                     <Link href="/dashboard/marketplace" onClick={() => setIsOpen(false)} className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400 p-2 border-b dark:border-gray-800">Marketplace</Link>
                     <Link href="/dashboard/community" onClick={() => setIsOpen(false)} className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400 p-2 border-b dark:border-gray-800">Community</Link>

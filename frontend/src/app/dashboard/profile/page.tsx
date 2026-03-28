@@ -609,7 +609,7 @@ export default function ProfilePage() {
                                     </div>
 
                                     {showSuggestions && customerLocationSuggestions.length > 0 && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
                                             {customerLocationSuggestions.map((suggestion, index) => (
                                                 <div
                                                     key={index}
