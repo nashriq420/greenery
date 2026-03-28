@@ -1,379 +1,442 @@
-import { Response } from 'express';
-import { prisma } from '../utils/prisma';
-import { AuthRequest } from '../middlewares/auth.middleware';
-import { z, ZodError } from 'zod';
-import { logger } from '../utils/logger';
-import { UserStatus, ListingStatus, NotificationType } from '@prisma/client';
-import { createNotification } from './notification.controller';
-import { logActivity } from '../utils/audit';
+import { Response } from "express";
+import { prisma } from "../utils/prisma";
+import { AuthRequest } from "../middlewares/auth.middleware";
+import { z, ZodError } from "zod";
+import { logger } from "../utils/logger";
+import { UserStatus, ListingStatus, NotificationType } from "@prisma/client";
+import { createNotification } from "./notification.controller";
+import { logActivity } from "../utils/audit";
 
 // Get Users with filtering
 export const getUsers = async (req: AuthRequest, res: Response) => {
-    try {
-        const { role, status, search } = req.query as { role?: string, status?: string, search?: string };
+  try {
+    const { role, status, search } = req.query as {
+      role?: string;
+      status?: string;
+      search?: string;
+    };
 
-        const whereClause: any = {};
-        if (role) whereClause.role = role;
-        if (status) whereClause.status = status;
+    const whereClause: any = {};
+    if (role) whereClause.role = role;
+    if (status) whereClause.status = status;
 
-        if (search) {
-            whereClause.OR = [
-                { name: { contains: search, mode: 'insensitive' } },
-                { email: { contains: search, mode: 'insensitive' } }
-            ];
-        }
-
-        const users = await prisma.user.findMany({
-            where: whereClause,
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                status: true,
-                createdAt: true,
-                sellerProfile: {
-                    select: {
-                        city: true,
-                        country: true
-                    }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-
-        res.json(users);
-    } catch (error) {
-        logger.error('Error fetching users', error);
-        res.status(500).json({ message: 'Internal server error', error: (error as any).message });
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ];
     }
+
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        sellerProfile: {
+          select: {
+            city: true,
+            country: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(users);
+  } catch (error) {
+    logger.error("Error fetching users", error);
+    res
+      .status(500)
+      .json({
+        message: "Internal server error",
+        error: (error as any).message,
+      });
+  }
 };
 
 const updateStatusSchema = z.object({
-    status: z.nativeEnum(UserStatus)
+  status: z.nativeEnum(UserStatus),
 });
 
 // Update User Status
 export const updateUserStatus = async (req: AuthRequest, res: Response) => {
-    try {
-        const userId = req.params.id as string;
-        const { status } = updateStatusSchema.parse(req.body);
+  try {
+    const userId = req.params.id as string;
+    const { status } = updateStatusSchema.parse(req.body);
 
-        const user = await prisma.user.update({
-            where: { id: userId },
-            data: { status: status as UserStatus }
-        });
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { status: status as UserStatus },
+    });
 
-        await logActivity(req.user?.id, 'UPDATE_USER_STATUS', { targetUserId: userId, status }, req);
+    await logActivity(
+      req.user?.id,
+      "UPDATE_USER_STATUS",
+      { targetUserId: userId, status },
+      req,
+    );
 
-        res.json({ message: `User status updated to ${status}`, user });
-    } catch (error) {
-        logger.error('Error updating status', error);
-        if (error instanceof ZodError) {
-            return res.status(400).json({ errors: (error as any).errors });
-        }
-        res.status(500).json({ message: 'Internal server error', error: (error as any).message });
+    res.json({ message: `User status updated to ${status}`, user });
+  } catch (error) {
+    logger.error("Error updating status", error);
+    if (error instanceof ZodError) {
+      return res.status(400).json({ errors: (error as any).errors });
     }
+    res
+      .status(500)
+      .json({
+        message: "Internal server error",
+        error: (error as any).message,
+      });
+  }
 };
 
 const updateListingStatusSchema = z.object({
-    status: z.nativeEnum(ListingStatus)
+  status: z.nativeEnum(ListingStatus),
 });
 
 // Get Listings (Admin)
 export const getAdminListings = async (req: AuthRequest, res: Response) => {
-    try {
-        const { status, search } = req.query as { status?: string, search?: string };
-        const whereClause: any = {};
-        if (status) whereClause.status = status;
+  try {
+    const { status, search } = req.query as {
+      status?: string;
+      search?: string;
+    };
+    const whereClause: any = {};
+    if (status) whereClause.status = status;
 
-        if (search) {
-            whereClause.OR = [
-                { title: { contains: search, mode: 'insensitive' } },
-                { description: { contains: search, mode: 'insensitive' } },
-                { seller: { name: { contains: search, mode: 'insensitive' } } },
-                { seller: { email: { contains: search, mode: 'insensitive' } } }
-            ];
-        }
-
-        const listings = await prisma.listing.findMany({
-            where: whereClause,
-            include: {
-                seller: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-
-        res.json(listings);
-    } catch (error) {
-        logger.error('Error fetching admin listings', error);
-        res.status(500).json({ message: 'Internal server error', error: (error as any).message });
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { seller: { name: { contains: search, mode: "insensitive" } } },
+        { seller: { email: { contains: search, mode: "insensitive" } } },
+      ];
     }
+
+    const listings = await prisma.listing.findMany({
+      where: whereClause,
+      include: {
+        seller: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(listings);
+  } catch (error) {
+    logger.error("Error fetching admin listings", error);
+    res
+      .status(500)
+      .json({
+        message: "Internal server error",
+        error: (error as any).message,
+      });
+  }
 };
 
 // Update Listing Status
 export const updateListingStatus = async (req: AuthRequest, res: Response) => {
-    try {
-        const listingId = req.params.id as string;
-        const { status } = updateListingStatusSchema.parse(req.body);
+  try {
+    const listingId = req.params.id as string;
+    const { status } = updateListingStatusSchema.parse(req.body);
 
-        const listing = await prisma.listing.update({
-            where: { id: listingId },
-            data: { status: status as ListingStatus },
-            include: { seller: true } // Fetch seller to get ID
-        });
+    const listing = await prisma.listing.update({
+      where: { id: listingId },
+      data: { status: status as ListingStatus },
+      include: { seller: true }, // Fetch seller to get ID
+    });
 
-        // Send Notification if status changed
-        if (status === 'ACTIVE') {
-            await createNotification(
-                listing.sellerId,
-                NotificationType.SYSTEM,
-                'Listing Approved',
-                `Your listing "${listing.title}" has been approved and is now live in the marketplace.`,
-                `/dashboard/marketplace/${listing.id}` // Link to listing if exists or marketplace
-            );
-        } else if (status === 'REJECTED') {
-            await createNotification(
-                listing.sellerId,
-                NotificationType.SYSTEM,
-                'Listing Rejected',
-                `Your listing "${listing.title}" has been rejected.`,
-                `/dashboard/seller` // Link to seller dashboard
-            );
-        }
-
-
-
-        await logActivity(req.user?.id, 'UPDATE_LISTING_STATUS', {
-            listingId,
-            status,
-            listingTitle: listing.title,
-            listingImage: listing.imageUrl
-        }, req);
-
-        res.json({ message: `Listing status updated to ${status}`, listing });
-    } catch (error) {
-        logger.error('Error updating listing status', error);
-        if (error instanceof ZodError) {
-            return res.status(400).json({ errors: (error as any).errors });
-        }
-        res.status(500).json({ message: 'Internal server error', error: (error as any).message });
+    // Send Notification if status changed
+    if (status === "ACTIVE") {
+      await createNotification(
+        listing.sellerId,
+        NotificationType.SYSTEM,
+        "Listing Approved",
+        `Your listing "${listing.title}" has been approved and is now live in the marketplace.`,
+        `/dashboard/marketplace/${listing.id}`, // Link to listing if exists or marketplace
+      );
+    } else if (status === "REJECTED") {
+      await createNotification(
+        listing.sellerId,
+        NotificationType.SYSTEM,
+        "Listing Rejected",
+        `Your listing "${listing.title}" has been rejected.`,
+        `/dashboard/seller`, // Link to seller dashboard
+      );
     }
+
+    await logActivity(
+      req.user?.id,
+      "UPDATE_LISTING_STATUS",
+      {
+        listingId,
+        status,
+        listingTitle: listing.title,
+        listingImage: listing.imageUrl,
+      },
+      req,
+    );
+
+    res.json({ message: `Listing status updated to ${status}`, listing });
+  } catch (error) {
+    logger.error("Error updating listing status", error);
+    if (error instanceof ZodError) {
+      return res.status(400).json({ errors: (error as any).errors });
+    }
+    res
+      .status(500)
+      .json({
+        message: "Internal server error",
+        error: (error as any).message,
+      });
+  }
 };
 
 const warnUserSchema = z.object({
-    message: z.string().min(1),
-    listingId: z.string().optional()
+  message: z.string().min(1),
+  listingId: z.string().optional(),
 });
 
 // Warn User (Send Message)
 export const warnUser = async (req: AuthRequest, res: Response) => {
-    try {
-        const adminId = req.user!.id;
-        const targetUserId = req.params.id as string;
-        const { message, listingId } = warnUserSchema.parse(req.body);
+  try {
+    const adminId = req.user!.id;
+    const targetUserId = req.params.id as string;
+    const { message, listingId } = warnUserSchema.parse(req.body);
 
-        // 1. Find or Create Chat
-        let chat = await prisma.chat.findFirst({
-            where: {
-                OR: [
-                    { participant1Id: adminId, participant2Id: targetUserId },
-                    { participant1Id: targetUserId, participant2Id: adminId }
-                ]
-            }
-        });
+    // 1. Find or Create Chat
+    let chat = await prisma.chat.findFirst({
+      where: {
+        OR: [
+          { participant1Id: adminId, participant2Id: targetUserId },
+          { participant1Id: targetUserId, participant2Id: adminId },
+        ],
+      },
+    });
 
-        if (!chat) {
-            chat = await prisma.chat.create({
-                data: {
-                    participant1Id: adminId,
-                    participant2Id: targetUserId
-                }
-            });
-        }
-
-        // 2. Create Message
-        const warningMessage = await prisma.message.create({
-            data: {
-                chatId: chat.id,
-                senderId: adminId,
-                receiverId: targetUserId,
-                content: `⚠️ ADMIN WARNING: ${message}`,
-                listingId: listingId
-            }
-        });
-
-        // 3. Update Chat timestamp
-        await prisma.chat.update({
-            where: { id: chat.id },
-            data: { updatedAt: new Date() }
-        });
-
-        // 4. Send System Notification
-        await createNotification(
-            targetUserId,
-            NotificationType.WARNING,
-            'Admin Warning',
-            message,
-            `/dashboard/chat/${chat.id}`
-        );
-
-        res.status(201).json(warningMessage);
-
-        await logActivity(adminId, 'WARN_USER', { targetUserId, message }, req);
-    } catch (error) {
-        logger.error('Error warning user', error);
-        if (error instanceof ZodError) {
-            return res.status(400).json({ errors: (error as any).errors });
-        }
-        res.status(500).json({ message: 'Internal server error', error: (error as any).message });
+    if (!chat) {
+      chat = await prisma.chat.create({
+        data: {
+          participant1Id: adminId,
+          participant2Id: targetUserId,
+        },
+      });
     }
+
+    // 2. Create Message
+    const warningMessage = await prisma.message.create({
+      data: {
+        chatId: chat.id,
+        senderId: adminId,
+        receiverId: targetUserId,
+        content: `⚠️ ADMIN WARNING: ${message}`,
+        listingId: listingId,
+      },
+    });
+
+    // 3. Update Chat timestamp
+    await prisma.chat.update({
+      where: { id: chat.id },
+      data: { updatedAt: new Date() },
+    });
+
+    // 4. Send System Notification
+    await createNotification(
+      targetUserId,
+      NotificationType.WARNING,
+      "Admin Warning",
+      message,
+      `/dashboard/chat/${chat.id}`,
+    );
+
+    res.status(201).json(warningMessage);
+
+    await logActivity(adminId, "WARN_USER", { targetUserId, message }, req);
+  } catch (error) {
+    logger.error("Error warning user", error);
+    if (error instanceof ZodError) {
+      return res.status(400).json({ errors: (error as any).errors });
+    }
+    res
+      .status(500)
+      .json({
+        message: "Internal server error",
+        error: (error as any).message,
+      });
+  }
 };
 
 // Get Audit Logs
 export const getLogs = async (req: AuthRequest, res: Response) => {
-    try {
-        const { action, startDate, endDate, search, page = '1', limit = '20' } = req.query as {
-            action?: string,
-            startDate?: string,
-            endDate?: string,
-            search?: string,
-            page?: string,
-            limit?: string
-        };
+  try {
+    const {
+      action,
+      startDate,
+      endDate,
+      search,
+      page = "1",
+      limit = "20",
+    } = req.query as {
+      action?: string;
+      startDate?: string;
+      endDate?: string;
+      search?: string;
+      page?: string;
+      limit?: string;
+    };
 
-        const pageNum = parseInt(page);
-        const limitNum = parseInt(limit);
-        const skip = (pageNum - 1) * limitNum;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
-        const where: any = {};
+    const where: any = {};
 
-        // Filter by Action
-        if (action && action !== 'ALL') {
-            where.action = action;
-        }
-
-        // Filter by Date
-        if (startDate || endDate) {
-            where.createdAt = {};
-            if (startDate) where.createdAt.gte = new Date(startDate);
-            if (endDate) where.createdAt.lte = new Date(endDate);
-        }
-
-        // Filter by Search (User Name, Email, Action, or Details)
-        if (search) {
-            where.OR = [
-                { user: { name: { contains: search, mode: 'insensitive' } } },
-                { user: { email: { contains: search, mode: 'insensitive' } } },
-                { action: { contains: search, mode: 'insensitive' } },
-                { details: { contains: search, mode: 'insensitive' } }
-            ];
-        }
-
-        // Get total count for pagination
-        const total = await prisma.auditLog.count({ where });
-
-        const logs = await prisma.auditLog.findMany({
-            where,
-            include: {
-                user: {
-                    select: {
-                        name: true,
-                        email: true,
-                        role: true,
-                        profilePicture: true
-                    }
-                }
-            },
-            orderBy: { createdAt: 'desc' },
-            skip,
-            take: limitNum
-        });
-
-        res.json({
-            logs,
-            pagination: {
-                total,
-                page: pageNum,
-                limit: limitNum,
-                totalPages: Math.ceil(total / limitNum)
-            }
-        });
-    } catch (error) {
-        logger.error('Error fetching audit logs', error);
-        res.status(500).json({ message: 'Internal server error', error: (error as any).message });
+    // Filter by Action
+    if (action && action !== "ALL") {
+      where.action = action;
     }
+
+    // Filter by Date
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
+    }
+
+    // Filter by Search (User Name, Email, Action, or Details)
+    if (search) {
+      where.OR = [
+        { user: { name: { contains: search, mode: "insensitive" } } },
+        { user: { email: { contains: search, mode: "insensitive" } } },
+        { action: { contains: search, mode: "insensitive" } },
+        { details: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    // Get total count for pagination
+    const total = await prisma.auditLog.count({ where });
+
+    const logs = await prisma.auditLog.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            role: true,
+            profilePicture: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limitNum,
+    });
+
+    res.json({
+      logs,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    logger.error("Error fetching audit logs", error);
+    res
+      .status(500)
+      .json({
+        message: "Internal server error",
+        error: (error as any).message,
+      });
+  }
 };
 
 // Get all post reports (Admin)
 export const getCommunityReports = async (req: AuthRequest, res: Response) => {
-    try {
-        const rawStatus = req.query.status;
-        const status = Array.isArray(rawStatus) ? rawStatus[0] : rawStatus as string | undefined;
+  try {
+    const rawStatus = req.query.status;
+    const status = Array.isArray(rawStatus)
+      ? rawStatus[0]
+      : (rawStatus as string | undefined);
 
-        const reports = await prisma.postReport.findMany({
-            where: status ? { status: status as 'PENDING' | 'REVIEWED' } : undefined,
-            include: {
-                post: {
-                    select: {
-                        id: true,
-                        content: true,
-                        tag: true,
-                        status: true,
-                        imageUrl: true,
-                        createdAt: true,
-                        author: {
-                            select: { id: true, name: true, email: true }
-                        }
-                    }
-                },
-                reporter: {
-                    select: { id: true, name: true, email: true }
-                }
+    const reports = await prisma.postReport.findMany({
+      where: status ? { status: status as "PENDING" | "REVIEWED" } : undefined,
+      include: {
+        post: {
+          select: {
+            id: true,
+            content: true,
+            tag: true,
+            status: true,
+            imageUrl: true,
+            createdAt: true,
+            author: {
+              select: { id: true, name: true, email: true },
             },
-            orderBy: { createdAt: 'desc' }
-        });
+          },
+        },
+        reporter: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-        res.json(reports);
-    } catch (error) {
-        logger.error('Error fetching community reports', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    res.json(reports);
+  } catch (error) {
+    logger.error("Error fetching community reports", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 // Suspend or restore a community post (Admin)
 export const updatePostStatus = async (req: AuthRequest, res: Response) => {
-    try {
-        const postId = req.params.id as string;
-        const { status } = req.body as { status: 'ACTIVE' | 'SUSPENDED' };
+  try {
+    const postId = req.params.id as string;
+    const { status } = req.body as { status: "ACTIVE" | "SUSPENDED" };
 
-        if (!['ACTIVE', 'SUSPENDED'].includes(status)) {
-            return res.status(400).json({ message: 'Invalid status. Use ACTIVE or SUSPENDED.' });
-        }
-
-        const post = await prisma.post.update({
-            where: { id: postId },
-            data: { status: status as any }
-        });
-
-        // Mark all PENDING reports on this post as REVIEWED
-        await prisma.postReport.updateMany({
-            where: { postId, status: 'PENDING' },
-            data: { status: 'REVIEWED' }
-        });
-
-        await logActivity(req.user?.id, 'UPDATE_POST_STATUS', { postId, status }, req);
-
-        res.json({ message: `Post ${status === 'SUSPENDED' ? 'suspended' : 'restored'} successfully`, post });
-    } catch (error) {
-        logger.error('Error updating post status', error);
-        res.status(500).json({ message: 'Internal server error' });
+    if (!["ACTIVE", "SUSPENDED"].includes(status)) {
+      return res
+        .status(400)
+        .json({ message: "Invalid status. Use ACTIVE or SUSPENDED." });
     }
-};
 
+    const post = await prisma.post.update({
+      where: { id: postId },
+      data: { status: status as any },
+    });
+
+    // Mark all PENDING reports on this post as REVIEWED
+    await prisma.postReport.updateMany({
+      where: { postId, status: "PENDING" },
+      data: { status: "REVIEWED" },
+    });
+
+    await logActivity(
+      req.user?.id,
+      "UPDATE_POST_STATUS",
+      { postId, status },
+      req,
+    );
+
+    res.json({
+      message: `Post ${status === "SUSPENDED" ? "suspended" : "restored"} successfully`,
+      post,
+    });
+  } catch (error) {
+    logger.error("Error updating post status", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

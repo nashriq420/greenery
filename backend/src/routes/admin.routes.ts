@@ -1,23 +1,41 @@
-import { Router } from 'express';
-import { getUsers, updateUserStatus, getAdminListings, updateListingStatus, warnUser, getLogs, getCommunityReports, updatePostStatus } from '../controllers/admin.controller';
-import { authenticateToken } from '../middlewares/auth.middleware';
-import { requireRole } from '../middlewares/role.middleware'; // Assuming this exists or I use inline check
+import { Router } from "express";
+import {
+  getUsers,
+  updateUserStatus,
+  getAdminListings,
+  updateListingStatus,
+  warnUser,
+  getLogs,
+  getCommunityReports,
+  updatePostStatus,
+} from "../controllers/admin.controller";
+import { authenticateToken } from "../middlewares/auth.middleware";
+import { requireRole } from "../middlewares/role.middleware"; // Assuming this exists or I use inline check
 
 const router = Router();
 
 // Middleware to ensure Admin
-const isAdmin = requireRole(['ADMIN', 'SUPERADMIN']);
+const isAdmin = requireRole(["ADMIN", "SUPERADMIN"]);
 
-router.get('/users', authenticateToken, isAdmin, getUsers);
-router.put('/users/:id/status', authenticateToken, isAdmin, updateUserStatus);
+router.get("/users", authenticateToken, isAdmin, getUsers);
+router.put("/users/:id/status", authenticateToken, isAdmin, updateUserStatus);
 
-router.get('/listings', authenticateToken, isAdmin, getAdminListings);
-router.put('/listings/:id/status', authenticateToken, isAdmin, updateListingStatus);
-router.post('/users/:id/warn', authenticateToken, isAdmin, warnUser);
-router.get('/logs', authenticateToken, isAdmin, getLogs);
+router.get("/listings", authenticateToken, isAdmin, getAdminListings);
+router.put(
+  "/listings/:id/status",
+  authenticateToken,
+  isAdmin,
+  updateListingStatus,
+);
+router.post("/users/:id/warn", authenticateToken, isAdmin, warnUser);
+router.get("/logs", authenticateToken, isAdmin, getLogs);
 
-router.get('/community/reports', authenticateToken, isAdmin, getCommunityReports);
-router.put('/posts/:id/status', authenticateToken, isAdmin, updatePostStatus);
+router.get(
+  "/community/reports",
+  authenticateToken,
+  isAdmin,
+  getCommunityReports,
+);
+router.put("/posts/:id/status", authenticateToken, isAdmin, updatePostStatus);
 
 export default router;
-

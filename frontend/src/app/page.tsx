@@ -12,8 +12,18 @@ export default function Home() {
             <span>🌿</span> Greenery
           </div>
           <div className="flex gap-6 items-center">
-            <a href="/login" className="text-sm font-medium hover:text-primary text-muted-foreground transition-colors hover-lift">Login</a>
-            <a href="/login?tab=signup" className="px-6 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition shadow-soft hover-lift active-scale">Get Started</a>
+            <a
+              href="/login"
+              className="text-sm font-medium hover:text-primary text-muted-foreground transition-colors hover-lift"
+            >
+              Login
+            </a>
+            <a
+              href="/login?tab=signup"
+              className="px-6 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition shadow-soft hover-lift active-scale"
+            >
+              Get Started
+            </a>
           </div>
         </div>
       </header>
@@ -25,10 +35,16 @@ export default function Home() {
       {/* Premium Dark Footer (Aligned with new Dark Mode colors) */}
       <footer className="py-12 bg-[#121614] border-t border-[#2A322E] text-slate-300 text-center">
         <div className="flex justify-center gap-8 mb-6 text-sm font-medium">
-          <a href="/terms" className="hover:text-primary transition-colors">Terms & Conditions</a>
-          <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
+          <a href="/terms" className="hover:text-primary transition-colors">
+            Terms & Conditions
+          </a>
+          <a href="/privacy" className="hover:text-primary transition-colors">
+            Privacy Policy
+          </a>
         </div>
-        <p className="text-[#94A3B8] text-sm tracking-wide">© 2026 Greenery. All rights reserved.</p>
+        <p className="text-[#94A3B8] text-sm tracking-wide">
+          © 2026 Greenery. All rights reserved.
+        </p>
       </footer>
     </main>
   );

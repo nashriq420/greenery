@@ -1,204 +1,243 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useMyListings } from '@/hooks/useMarketplace';
-import { api } from '@/lib/api';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useState, useEffect } from "react";
+import { useMyListings } from "@/hooks/useMarketplace";
+import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
 export default function SellerBannerPage() {
-    const { listings, loading: listingsLoading } = useMyListings();
-    const [banners, setBanners] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [uploading, setUploading] = useState(false);
+  const { listings, loading: listingsLoading } = useMyListings();
+  const [banners, setBanners] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
-    const { token } = useAuthStore();
+  const { token } = useAuthStore();
 
-    // Helper for image URLs
-    const getImageUrl = (path: string) => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
+  // Helper for image URLs
+  const getImageUrl = (path: string) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
 
-        let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-        if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
-        if (baseUrl === '/api') baseUrl = 'http://localhost:4000';
+    if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+    if (baseUrl === "/api") baseUrl = "http://localhost:4000";
 
-        if (path.startsWith('/uploads') && baseUrl.endsWith('/api')) {
-            baseUrl = baseUrl.slice(0, -4);
-        }
+    if (path.startsWith("/uploads") && baseUrl.endsWith("/api")) {
+      baseUrl = baseUrl.slice(0, -4);
+    }
 
-        return `${baseUrl}${path}`;
-    };
+    return `${baseUrl}${path}`;
+  };
 
-    // Form State
-    const [selectedListing, setSelectedListing] = useState('');
-    const [title, setTitle] = useState('');
-    const [file, setFile] = useState<File | null>(null);
-    const [message, setMessage] = useState('');
+  // Form State
+  const [selectedListing, setSelectedListing] = useState("");
+  const [title, setTitle] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [message, setMessage] = useState("");
 
-    const fetchBanners = async () => {
-        if (!token) return;
-        try {
-            const res = await api.get('/banners', token);
-            setBanners(res); // api returns parsed json
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchBanners = async () => {
+    if (!token) return;
+    try {
+      const res = await api.get("/banners", token);
+      setBanners(res); // api returns parsed json
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    useEffect(() => {
-        if (token) {
-            fetchBanners();
-        }
-    }, [token]);
+  useEffect(() => {
+    if (token) {
+      fetchBanners();
+    }
+  }, [token]);
 
-    const handleUpload = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedListing || !file) {
-            setMessage('Please select a listing and an image.');
-            return;
-        }
-        if (!token) return;
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedListing || !file) {
+      setMessage("Please select a listing and an image.");
+      return;
+    }
+    if (!token) return;
 
-        const formData = new FormData();
-        formData.append('listingId', selectedListing);
-        formData.append('image', file);
-        if (title) formData.append('title', title);
+    const formData = new FormData();
+    formData.append("listingId", selectedListing);
+    formData.append("image", file);
+    if (title) formData.append("title", title);
 
-        setUploading(true);
-        setMessage('');
+    setUploading(true);
+    setMessage("");
 
-        try {
-            await api.upload('/banners/upload', formData, token);
-            setMessage('Banner uploaded successfully! Waiting for approval.');
-            setSelectedListing('');
-            setTitle('');
-            setFile(null);
-            fetchBanners(); // Refresh list
-        } catch (err: any) {
-            setMessage(err.message || 'Error uploading banner');
-        } finally {
-            setUploading(false);
-        }
-    };
+    try {
+      await api.upload("/banners/upload", formData, token);
+      setMessage("Banner uploaded successfully! Waiting for approval.");
+      setSelectedListing("");
+      setTitle("");
+      setFile(null);
+      fetchBanners(); // Refresh list
+    } catch (err: any) {
+      setMessage(err.message || "Error uploading banner");
+    } finally {
+      setUploading(false);
+    }
+  };
 
-    return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6 text-foreground">Promote Your Products</h1>
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6 text-foreground">
+        Promote Your Products
+      </h1>
 
-            {/* Upload Section */}
-            <div className="bg-card text-card-foreground p-6 rounded-lg shadow border border-border mb-8">
-                <h2 className="text-lg font-semibold mb-4 text-foreground">Request "Product of the Week" Banner</h2>
-                <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 p-4 rounded mb-4 text-sm border border-blue-100 dark:border-blue-900/50">
-                    <p className="font-bold">Instructions:</p>
-                    <ul className="list-disc ml-5 mt-1">
-                        <li>Banner size recommendation: <strong>1200x200 pixels</strong>.</li>
-                        <li>High quality images look best.</li>
-                        <li>Approved banners run for 7 days.</li>
-                        <li>Queue system applies if dates are booked.</li>
-                    </ul>
+      {/* Upload Section */}
+      <div className="bg-card text-card-foreground p-6 rounded-lg shadow border border-border mb-8">
+        <h2 className="text-lg font-semibold mb-4 text-foreground">
+          Request "Product of the Week" Banner
+        </h2>
+        <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 p-4 rounded mb-4 text-sm border border-blue-100 dark:border-blue-900/50">
+          <p className="font-bold">Instructions:</p>
+          <ul className="list-disc ml-5 mt-1">
+            <li>
+              Banner size recommendation: <strong>1200x200 pixels</strong>.
+            </li>
+            <li>High quality images look best.</li>
+            <li>Approved banners run for 7 days.</li>
+            <li>Queue system applies if dates are booked.</li>
+          </ul>
+        </div>
+
+        <form onSubmit={handleUpload} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1 text-foreground">
+              Select Listing to Promote *
+            </label>
+            <select
+              className="w-full border border-input rounded p-2 bg-background text-foreground"
+              value={selectedListing}
+              onChange={(e) => setSelectedListing(e.target.value)}
+              required
+            >
+              <option value="">-- Select Listing --</option>
+              {listings.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.title} (${l.price})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-foreground">
+              Custom Title (Optional)
+            </label>
+            <input
+              type="text"
+              className="w-full border border-input rounded p-2 bg-background text-foreground"
+              placeholder='e.g., "Special Harvest Sale"'
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-foreground">
+              Banner Image *
+            </label>
+            <div className="flex items-center gap-3">
+              <label className="cursor-pointer bg-card border border-input text-card-foreground px-4 py-2 rounded shadow-sm hover:bg-accent focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+                <span className="text-sm font-medium">Choose File</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  required={!file} // Only required if no file selected yet
+                />
+              </label>
+              <span className="text-sm text-muted-foreground italic">
+                {file ? file.name : "No file chosen"}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Recommended: 1200x200px
+            </p>
+          </div>
+
+          {message && (
+            <p
+              className={`text-sm ${message.includes("successfully") ? "text-green-600" : "text-red-600"}`}
+            >
+              {message}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={uploading || listingsLoading}
+            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+          >
+            {uploading ? "Uploading..." : "Submit Request"}
+          </button>
+        </form>
+      </div>
+
+      {/* My Banners List */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4 text-foreground">
+          My Banner Requests
+        </h2>
+        {loading ? (
+          <p className="text-muted-foreground">Loading...</p>
+        ) : banners && banners.length > 0 ? (
+          <div className="space-y-4">
+            {banners.map((banner) => (
+              <div
+                key={banner.id}
+                className="bg-card text-card-foreground border border-border rounded-lg p-4 flex gap-4 items-center"
+              >
+                <div className="w-32 h-16 bg-muted rounded overflow-hidden shrink-0">
+                  <img
+                    src={getImageUrl(banner.imageUrl)}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-
-                <form onSubmit={handleUpload} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-foreground">Select Listing to Promote *</label>
-                        <select
-                            className="w-full border border-input rounded p-2 bg-background text-foreground"
-                            value={selectedListing}
-                            onChange={(e) => setSelectedListing(e.target.value)}
-                            required
-                        >
-                            <option value="">-- Select Listing --</option>
-                            {listings.map(l => (
-                                <option key={l.id} value={l.id}>{l.title} (${l.price})</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-foreground">Custom Title (Optional)</label>
-                        <input
-                            type="text"
-                            className="w-full border border-input rounded p-2 bg-background text-foreground"
-                            placeholder='e.g., "Special Harvest Sale"'
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-foreground">Banner Image *</label>
-                        <div className="flex items-center gap-3">
-                            <label className="cursor-pointer bg-card border border-input text-card-foreground px-4 py-2 rounded shadow-sm hover:bg-accent focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
-                                <span className="text-sm font-medium">Choose File</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="sr-only"
-                                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                                    required={!file} // Only required if no file selected yet
-                                />
-                            </label>
-                            <span className="text-sm text-muted-foreground italic">
-                                {file ? file.name : 'No file chosen'}
-                            </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">Recommended: 1200x200px</p>
-                    </div>
-
-                    {message && <p className={`text-sm ${message.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>{message}</p>}
-
-                    <button
-                        type="submit"
-                        disabled={uploading || listingsLoading}
-                        className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                <div className="flex-1">
+                  <h3 className="font-bold text-foreground">
+                    {banner.title || "No Title"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Listing: {banner.listing?.title}
+                  </p>
+                  <div className="flex gap-2 mt-1 text-xs">
+                    <span
+                      className={`px-2 py-0.5 rounded-full font-bold ${
+                        banner.status === "APPROVED"
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                          : banner.status === "REJECTED"
+                            ? "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400"
+                            : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400"
+                      }`}
                     >
-                        {uploading ? 'Uploading...' : 'Submit Request'}
-                    </button>
-                </form>
-            </div >
-
-            {/* My Banners List */}
-            < div >
-                <h2 className="text-lg font-semibold mb-4 text-foreground">My Banner Requests</h2>
-                {
-                    loading ? <p className="text-muted-foreground">Loading...</p> : (
-                        banners && banners.length > 0 ? (
-                            <div className="space-y-4">
-                                {banners.map((banner) => (
-                                    <div key={banner.id} className="bg-card text-card-foreground border border-border rounded-lg p-4 flex gap-4 items-center">
-                                        <div className="w-32 h-16 bg-muted rounded overflow-hidden shrink-0">
-                                            <img src={getImageUrl(banner.imageUrl)} className="w-full h-full object-cover" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-foreground">{banner.title || "No Title"}</h3>
-                                            <p className="text-sm text-muted-foreground">Listing: {banner.listing?.title}</p>
-                                            <div className="flex gap-2 mt-1 text-xs">
-                                                <span className={`px-2 py-0.5 rounded-full font-bold ${banner.status === 'APPROVED' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
-                                                    banner.status === 'REJECTED' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
-                                                        'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
-                                                    }`}>
-                                                    {banner.status}
-                                                </span>
-                                                {banner.startDate && (
-                                                    <span className="text-muted-foreground">
-                                                        Running: {new Date(banner.startDate).toLocaleDateString()} - {new Date(banner.endDate).toLocaleDateString()}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-muted-foreground">No banner requests yet.</p>
-                        )
-                    )
-                }
-            </div >
-        </div >
-    );
+                      {banner.status}
+                    </span>
+                    {banner.startDate && (
+                      <span className="text-muted-foreground">
+                        Running:{" "}
+                        {new Date(banner.startDate).toLocaleDateString()} -{" "}
+                        {new Date(banner.endDate).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">No banner requests yet.</p>
+        )}
+      </div>
+    </div>
+  );
 }

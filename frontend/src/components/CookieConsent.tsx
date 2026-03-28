@@ -31,7 +31,7 @@ export default function CookieConsent() {
       <div className="max-w-4xl mx-auto bg-card border border-border shadow-2xl rounded-xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
         {/* Decorative background element */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-        
+
         <div className="flex items-start gap-4 flex-1 relative z-10 text-left">
           <div className="bg-primary/10 p-3 rounded-full hidden sm:flex shrink-0">
             <Cookie className="h-6 w-6 text-primary" />
@@ -39,11 +39,22 @@ export default function CookieConsent() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Cookie className="h-4 w-4 text-primary sm:hidden" />
-              <h3 className="font-semibold text-card-foreground text-lg sm:text-base">Cookies & Privacy</h3>
+              <h3 className="font-semibold text-card-foreground text-lg sm:text-base">
+                Cookies & Privacy
+              </h3>
             </div>
             <p className="text-sm text-card-foreground/80 leading-relaxed">
-              We use cookies to enhance your browsing experience. Additionally, we access and use your device location to provide our interactive map features, showing you and nearby sellers. 
-              By continuing to use our site, you agree to our <Link href="/privacy" className="text-primary hover:underline font-medium">Privacy Policy</Link>.
+              We use cookies to enhance your browsing experience. Additionally,
+              we access and use your device location to provide our interactive
+              map features, showing you and nearby sellers. By continuing to use
+              our site, you agree to our{" "}
+              <Link
+                href="/privacy"
+                className="text-primary hover:underline font-medium"
+              >
+                Privacy Policy
+              </Link>
+              .
             </p>
           </div>
         </div>
