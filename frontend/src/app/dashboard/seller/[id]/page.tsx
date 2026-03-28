@@ -20,6 +20,7 @@ export default function SellerProfilePage() {
 
     const [seller, setSeller] = useState<any>(null);
     const [listings, setListings] = useState<any[]>([]);
+    const [reviews, setReviews] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('Menus');
 
@@ -35,6 +36,8 @@ export default function SellerProfilePage() {
                     const sellerListings = allListings.filter((l: any) => l.seller.id === id);
                     setListings(sellerListings);
                 }
+                const sellerReviews = await api.get(`/reviews/seller/${id}`, token || undefined);
+                setReviews(sellerReviews);
             } catch (e) {
                 console.error("Error fetching seller profile:", e);
             } finally {
@@ -291,11 +294,86 @@ export default function SellerProfilePage() {
                     )}
 
                     {activeTab === 'Reviews' && (
-                        <div className="text-center py-10 text-muted-foreground">
-                            <p>Reviews will appear here.</p>
-                            <div className="mt-4 inline-flex items-center gap-2 text-yellow-500 font-bold text-xl">
-                                <Star className="fill-current" /> {rating} <span className="text-muted-foreground text-sm font-normal">({reviewCount} reviews)</span>
+                        <div className="space-y-6">
+                            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="text-center md:text-left">
+                                    <h3 className="text-2xl font-bold text-foreground">Customer Reviews</h3>
+                                    <p className="text-muted-foreground mt-1">What the community says about {seller.name}</p>
+                                </div>
+                                <div className="flex items-center gap-6 divide-x divide-border">
+                                    <div className="flex flex-col items-center px-4">
+                                        <div className="flex items-center gap-2 text-yellow-500 font-bold text-3xl">
+                                            <Star className="fill-current w-7 h-7" /> {rating}
+                                        </div>
+                                        <span className="text-muted-foreground text-xs mt-1 uppercase tracking-wider font-bold">Average Rating</span>
+                                    </div>
+                                    <div className="flex flex-col items-center px-6">
+                                        <div className="text-foreground font-bold text-3xl">
+                                            {reviewCount}
+                                        </div>
+                                        <span className="text-muted-foreground text-xs mt-1 uppercase tracking-wider font-bold">Total Reviews</span>
+                                    </div>
+                                </div>
                             </div>
+
+                            {reviews.length === 0 ? (
+                                <div className="text-center py-16 text-muted-foreground bg-card rounded-2xl border border-border shadow-sm">
+                                    <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                    <p className="text-lg font-medium text-foreground">No reviews yet</p>
+                                    <p className="text-sm">Be the first to review this seller's products!</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {reviews.map((review) => (
+                                        <div key={review.id} className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex-shrink-0">
+                                                        <img
+                                                            src={review.customer?.profilePicture || `https://ui-avatars.com/api/?name=${review.customer?.name}&background=random`}
+                                                            alt={review.customer?.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-foreground text-sm">{review.customer?.name}</p>
+                                                        <p className="text-[10px] text-muted-foreground">{new Date(review.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex text-yellow-500">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-current' : 'text-muted/30'}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="bg-muted/30 rounded-lg px-3 py-2 mb-3">
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Reviewed Item</p>
+                                                <Link href={`/dashboard/marketplace/${review.listing?.id}`} className="text-sm font-semibold text-primary hover:underline line-clamp-1">
+                                                    {review.listing?.title}
+                                                </Link>
+                                            </div>
+
+                                            <p className="text-foreground/90 text-sm leading-relaxed italic">"{review.comment}"</p>
+
+                                            {review.reply && (
+                                                <div className="mt-4 pl-4 border-l-2 border-primary/20 pt-1">
+                                                    <div className="flex items-center gap-2 mb-1.5">
+                                                        <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                                                            <MessageCircle size={10} className="text-primary" />
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Seller Reply</p>
+                                                    </div>
+                                                    <p className="text-muted-foreground text-sm italic">"{review.reply}"</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 

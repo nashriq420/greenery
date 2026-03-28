@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createReview, getReviews, replyToReview } from '../controllers/review.controller';
+import { createReview, getReviews, getReviewsBySeller, replyToReview } from '../controllers/review.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 import { requireRole } from '../middlewares/rbac.middleware';
 
@@ -7,6 +7,7 @@ const router = Router();
 
 // Public: Get reviews
 router.get('/:listingId', getReviews);
+router.get('/seller/:sellerId', getReviewsBySeller);
 
 // Protected: Create Review (Customers)
 router.post('/', authenticateToken, requireRole(['CUSTOMER']), createReview);

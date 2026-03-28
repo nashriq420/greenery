@@ -73,7 +73,8 @@ export const getReviews = async (req: Request, res: Response) => {
                 customer: {
                     select: {
                         name: true,
-                        id: true
+                        id: true,
+                        profilePicture: true
                     }
                 }
             },
@@ -83,6 +84,42 @@ export const getReviews = async (req: Request, res: Response) => {
         res.json(reviews);
     } catch (error) {
         logger.error('Error fetching reviews', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Get Reviews for Seller
+export const getReviewsBySeller = async (req: Request, res: Response) => {
+    try {
+        const sellerId = req.params.sellerId as string;
+
+        const reviews = await prisma.review.findMany({
+            where: {
+                listing: {
+                    sellerId: sellerId
+                }
+            },
+            include: {
+                customer: {
+                    select: {
+                        name: true,
+                        id: true,
+                        profilePicture: true
+                    }
+                },
+                listing: {
+                    select: {
+                        id: true,
+                        title: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json(reviews);
+    } catch (error) {
+        logger.error('Error fetching seller reviews', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
