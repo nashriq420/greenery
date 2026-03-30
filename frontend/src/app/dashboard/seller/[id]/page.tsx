@@ -437,7 +437,7 @@ export default function SellerProfilePage() {
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-muted shrink-0">
                             <img
                               src={
                                 review.customer?.profilePicture ||

@@ -1,0 +1,9 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:postgres@localhost:5432/greenery?schema=public"
+}
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
