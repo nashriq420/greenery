@@ -4,7 +4,19 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
-import { Send, Store, ArrowLeft, Star, Check } from "lucide-react";
+import {
+  Send,
+  Store,
+  ArrowLeft,
+  Star,
+  Check,
+  ExternalLink,
+  AlertTriangle,
+  RefreshCw,
+  ShoppingBag,
+  Leaf,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PrivacyWarning from "../components/PrivacyWarning";
 import { toast } from "react-hot-toast";
@@ -21,6 +33,7 @@ export default function ChatRoomPage() {
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const previousMessageCountRef = useRef<number>(0);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Listing Picker State
   const [showListingPicker, setShowListingPicker] = useState(false);
@@ -41,7 +54,6 @@ export default function ChatRoomPage() {
           previousMessageCountRef.current > 0 &&
           data.length > previousMessageCountRef.current
         ) {
-          // New message arrived
           const newMessages = data.slice(previousMessageCountRef.current);
           const hasIncoming = newMessages.some((m) => m.sender.id !== user?.id);
           if (hasIncoming) {
@@ -54,9 +66,8 @@ export default function ChatRoomPage() {
         }
         previousMessageCountRef.current = data.length;
 
-        // Clear unread notifications for this chat if there are any
         const hasUnread = data.some(
-          (m: any) => !m.read && m.receiverId === user?.id,
+          (m: any) => !m.read && m.receiverId === user?.id
         );
         if (hasUnread) {
           await api.put(`/chat/${id}/read`, {}, token || "");
@@ -70,30 +81,16 @@ export default function ChatRoomPage() {
     }
   };
 
-  // Fetch chat details to know who is who, then fetch listings
   useEffect(() => {
     if (!token || !id) return;
 
-    // We need to know who the seller is to fetch listings
     const initChat = async () => {
       try {
-        // Get all chats to find this one and its participants
-        // Optimized: create a specific endpoint for getChatDetails would be better,
-        // but re-using /chat for now and filtering is easier given current API
         const chats = await api.get("/chat", token);
         const currentChat = chats.find((c: any) => c.id === id);
 
         if (currentChat) {
           setChatDetails(currentChat);
-
-          // Determine Seller ID
-          let sellerId = null;
-          if (currentChat.participant1.role === "SELLER")
-            sellerId = currentChat.participant1.id;
-          else if (currentChat.participant2.role === "SELLER")
-            sellerId = currentChat.participant2.id;
-          // If both are sellers (unlikely given flow but possible), maybe just show current user's or other's?
-          // Let's assume standard flow: If I am Seller, show MINE. If I am Customer, show THEIRS.
 
           const targetSellerId =
             user?.role === "SELLER"
@@ -102,27 +99,14 @@ export default function ChatRoomPage() {
                 ? currentChat.participant2.id
                 : currentChat.participant1.id;
 
-          // Fetch listings for this seller
-          // We need a route to fetch listings by sellerId or 'my-listings'
-          // Existing routes: /marketplace/listings?sellerId=... OR /marketplace/my-listings
-
           if (user?.role === "SELLER") {
             const listings = await api.get("/marketplace/my-listings", token);
             setAvailableListings(listings || []);
           } else {
-            // Creating a generic search/list endpoint usage if available,
-            // or unfortunately we might rely on the map search?
-            // Actually, let's just use the /marketplace/listings endpoint if possible.
-            // Check marketplace.controller.ts -> getListings takes query params?
-            // It seems getListings returns ALL.
-            // Let's rely on the fact that we can view listings if we know the seller.
-            // Wait, fetching 'All Listings' and filtering client side isn't great but works for small scale.
-            // Better: reuse the public "View Seller Profile" logic if exists.
-            // Let's try fetching all active listings for now (assuming marketplace page logic).
             const allListings = await api.get("/marketplace/listings", token);
             if (Array.isArray(allListings)) {
               setAvailableListings(
-                allListings.filter((l: any) => l.seller.id === targetSellerId),
+                allListings.filter((l: any) => l.seller.id === targetSellerId)
               );
             }
           }
@@ -150,7 +134,7 @@ export default function ChatRoomPage() {
       await api.post(
         `/chat/${id}/messages`,
         { content: newMessage || "Shared a listing", listingId },
-        token || "",
+        token || ""
       );
       setNewMessage("");
       setShowListingPicker(false);
@@ -165,131 +149,241 @@ export default function ChatRoomPage() {
     try {
       await api.put(`/chat/${id}/reactivate`, {}, token || "");
       setChatDetails((prev: any) => ({ ...prev, isActive: true }));
+      toast.success("Conversation reactivated!");
     } catch (error) {
       console.error("Failed to reactivate chat", error);
       alert("Failed to reactivate chat");
     }
   };
 
-  if (loading) return <div className="p-8">Loading conversation...</div>;
+  // Derived values
+  const otherParticipant = chatDetails
+    ? user?.id === chatDetails.participant1.id
+      ? chatDetails.participant2
+      : chatDetails.participant1
+    : null;
+
+  const otherSubStatus = chatDetails
+    ? (user?.id === chatDetails.participant1.id
+        ? chatDetails.participant2.subscription?.status
+        : chatDetails.participant1.subscription?.status) === "ACTIVE"
+    : false;
+
+  // Loading skeleton
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full">
+        {/* Header skeleton */}
+        <div className="bg-card border-b border-border p-4 flex items-center gap-3 shrink-0">
+          <div className="skeleton w-9 h-9 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <div className="skeleton-text w-32" />
+            <div className="skeleton-text w-20" />
+          </div>
+        </div>
+        {/* Messages skeleton */}
+        <div className="flex-1 p-4 space-y-4 bg-muted/30">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className={`flex ${i % 2 === 0 ? "justify-end" : "justify-start"}`}
+            >
+              <div className={`skeleton h-12 rounded-2xl ${i % 2 === 0 ? "w-52 rounded-br-sm" : "w-64 rounded-bl-sm"}`} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* Header */}
-      <div className="bg-card border-b border-border p-3 sm:p-4 flex items-center gap-3 shrink-0">
+
+      {/* ── Chat Header ──────────────────────────────────────────────── */}
+      <div className="bg-card border-b border-border px-4 py-3 flex items-center gap-3 shrink-0">
         <Button
           variant="ghost"
           size="icon"
-          className="shrink-0 -ml-2 md:hidden"
+          className="shrink-0 -ml-1 md:hidden rounded-xl"
           onClick={() => router.push("/dashboard/chat")}
           title="Back to Chats"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <div>
-          <h1 className="font-bold text-lg flex items-center gap-2 text-foreground">
-            Chat Room
+
+        {/* Avatar */}
+        {otherParticipant && (
+          <div className="relative shrink-0">
+            {otherParticipant.profilePicture ? (
+              <img
+                src={otherParticipant.profilePicture}
+                alt={otherParticipant.name}
+                className="w-10 h-10 rounded-full object-cover ring-2 ring-background"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm ring-2 ring-background">
+                {otherParticipant.name?.charAt(0).toUpperCase()}
+              </div>
+            )}
+            {chatDetails?.isActive !== false && (
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-card" />
+            )}
+          </div>
+        )}
+
+        {/* Name & Status */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="font-bold text-base text-foreground truncate">
+              {otherParticipant?.name || "Chat Room"}
+            </h1>
+            {otherSubStatus && (
+              <>
+                <span
+                  title="Verified Premium Seller"
+                  className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white rounded-full text-[10px] shadow-sm shrink-0"
+                >
+                  <Check className="w-2.5 h-2.5" strokeWidth={3} />
+                </span>
+                <span className="bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0">
+                  <Star size={8} fill="currentColor" /> Premium
+                </span>
+              </>
+            )}
             {chatDetails?.isActive === false && (
-              <span className="text-xs font-normal text-red-500 bg-red-50 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-full border border-red-100 dark:border-red-900/50">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-900/50 px-2 py-0.5 rounded-full shrink-0">
                 Closed
               </span>
             )}
-          </h1>
-          {chatDetails && (
-            <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5 mt-0.5">
-              {user?.id === chatDetails.participant1.id
-                ? chatDetails.participant2.name
-                : chatDetails.participant1.name}
-              {(user?.id === chatDetails.participant1.id
-                ? chatDetails.participant2.subscription?.status
-                : chatDetails.participant1.subscription?.status) ===
-                "ACTIVE" && (
-                <>
-                  <span
-                    title="Verified Premium Seller"
-                    className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white rounded-full text-[10px] shadow-sm ml-0.5 shrink-0"
-                  >
-                    <Check className="w-2.5 h-2.5" strokeWidth={3} />
-                  </span>
-                  <span className="bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm shrink-0">
-                    <Star size={8} fill="currentColor" /> Premium
-                  </span>
-                </>
-              )}
-            </p>
-          )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {chatDetails?.isActive === false
+              ? "This conversation is closed"
+              : "Active conversation"}
+          </p>
         </div>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto bg-muted/50 flex flex-col">
-        <div className="p-4 space-y-4 pb-0">
+      {/* ── Messages Area ────────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto bg-muted/30 custom-scrollbar flex flex-col">
+        <div className="p-4 space-y-1 pb-2">
+          {/* Safety Panel */}
           <PrivacyWarning />
 
+          {/* Empty state */}
           {messages.length === 0 && (
-            <p className="text-center text-muted-foreground my-10">
-              No messages yet. Say hello!
-            </p>
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-3 shadow-soft">
+                <Leaf className="w-7 h-7 text-primary/60" />
+              </div>
+              <p className="font-semibold text-foreground mb-1">No messages yet</p>
+              <p className="text-sm text-muted-foreground">
+                Say hello! Start the conversation. 👋
+              </p>
+            </div>
           )}
 
-          {messages.map((msg) => {
+          {/* Message Bubbles */}
+          {messages.map((msg, idx) => {
             const isMe = msg.sender.id === user?.id;
+            const prevMsg = messages[idx - 1];
+            const isSameGroup =
+              prevMsg && prevMsg.sender.id === msg.sender.id;
+
             return (
               <div
                 key={msg.id}
-                className={`flex ${isMe ? "justify-end" : "justify-start"} mb-1`}
+                className={`flex ${isMe ? "justify-end" : "justify-start"} ${
+                  isSameGroup ? "mt-0.5" : "mt-3"
+                }`}
               >
+                {/* Other user avatar (show on first of group) */}
                 {!isMe && (
-                  <div className="shrink-0 mr-2 self-end mb-1">
-                    {msg.sender.profilePicture ? (
-                      <img
-                        src={msg.sender.profilePicture}
-                        alt={msg.sender.name}
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center font-bold text-[10px]">
-                        {msg.sender.name?.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                  <div className="shrink-0 mr-2 self-end mb-1 w-6">
+                    {!isSameGroup &&
+                      (msg.sender.profilePicture ? (
+                        <img
+                          src={msg.sender.profilePicture}
+                          alt={msg.sender.name}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center font-bold text-[10px]">
+                          {msg.sender.name?.charAt(0).toUpperCase()}
+                        </div>
+                      ))}
                   </div>
                 )}
+
+                {/* Bubble */}
                 <div
-                  className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow-soft ${isMe ? "bg-primary text-white rounded-br-sm" : "bg-card border border-border text-foreground rounded-bl-sm"}`}
+                  className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow-soft ${
+                    isMe
+                      ? "bg-primary text-white rounded-br-sm"
+                      : "bg-card border border-border text-foreground rounded-bl-sm"
+                  }`}
                 >
+                  {/* Listing Card */}
                   {msg.listing && (
                     <div
-                      className={`mb-3 rounded-xl overflow-hidden border ${isMe ? "border-primary-foreground/20 bg-primary-foreground/10" : "border-border bg-muted"} p-2 flex gap-3 items-center group cursor-pointer hover:opacity-90 transition`}
+                      className={`mb-3 rounded-xl overflow-hidden border ${
+                        isMe
+                          ? "border-white/20 bg-white/10"
+                          : "border-border bg-muted/50"
+                      }`}
                     >
-                      {msg.listing.imageUrl ? (
-                        <div className="w-14 h-14 rounded-lg bg-muted shrink-0 overflow-hidden relative">
-                          <img
-                            src={msg.listing.imageUrl}
-                            className="absolute inset-0 w-full h-full object-cover"
-                          />
+                      <div className="flex gap-3 items-center p-2.5">
+                        {msg.listing.imageUrl ? (
+                          <div className="w-14 h-14 rounded-lg bg-muted shrink-0 overflow-hidden">
+                            <img
+                              src={msg.listing.imageUrl}
+                              className="w-full h-full object-cover"
+                              alt={msg.listing.title}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-14 h-14 rounded-lg bg-muted shrink-0 flex items-center justify-center">
+                            <ShoppingBag className="w-5 h-5 text-muted-foreground/50" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-sm truncate">
+                            {msg.listing.title}
+                          </p>
+                          <p
+                            className={`text-xs font-semibold ${
+                              isMe ? "text-white/80" : "text-primary"
+                            }`}
+                          >
+                            RM {msg.listing.price}
+                          </p>
                         </div>
-                      ) : (
-                        <div className="w-14 h-14 rounded-lg bg-muted shrink-0 flex items-center justify-center text-xs text-muted-foreground font-medium">
-                          No Img
-                        </div>
-                      )}
-                      <div className="min-w-0 pr-2">
-                        <p className="font-bold text-sm truncate">
-                          {msg.listing.title}
-                        </p>
-                        <p
-                          className={`text-xs font-semibold ${isMe ? "text-primary-foreground/90" : "text-primary"}`}
+                      </div>
+                      {/* View Listing CTA */}
+                      <div className={`border-t ${isMe ? "border-white/20" : "border-border"} px-2.5 py-2`}>
+                        <a
+                          href={`/dashboard/marketplace`}
+                          className={`flex items-center justify-center gap-1.5 text-xs font-semibold rounded-lg py-1.5 transition-all ${
+                            isMe
+                              ? "bg-white/20 hover:bg-white/30 text-white"
+                              : "bg-primary/10 hover:bg-primary/20 text-primary"
+                          }`}
                         >
-                          RM {msg.listing.price}
-                        </p>
+                          <ExternalLink className="w-3 h-3" />
+                          View Listing
+                        </a>
                       </div>
                     </div>
                   )}
+
+                  {/* Message text */}
                   <p className="text-inherit font-medium text-[15px] leading-relaxed whitespace-pre-wrap">
                     {msg.content}
                   </p>
                   <p
-                    className={`text-[10px] mt-1.5 font-medium ${isMe ? "text-white/80" : "text-muted-foreground"} text-right`}
+                    className={`text-[10px] mt-1.5 font-medium ${
+                      isMe ? "text-white/70" : "text-muted-foreground"
+                    } text-right`}
                   >
                     {new Date(msg.createdAt).toLocaleTimeString([], {
                       hour: "2-digit",
@@ -300,91 +394,151 @@ export default function ChatRoomPage() {
               </div>
             );
           })}
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} className="h-2" />
         </div>
       </div>
 
-      {/* Input Area */}
+      {/* ── Input Area / Closed Banner ───────────────────────────────── */}
       <div className="shrink-0">
         {chatDetails?.isActive === false ? (
-          <div className="bg-muted/50 border-t border-border p-6 flex flex-col items-center justify-center min-h-[100px]">
-            <p className="text-sm font-medium text-muted-foreground mb-4">
-              This chat was closed due to inactivity.
-            </p>
-            <Button
-              onClick={handleReactivate}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-8 rounded-full shadow-soft hover-lift active-scale"
-            >
-              Reactivate Chat
-            </Button>
+          /* ── Closed Chat Banner ──────────────────────────────────── */
+          <div className="chat-closed-banner">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <p className="font-bold text-sm text-foreground">
+                  This conversation is closed
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Closed due to inactivity. Reopen to continue chatting.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 flex-wrap justify-center">
+              <Button
+                onClick={handleReactivate}
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 py-2.5 rounded-xl shadow-soft hover:-translate-y-0.5 transition-all"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Reopen Conversation
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/dashboard/marketplace")}
+                className="flex items-center gap-2 font-semibold px-6 py-2.5 rounded-xl"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Browse Marketplace
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="bg-card border-t border-border p-2 sm:p-4 flex gap-2 relative items-center shrink-0">
+          /* ── Active Input Area ───────────────────────────────────── */
+          <div className="bg-card border-t border-border px-3 py-3 flex items-end gap-2 relative">
             {/* Listing Picker Button */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => setShowListingPicker(!showListingPicker)}
-                className="h-12 w-12 sm:w-auto sm:px-4 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg border border-border flex items-center justify-center"
+                className={`h-10 w-10 rounded-xl border transition-all flex items-center justify-center ${
+                  showListingPicker
+                    ? "bg-primary/10 border-primary/40 text-primary"
+                    : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
                 title="Attach Listing"
               >
-                <Store className="w-5 h-5 sm:mr-2" />
-                <span className="hidden sm:inline">Store</span>
+                <Store className="w-4 h-4" />
               </button>
 
               {/* Listing Picker Popover */}
               {showListingPicker && (
-                <div className="absolute bottom-full left-0 mb-2 w-72 bg-card border border-border rounded-lg shadow-xl max-h-96 overflow-y-auto z-10 p-2">
-                  <h3 className="font-bold text-sm mb-2 px-2 text-foreground">
-                    Select a Listing to Share
-                  </h3>
-                  {availableListings.length === 0 ? (
-                    <p className="text-sm text-muted-foreground px-2 py-4">
-                      No listings available.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {availableListings.map((l) => (
-                        <div
-                          key={l.id}
-                          onClick={() => handleSend(l.id)}
-                          className="flex items-center gap-3 p-2 hover:bg-muted rounded cursor-pointer border border-border"
-                        >
-                          {l.imageUrl && (
-                            <img
-                              src={l.imageUrl}
-                              className="w-10 h-10 object-cover rounded bg-muted"
-                            />
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold truncate text-foreground">
-                              {l.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              ${l.price}
-                            </p>
+                <div className="absolute bottom-full left-0 mb-2 w-76 bg-card border border-border rounded-2xl shadow-xl max-h-80 overflow-hidden z-20 flex flex-col min-w-[300px]">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <h3 className="font-bold text-sm text-foreground">
+                      Share a Listing
+                    </h3>
+                    <button
+                      onClick={() => setShowListingPicker(false)}
+                      className="p-1 rounded-lg hover:bg-muted text-muted-foreground"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="overflow-y-auto custom-scrollbar flex-1">
+                    {availableListings.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center px-4">
+                        <ShoppingBag className="w-8 h-8 text-muted-foreground/30 mb-2" />
+                        <p className="text-sm text-muted-foreground font-medium">
+                          No listings available
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-2 space-y-1">
+                        {availableListings.map((l) => (
+                          <div
+                            key={l.id}
+                            onClick={() => handleSend(l.id)}
+                            className="flex items-center gap-3 p-2.5 hover:bg-muted/70 rounded-xl cursor-pointer border border-transparent hover:border-border transition-all"
+                          >
+                            {l.imageUrl ? (
+                              <img
+                                src={l.imageUrl}
+                                className="w-10 h-10 object-cover rounded-lg bg-muted shrink-0"
+                                alt={l.title}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-muted shrink-0 flex items-center justify-center">
+                                <Leaf className="w-4 h-4 text-muted-foreground/40" />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold truncate text-foreground">
+                                {l.title}
+                              </p>
+                              <p className="text-xs text-primary font-bold">
+                                RM {l.price}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
-            <input
-              className="flex-1 border border-border bg-card text-foreground rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary h-12"
+            {/* Text Input */}
+            <textarea
+              ref={inputRef}
+              rows={1}
+              className="flex-1 border border-border bg-muted/50 text-foreground rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 focus:bg-card resize-none overflow-hidden transition-all placeholder:text-muted-foreground/60"
               placeholder="Type a message..."
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                // Auto-grow
+                e.target.style.height = "auto";
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              style={{ minHeight: "42px" }}
             />
+
+            {/* Send Button */}
             <button
               onClick={() => handleSend()}
-              className="bg-primary text-primary-foreground w-12 sm:w-auto sm:px-6 h-12 rounded-lg font-bold hover:bg-primary/90 transition flex items-center justify-center"
+              disabled={!newMessage.trim()}
+              className="shrink-0 h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5 active:translate-y-0"
               title="Send Message"
             >
-              <Send className="w-5 h-5 sm:hidden" />
-              <span className="hidden sm:inline">Send</span>
+              <Send className="w-4 h-4" />
             </button>
           </div>
         )}

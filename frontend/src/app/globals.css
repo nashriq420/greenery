@@ -306,4 +306,61 @@
   .leaflet-popup-content a.bg-green-700 {
     color: #ffffff !important;
   }
+
+  /* ── Dashboard & Chat Redesign Utilities ─────────────────────────── */
+
+  /* Shimmer skeleton */
+  .skeleton {
+    @apply bg-muted animate-pulse rounded-xl;
+  }
+  .skeleton-text {
+    @apply h-3 bg-muted animate-pulse rounded-full;
+  }
+
+  /* Section header */
+  .section-header {
+    @apply text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3;
+  }
+
+  /* Quick-action card */
+  .quick-action-card {
+    @apply flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-border/60 bg-card cursor-pointer select-none;
+    box-shadow: 0 4px 20px -2px rgba(0,0,0,0.04), 0 1px 3px -1px rgba(0,0,0,0.02);
+    @apply hover:border-primary/40 hover:bg-primary/5 transition-all duration-200;
+    @apply active:scale-[0.97];
+  }
+
+  /* Chat avatar ring */
+  .avatar-ring {
+    @apply ring-2 ring-background;
+  }
+
+  /* Unread badge */
+  .unread-badge {
+    @apply inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none shrink-0;
+  }
+
+  /* Chat input container */
+  .chat-input-wrapper {
+    @apply flex items-center gap-2 bg-card border-t border-border px-4 py-3;
+  }
+
+  /* Closed chat banner */
+  .chat-closed-banner {
+    @apply flex flex-col items-center justify-center gap-4 p-6 bg-amber-50 dark:bg-amber-950/20 border-t border-amber-200 dark:border-amber-900/40;
+  }
+
+  /* Custom scrollbar (webkit) */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
 }
