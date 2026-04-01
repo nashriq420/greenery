@@ -492,7 +492,7 @@ export default function PostCard({
                   onSubmit={handleAddComment}
                   className="flex gap-3 items-start"
                 >
-                  <div className="hidden sm:flex w-8 h-8 bg-primary/10 rounded-full items-center justify-center text-primary font-bold overflow-hidden border border-primary/20 shrink-0 mt-0.5">
+                  <div className="hidden sm:flex w-8 h-8 bg-primary/10 rounded-full items-center justify-center text-primary font-bold overflow-hidden border border-primary/20 shrink-0 mt-0.5 relative">
                     {user?.profilePicture ? (
                       <Image
                         src={user.profilePicture}
