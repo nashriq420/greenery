@@ -122,7 +122,7 @@ export default function LocationPicker({
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
         {
           headers: {
-            "User-Agent": "GreeneryApp/1.0",
+            "User-Agent": "BudPlugApp/1.0",
           },
         },
       );
@@ -153,7 +153,7 @@ export default function LocationPicker({
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
         {
           headers: {
-            "User-Agent": "GreeneryApp/1.0",
+            "User-Agent": "BudPlugApp/1.0",
           },
         },
       );

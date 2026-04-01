@@ -9,7 +9,7 @@ export default function Home() {
       <header className="glass-nav">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl text-primary tracking-tight">
-            <span>🌿</span> Greenery
+            BudPlug
           </div>
           <div className="flex gap-6 items-center">
             <a
@@ -43,7 +43,7 @@ export default function Home() {
           </a>
         </div>
         <p className="text-[#94A3B8] text-sm tracking-wide">
-          © 2026 Greenery. All rights reserved.
+          © 2026 BudPlug. All rights reserved.
         </p>
       </footer>
     </main>

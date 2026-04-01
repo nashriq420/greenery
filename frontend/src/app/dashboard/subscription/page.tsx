@@ -43,7 +43,7 @@ export default function SubscriptionPage() {
       <div className="text-center">
         <h1 className="text-3xl font-bold">Choose your Plan</h1>
         <p className="text-gray-500 mt-2">
-          Unlock the full potential of Greenery
+          Unlock the full potential of BudPlug
         </p>
       </div>
 
@@ -79,7 +79,7 @@ export default function SubscriptionPage() {
             RECOMMENDED
           </div>
           <CardHeader>
-            <CardTitle>Greenery Pro</CardTitle>
+            <CardTitle>BudPlug Pro</CardTitle>
             <CardDescription>For serious buyers & sellers</CardDescription>
           </CardHeader>
           <CardContent>

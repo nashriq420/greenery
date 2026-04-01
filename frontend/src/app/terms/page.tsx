@@ -14,103 +14,118 @@ export default function TermsPage() {
               1. Introduction
             </h2>
             <p>
-              Welcome to Greenery. By accessing our website and using our
-              services, you agree to be bound by these Terms and Conditions.
-              Please read them carefully. If you do not agree with any part of
-              these terms, you must not use our platform.
+              Welcome to BudPlug. By accessing our website and using our
+              services, you agree to comply with and be bound by the following
+              terms and conditions.
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              BudPlug is a marketplace platform that facilitates the sale and
+              exchange of plants and related information. We do not personally
+              sell the items listed on our platform.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">
-              2. User Accounts
+          <section className="mb-10">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm">
+                01
+              </span>{" "}
+              User Accounts
             </h2>
-            <p>
-              To access certain features of Greenery, you may be required to
-              register for an account. You agree to provide accurate, current,
-              and complete information during the registration process and to
-              update such information to keep it accurate, current, and
-              complete. You are responsible for safeguarding your password and
-              for all activities that occur under your account.
+            <p className="text-muted-foreground leading-relaxed">
+              To access certain features of BudPlug, you may be required to
+              create an account. You are responsible for maintaining the
+              confidentiality of your account information and for all activities
+              that occur under your account.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">
-              3. Content Ownership and Use
+          <section className="mb-10">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm">
+                02
+              </span>{" "}
+              User Content
             </h2>
-            <p>
-              Users retain ownership of the content they post on Greenery,
-              including listings, comments, and images. However, by posting
-              content, you grant Greenery a non-exclusive, worldwide,
-              royalty-free license to use, reproduce, modify, and display such
-              content in connection with the operation of the platform.
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Users retain ownership of the content they post on BudPlug,
+              including text, images, and other materials. By posting
+              content, you grant BudPlug a non-exclusive, worldwide,
+              royalty-free license to use, reproduce, and display your content
+              in connection with our services.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">
-              4. Prohibited Activities
+          <section className="mb-10">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm">
+                03
+              </span>{" "}
+              Prohibited Conduct
             </h2>
-            <p>
-              You agree not to engage in any of the following prohibited
-              activities:
+            <p className="text-muted-foreground leading-relaxed">
+              You agree not to use BudPlug for any unlawful purpose or in any
+              way that violates these Terms. This includes, but is not limited
+              to, posting illegal content, harassing other users, or attempting
+              to interfere with the operation of the platform.
             </p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>Violating any applicable laws or regulations.</li>
-              <li>Posting false, misleading, or fraudulent content.</li>
-              <li>Harassing, abusing, or harming another person.</li>
-              <li>
-                Interfering with the security or proper functioning of the
-                platform.
-              </li>
-            </ul>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">
-              5. Termination
+          <section className="mb-10">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm">
+                04
+              </span>{" "}
+              Termination
             </h2>
-            <p>
-              We may terminate or suspend your account and access to Greenery
+            <p className="text-muted-foreground leading-relaxed">
+              We may terminate or suspend your account and access to BudPlug
               immediately, without prior notice or liability, for any reason
-              whatsoever, including without limitation if you breach the Terms
-              and Conditions.
+              whatsoever, including without limitation if you breach the Terms.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">
-              6. Disclaimer
+          <section className="mb-10">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm">
+                05
+              </span>{" "}
+              Disclaimer of Warranties
             </h2>
-            <p>
-              Greenery is provided on an "AS IS" and "AS AVAILABLE" basis. We
-              make no warranties, expressed or implied, regarding the operation
-              of the platform or the information, content, or materials included
-              on it.
+            <p className="text-muted-foreground leading-relaxed">
+              BudPlug is provided on an "AS IS" and "AS AVAILABLE" basis. We
+              make no representations or warranties of any kind, express or
+              implied, as to the operation of our services or the information,
+              content, materials, or products included on our services.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">
-              7. Limitation of Liability
+          <section className="mb-10">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm">
+                06
+              </span>{" "}
+              Limitation of Liability
             </h2>
-            <p>
-              In no event shall Greenery, its directors, employees, or agents,
-              be liable for any direct, indirect, incidental, special, or
-              consequential damages resulting from your use of or inability to
-              use the platform.
+            <p className="text-muted-foreground leading-relaxed">
+              In no event shall BudPlug, its directors, employees, or agents,
+              be liable for any indirect, incidental, special, consequential, or
+              punitive damages arising out of or in connection with your use of
+              our services.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">
-              8. Changes to Terms
+          <section className="mb-10">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm">
+                07
+              </span>{" "}
+              Changes to Terms
             </h2>
-            <p>
-              We reserve the right, at our sole discretion, to modify or replace
-              these Terms at any time. We will provide notice of any significant
-              changes. Your continued use of Greenery after any such changes
+            <p className="text-muted-foreground leading-relaxed">
+              We reserve the right to modify or replace these Terms at any time.
+              We will notify you of any major changes by posting the new Terms
+              on this page. Your continued use of BudPlug after any such changes
               constitutes your acceptance of the new Terms.
             </p>
           </section>

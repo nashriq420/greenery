@@ -77,7 +77,7 @@ export default function DashboardPage() {
         <div className="relative">
           <div className="flex items-center gap-2 mb-1">
             <Leaf className="w-5 h-5 opacity-80" />
-            <span className="text-sm font-medium opacity-80">Greenery Marketplace</span>
+            <span className="text-sm font-medium opacity-80">BudPlug Marketplace</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-1">
             Welcome back, {user?.name?.split(" ")[0] || "there"} 👋
@@ -277,7 +277,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="font-semibold text-sm text-foreground mb-1">No listings yet</p>
                   <p className="text-xs text-muted-foreground mb-4">
-                    Create your first listing to start selling on Greenery.
+                    Create your first listing to start selling on BudPlug.
                   </p>
                   <Link
                     href="/dashboard/marketplace"

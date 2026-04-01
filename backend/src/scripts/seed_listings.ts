@@ -32,7 +32,7 @@ async function main() {
         latitude: 1.3521,
         longitude: 103.8198,
         address: "123 Green Lane, Eco City",
-        description: "Top quality greenery and related products.",
+        description: "Top quality BudPlug and related products.",
       },
     });
 

@@ -12,7 +12,7 @@ export default function PrivacyPage() {
               1. Introduction
             </h2>
             <p>
-              Greenery is a dedicated plant marketplace connecting sellers and
+              BudPlug is a dedicated plant marketplace connecting sellers and
               enthusiasts. We value your privacy and are committed to protecting
               your personal information. This Privacy Policy explains how we
               collect, use, and safeguard your data when you use our platform to
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
                 Respond to your comments, questions, and marketplace inquiries.
               </li>
               <li>
-                Monitor and analyze trends to improve the Greenery experience.
+                Monitor and analyze trends to improve the BudPlug experience.
               </li>
             </ul>
           </section>

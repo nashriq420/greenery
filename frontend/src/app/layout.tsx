@@ -5,7 +5,7 @@ import CookieConsent from "@/components/CookieConsent";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Greenery",
+  title: "BudPlug",
   description: "Your Preferred Devil's Lettuce Marketplace",
 };
 

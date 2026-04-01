@@ -16,7 +16,7 @@ export default function LandingHero() {
 
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6">
             Discover & Source <br className="hidden md:block" />{" "}
-            <span className="text-primary">Premium Greenery.</span>
+            <span className="text-primary">Premium BudPlug.</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto">

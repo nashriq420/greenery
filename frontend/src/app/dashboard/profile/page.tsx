@@ -291,7 +291,7 @@ export default function ProfilePage() {
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(customerLocationQuery)}&limit=5&addressdetails=1`,
           {
             headers: {
-              "User-Agent": "GreeneryApp/1.0",
+              "User-Agent": "BudPlugApp/1.0",
             },
           },
         );

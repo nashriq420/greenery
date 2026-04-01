@@ -246,7 +246,7 @@ export default function AdminPage() {
               Admin Center
             </h2>
             <p className="text-xs text-muted-foreground mt-1.5 font-medium">
-              Greenery Management
+              BudPlug Management
             </p>
           </div>
         </div>

@@ -67,7 +67,7 @@ export default function SignupPage() {
       <Card className="w-[450px]">
         <CardHeader>
           <CardTitle>Create an account</CardTitle>
-          <CardDescription>Join Greenery today.</CardDescription>
+          <CardDescription>Join BudPlug today.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">

@@ -144,14 +144,14 @@ function AuthForm() {
           href="/"
           className="flex items-center gap-2 font-bold text-xl text-green-700"
         >
-          <span>🌿</span> Greenery
+          BudPlug
         </Link>
       </header>
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-[450px]">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-green-700">
-              Greenery
+              BudPlug
             </CardTitle>
             <CardDescription>
               Welcome to your local plant marketplace.

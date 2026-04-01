@@ -114,10 +114,9 @@ export default function CommunitySidebar({
       <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-lg">
-            🌿
           </div>
           <div>
-            <h2 className="font-bold text-sm text-foreground">r/Greenery</h2>
+            <h2 className="font-bold text-sm text-foreground">r/BudPlug</h2>
             <p className="text-xs text-muted-foreground">
               The cannabis community
             </p>

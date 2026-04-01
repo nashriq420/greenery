@@ -1,4 +1,4 @@
-# 🌿 Greenery v2.1.0
+# BudPlug v2.3.0
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20-green?style=for-the-badge&logo=node.js)](https://nodejs.org/)
@@ -64,7 +64,7 @@ A modern, production-ready subscription-based geo-mapped marketplace for plant e
 
 ## 🌐 Deployment
 
-Greenery is designed for easy deployment using modern cloud infrastructure.
+BudPlug is designed for easy deployment using modern cloud infrastructure.
 
 - **EC2**: Successfully deployed on AWS EC2 instances.
 - **Docker**: Containerized setup via `docker-compose.yml`.
