@@ -1,7 +1,18 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import Decimal = Prisma.Decimal;
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
+import * as dotenv from "dotenv";
 
-const prisma = new PrismaClient();
+dotenv.config();
+
+const connectionString =
+  process.env.DATABASE_URL ||
+  "postgresql://postgres:password@localhost:5432/greenery?schema=public";
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
+import Decimal = Prisma.Decimal;
 
 const sellers = [
   "seller1@greenery.com",
