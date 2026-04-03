@@ -2,6 +2,7 @@ import { PrismaClient, Prisma } from "@prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import * as dotenv from "dotenv";
+import bcrypt from "bcrypt";
 
 dotenv.config();
 
@@ -29,14 +30,31 @@ const reportData = [
 async function main() {
   console.log("Starting blacklist report seed...");
 
+  const password = await bcrypt.hash("GreenPass123!", 10);
+
+  // Ensure all reporters exist
+  console.log("Ensuring reporters exist...");
+  for (const email of reporters) {
+    const username = email.split("@")[0];
+    await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        username,
+        name: `${username.charAt(0).toUpperCase() + username.slice(1)}`,
+        password,
+        role: "CUSTOMER",
+        status: "ACTIVE",
+        isVerified: true,
+      },
+    });
+  }
+
   const userEmails = await prisma.user.findMany({
     where: { email: { in: reporters } },
     select: { id: true, email: true },
   });
-
-  if (userEmails.length === 0) {
-    throw new Error("No reporters found. Please ensure customer@greenery.com through customer3@greenery.com exist.");
-  }
 
   const reporterMap = new Map(userEmails.map((u) => [u.email, u.id]));
 

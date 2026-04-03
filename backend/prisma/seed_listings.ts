@@ -2,6 +2,7 @@ import { PrismaClient, Prisma } from "@prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import * as dotenv from "dotenv";
+import bcrypt from "bcrypt";
 
 dotenv.config();
 
@@ -147,14 +148,39 @@ function parseRange(rangeStr: string): number {
 async function main() {
   console.log("Starting listing seed...");
 
+  const password = await bcrypt.hash("GreenPass123!", 10);
+
+  // Ensure all sellers exist
+  console.log("Ensuring sellers exist...");
+  for (const email of sellers) {
+    const username = email.split("@")[0];
+    await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        username,
+        name: `${username.charAt(0).toUpperCase() + username.slice(1)} Seller`,
+        password,
+        role: "SELLER",
+        status: "ACTIVE",
+        isVerified: true,
+        sellerProfile: {
+          create: {
+            latitude: (Math.random() * (41 - 40) + 40),
+            longitude: (Math.random() * (-73 - -74) + -74),
+            address: "Generated Seed Location",
+            description: "High-quality provider of premium plants.",
+          },
+        },
+      },
+    });
+  }
+
   const userEmails = await prisma.user.findMany({
     where: { email: { in: sellers } },
     select: { id: true, email: true },
   });
-
-  if (userEmails.length === 0) {
-    throw new Error("No sellers found. Please ensure seller1@greenery.com through seller4@greenery.com exist.");
-  }
 
   const sellerMap = new Map(userEmails.map((u) => [u.email, u.id]));
 
@@ -183,8 +209,8 @@ async function main() {
         status: "ACTIVE",
         deliveryAvailable: Math.random() > 0.5,
         minQuantity: 1,
-        strainType: item.type, // e.g. Indica, Sativa, Hybrid
-        type: "Flower", // Majority of this list is flower
+        strainType: item.type,
+        type: "Flower",
         flavors: item.flavor,
         thcContent: parseRange(item.thc),
         cbdContent: parseRange(item.cbd),
