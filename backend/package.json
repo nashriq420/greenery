@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "seed:listings": "ts-node prisma/seed_listings.ts"
+    "seed:listings": "ts-node prisma/seed_listings.ts",
+    "seed:blacklist": "ts-node prisma/seed_blacklist.ts"
   },
   "keywords": [],
   "author": "",
