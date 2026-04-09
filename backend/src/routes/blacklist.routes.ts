@@ -2,29 +2,37 @@ import express from "express";
 import {
   createReport,
   getPublicReports,
+  getReportById,
+  confirmReport,
   getAllReports,
   updateReportStatus,
   getUserReports,
 } from "../controllers/blacklist.controller";
-import { authenticateToken } from "../middlewares/auth.middleware";
+import {
+  authenticateToken,
+  authenticateOptional,
+} from "../middlewares/auth.middleware";
 import { isAdmin } from "../middlewares/role.middleware";
+import { uploadEvidenceMiddleware } from "../middlewares/evidenceUpload.middleware";
 
 const router = express.Router();
 
-import { uploadEvidenceMiddleware } from "../middlewares/evidenceUpload.middleware";
-
-// Public routes (or authenticated user routes)
+// ── Specific routes first (before wildcard /:id) ────────────────────────────
 router.post(
   "/",
   authenticateToken,
   uploadEvidenceMiddleware.single("evidence"),
-  createReport,
+  createReport
 );
-router.get("/", getPublicReports);
+router.get("/", authenticateOptional, getPublicReports);
 router.get("/my-reports", authenticateToken, getUserReports);
 
-// Admin routes
+// Admin routes must come BEFORE /:id wildcard
 router.get("/admin", authenticateToken, isAdmin, getAllReports);
 router.put("/admin/:id", authenticateToken, isAdmin, updateReportStatus);
+
+// ── Wildcard param routes last ───────────────────────────────────────────────
+router.get("/:id", authenticateOptional, getReportById);
+router.post("/:id/confirm", authenticateToken, confirmReport);
 
 export default router;

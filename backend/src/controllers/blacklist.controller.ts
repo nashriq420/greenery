@@ -4,10 +4,8 @@ import { prisma } from "../utils/prisma";
 export const createReport = async (req: Request, res: Response) => {
   try {
     const { username, region, contactInfo, description } = req.body;
-    // Handle file upload
-    let evidenceUrl = req.body.evidenceUrl; // Fallback if they send URL string (not expected with new form)
+    let evidenceUrl = req.body.evidenceUrl;
     if (req.file) {
-      // Store relative path to be served statically
       evidenceUrl = `/uploads/evidence/${req.file.filename}`;
     }
 
@@ -34,47 +32,140 @@ export const createReport = async (req: Request, res: Response) => {
 
 export const getPublicReports = async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user?.id as string | undefined;
+
+    // Fetch reports with confirmation count
     const reports = await prisma.blacklistReport.findMany({
-      where: {
-        status: "APPROVED",
+      where: { status: "APPROVED" },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        reporter: { select: { name: true, profilePicture: true } },
+        _count: { select: { confirmations: true } },
       },
-      orderBy: {
-        updatedAt: "desc", // "sort to latest approved date" - approximation using updatedAt
-      },
-      // include: {
-      //     reporter: {
-      //         select: {
-      //             name: true,
-      //             profilePicture: true
-      //         }
-      //     }
-      // }
     });
 
-    res.json(reports);
+    // If logged in, fetch which ones the user has confirmed
+    let confirmedIds = new Set<string>();
+    if (userId) {
+      const userConfirms = await prisma.blacklistConfirmation.findMany({
+        where: { userId, reportId: { in: reports.map((r) => r.id) } },
+        select: { reportId: true },
+      });
+      confirmedIds = new Set(userConfirms.map((c) => c.reportId));
+    }
+
+    const enriched = reports.map((r) => ({
+      ...r,
+      confirmationCount: r._count.confirmations,
+      confirmedByMe: confirmedIds.has(r.id),
+      _count: undefined,
+    }));
+
+    res.json(enriched);
   } catch (error) {
     console.error("Error fetching public reports:", error);
     res.status(500).json({ message: "Error fetching reports" });
   }
 };
 
-export const getAllReports = async (req: Request, res: Response) => {
+export const getReportById = async (req: Request, res: Response) => {
   try {
-    const reports = await prisma.blacklistReport.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
+    const id = String(req.params.id);
+    const userId = (req as any).user?.id as string | undefined;
+
+    const report = await prisma.blacklistReport.findUnique({
+      where: { id },
       include: {
-        reporter: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
+        reporter: { select: { name: true, profilePicture: true } },
+        _count: { select: { confirmations: true } },
       },
     });
 
-    res.json(reports);
+    if (!report) return res.status(404).json({ message: "Report not found" });
+
+    let confirmedByMe = false;
+    if (userId) {
+      const existing = await prisma.blacklistConfirmation.findUnique({
+        where: { reportId_userId: { reportId: id, userId } },
+      });
+      confirmedByMe = !!existing;
+    }
+
+    res.json({
+      ...report,
+      confirmationCount: report._count.confirmations,
+      confirmedByMe,
+      _count: undefined,
+    });
+  } catch (error) {
+    console.error("Error fetching report:", error);
+    res.status(500).json({ message: "Error fetching report" });
+  }
+};
+
+export const confirmReport = async (req: Request, res: Response) => {
+  try {
+    const id = String(req.params.id);
+    const userId = (req as any).user?.id as string | undefined;
+
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    // Check report exists and is approved
+    const report = await prisma.blacklistReport.findUnique({ where: { id } });
+    if (!report || report.status !== "APPROVED") {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    // Prevent reporter from confirming their own report
+    if (report.reporterId === userId) {
+      return res
+        .status(400)
+        .json({ message: "You cannot confirm your own report" });
+    }
+
+    // Toggle: if already confirmed, remove; otherwise add
+    const existing = await prisma.blacklistConfirmation.findUnique({
+      where: { reportId_userId: { reportId: id, userId } },
+    });
+
+    if (existing) {
+      await prisma.blacklistConfirmation.delete({ where: { id: existing.id } });
+      const count = await prisma.blacklistConfirmation.count({
+        where: { reportId: id },
+      });
+      return res.json({ confirmed: false, confirmationCount: count });
+    } else {
+      await prisma.blacklistConfirmation.create({
+        data: { reportId: id, userId },
+      });
+      const count = await prisma.blacklistConfirmation.count({
+        where: { reportId: id },
+      });
+      return res.json({ confirmed: true, confirmationCount: count });
+    }
+  } catch (error) {
+    console.error("Error confirming report:", error);
+    res.status(500).json({ message: "Error confirming report" });
+  }
+};
+
+export const getAllReports = async (req: Request, res: Response) => {
+  try {
+    const reports = await prisma.blacklistReport.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        reporter: { select: { name: true, email: true } },
+        _count: { select: { confirmations: true } },
+      },
+    });
+
+    res.json(
+      reports.map((r) => ({
+        ...r,
+        confirmationCount: r._count.confirmations,
+        _count: undefined,
+      }))
+    );
   } catch (error) {
     console.error("Error fetching admin reports:", error);
     res.status(500).json({ message: "Error fetching reports" });
@@ -85,12 +176,8 @@ export const getUserReports = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     const reports = await prisma.blacklistReport.findMany({
-      where: {
-        reporterId: userId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+      where: { reporterId: userId },
+      orderBy: { createdAt: "desc" },
     });
     res.json(reports);
   } catch (error) {
@@ -107,19 +194,15 @@ export const updateReportStatus = async (req: Request, res: Response) => {
 
     const report = await prisma.blacklistReport.update({
       where: { id: id as string },
-      data: {
-        status,
-        adminComment,
-      },
+      data: { status, adminComment },
     });
 
-    // Create Audit Log
     if (adminId) {
       try {
         await prisma.auditLog.create({
           data: {
             userId: adminId,
-            action: `BLACKLIST_${status}`, // e.g., BLACKLIST_APPROVED, BLACKLIST_REJECTED
+            action: `BLACKLIST_${status}`,
             details: JSON.stringify({
               reportId: report.id,
               username: report.username,
@@ -130,7 +213,6 @@ export const updateReportStatus = async (req: Request, res: Response) => {
         });
       } catch (auditError) {
         console.error("Failed to create audit log:", auditError);
-        // Swallow error to not fail the main request
       }
     }
 
