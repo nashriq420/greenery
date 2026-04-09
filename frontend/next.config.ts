@@ -1,10 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    turbopack: {
-      root: "..",
-    },
+  turbopack: {
+    root: "..",
   },
   images: {
     unoptimized: true, // Bypass SSRF protection for localhost images
