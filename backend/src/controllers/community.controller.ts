@@ -8,7 +8,7 @@ import { NotificationType } from "@prisma/client";
 
 //Schemas
 const createPostSchema = z.object({
-  content: z.string().min(1, "Content cannot be empty"),
+  content: z.string().optional().default(""),
   imageUrl: z.string().nullable().optional(),
   tag: z.string().optional(),
 });
@@ -174,6 +174,9 @@ export const createPost = async (req: AuthRequest, res: Response) => {
 
     res.status(201).json(post);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Validation error", errors: (error as any).errors });
+    }
     console.error("Error creating post:", error);
     res
       .status(500)
@@ -232,8 +235,11 @@ export const updatePost = async (req: AuthRequest, res: Response) => {
 
     res.json(updatedPost);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Validation error", errors: (error as any).errors });
+    }
     console.error("Update post error:", error);
-    res.status(400).json({ message: "Update failed", error: String(error) });
+    res.status(500).json({ message: "Update failed", error: String(error) });
   }
 };
 

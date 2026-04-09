@@ -17,6 +17,8 @@ export interface Seller {
   averageRating: number | null;
   reviewCount: number | null;
   subscriptionStatus?: string | null;
+  openingHours?: string | null;
+  bannerUrl?: string | null;
 }
 
 export function useSellers(
@@ -114,7 +116,7 @@ export interface ListingFilters {
 
 export function useListings(filters: ListingFilters = {}) {
   const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { token } = useAuthStore();
 
   const fetchListings = async () => {
@@ -160,7 +162,7 @@ export function useListings(filters: ListingFilters = {}) {
   };
 
   useEffect(() => {
-    // Debounce fetching if needed, but for now simple effect
+    setLoading(true);
     const timeout = setTimeout(fetchListings, 500);
     return () => clearTimeout(timeout);
   }, [token, JSON.stringify(filters)]);

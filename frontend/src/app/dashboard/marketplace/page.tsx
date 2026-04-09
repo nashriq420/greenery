@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { MapPin, Check, Search, Filter, X, Star, Store } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -63,9 +64,12 @@ export default function MarketplacePage() {
   // Success Message State
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
+  const searchParams = useSearchParams();
+  const rawSearchParam = searchParams?.get("search") || "";
+
   // Valid Filter State
   const [filters, setFilters] = useState({
-    search: "",
+    search: rawSearchParam,
     minPrice: "",
     maxPrice: "",
     strainType: "",
@@ -441,9 +445,26 @@ export default function MarketplacePage() {
               {viewMode === "grid" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {sortedListings.length === 0 ? (
-                    <p className="col-span-full text-center text-muted-foreground py-10">
-                      No active listings found.
-                    </p>
+                    <div className="col-span-full flex flex-col items-center justify-center text-center py-24 bg-card rounded-2xl border border-dashed border-border/80 px-6 shadow-sm">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-5">
+                         <Search className="w-8 h-8 text-muted-foreground/60" />
+                      </div>
+                      <h3 className="text-xl font-bold text-foreground mb-2">No matches found</h3>
+                      <p className="text-muted-foreground max-w-md">
+                        {filters.search 
+                          ? `We couldn't find any products, herbs, or vendors matching "${filters.search}". Try adjusting your keywords or filters.` 
+                          : "There are currently no active listings available matching your criteria."}
+                      </p>
+                      {(filters.search || filters.minPrice || filters.maxPrice || filters.strainType || filters.type || filters.deliveryAvailable) && (
+                        <Button 
+                          variant="outline" 
+                          className="mt-6 font-bold rounded-xl" 
+                          onClick={() => setFilters({ search: "", minPrice: "", maxPrice: "", strainType: "", type: "", deliveryAvailable: false, thcMin: "", cbdMin: "" })}
+                        >
+                          Clear all filters
+                        </Button>
+                      )}
+                    </div>
                   ) : (
                     sortedListings.map((listing) => (
                       <Link
