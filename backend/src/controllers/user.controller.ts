@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../utils/prisma";
+import { Prisma } from "@prisma/client";
 import { z, ZodError } from "zod";
 import { logger } from "../utils/logger";
 import { AuthRequest } from "../middlewares/auth.middleware";
@@ -247,7 +248,7 @@ export const deleteMe = async (req: AuthRequest, res: Response) => {
     const anonymizedUsername = `deleted_${userId.substring(0, 8)}`;
     const scrambledPassword = await bcrypt.hash(Math.random().toString(36), 10);
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Log Activity
       await tx.auditLog.create({
         data: {
