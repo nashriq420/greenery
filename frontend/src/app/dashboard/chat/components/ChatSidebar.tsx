@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { Search, Megaphone, MessageSquare } from "lucide-react";
 import BroadcastModal from "./BroadcastModal";
 import { toast } from "react-hot-toast";
@@ -38,6 +38,7 @@ export default function ChatSidebar({
   const [loading, setLoading] = useState(true);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
   const params = useParams();
+  const pathname = usePathname();
   const activeId = params?.id;
   const previousLatestUpdateRef = useRef<number>(0);
 
@@ -61,11 +62,13 @@ export default function ChatSidebar({
             const lastMsg = latestChat.messages?.[0];
             if (
               lastMsg &&
-              lastMsg.sender?.id !== user?.id &&
-              latestChat.id !== activeId
+              lastMsg.senderId !== user?.id &&
+              pathname !== `/dashboard/chat/${latestChat.id}`
             ) {
               playNotificationSound();
-              const senderName = lastMsg.sender?.name || "Someone";
+              const otherParticipant = 
+                latestChat.participant1.id === user?.id ? latestChat.participant2 : latestChat.participant1;
+              const senderName = otherParticipant?.name || "Someone";
               toast.success(`New message from ${senderName}`, { icon: "💬" });
             }
           }
@@ -205,7 +208,7 @@ export default function ChatSidebar({
               // Unread heuristic: last message exists and was not sent by me
               const hasUnread =
                 lastMessage &&
-                lastMessage.sender?.id !== user?.id &&
+                lastMessage.senderId !== user?.id &&
                 !lastMessage.read;
 
               return (

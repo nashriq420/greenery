@@ -1,10 +1,10 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
-import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes";
 import marketplaceRoutes from "./routes/marketplace.routes";
 import subscriptionRoutes from "./routes/subscription.routes";
@@ -18,8 +18,6 @@ import notificationRoutes from "./routes/notification.routes";
 import { communityRoutes } from "./routes/community.routes";
 import blacklistRoutes from "./routes/blacklist.routes";
 import analyticsRoutes from "./routes/analytics.routes";
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -103,6 +101,7 @@ app.use(
         .json({ message: "File is too large. Maximum size is 5MB." });
     }
 
+    require("fs").appendFileSync("error2.log", `[GLOBAL ERROR] ${err.message}\n${err.stack}\n`);
     res
       .status(500)
       .json({ message: "Internal Server Error", error: err.message });
