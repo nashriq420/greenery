@@ -149,10 +149,11 @@ function AuthForm() {
       </header>
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-[450px]">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-green-700">
+          <CardHeader className="text-center flex flex-col items-center">
+            <CardTitle className="text-2xl font-bold text-green-700 mb-2">
               BudPlug
             </CardTitle>
+            <img src="/logo.png" alt="BudPlug Logo" className="w-20 h-20 object-contain rounded-full shadow-lg mb-2" />
             <CardDescription>
               Welcome to your local plant marketplace.
             </CardDescription>

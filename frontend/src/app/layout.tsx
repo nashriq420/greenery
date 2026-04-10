@@ -7,6 +7,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "BudPlug",
   description: "Your Preferred Devil's Lettuce Marketplace",
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({

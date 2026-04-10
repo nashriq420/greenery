@@ -19,6 +19,10 @@ export default function LandingHero() {
             <span className="text-primary">Premium BudPlug.</span>
           </h1>
 
+          <div className="flex justify-center mb-8">
+            <img src="/logo.png" alt="BudPlug Logo" className="w-32 h-32 md:w-48 md:h-48 object-contain rounded-full shadow-2xl ring-4 ring-primary/20" />
+          </div>
+
           <p className="text-lg md:text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto">
             Connect with top-tier vendors. Discover natural remedies, compare
             strains, and enjoy a curated, trustworthy shopping experience.

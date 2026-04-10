@@ -9,6 +9,7 @@ export default function Home() {
       <header className="glass-nav">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl text-primary tracking-tight">
+            <img src="/logo.png" alt="BudPlug Logo" className="h-8 w-8 object-contain rounded-full" />
             BudPlug
           </div>
           <div className="flex gap-6 items-center">
