@@ -71,7 +71,7 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-card rounded-lg shadow-xl border border-border z-[1100] overflow-hidden py-1 text-card-foreground">
+        <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-56 bg-card rounded-lg shadow-xl border border-border z-[1100] overflow-hidden py-1 text-card-foreground">
           <div className="px-4 py-3 border-b border-border md:hidden">
             <p className="text-sm font-medium text-foreground">{user?.name}</p>
             <p className="text-xs text-muted-foreground truncate">

@@ -712,7 +712,7 @@ export default function SafetyPage() {
       </div>
 
       {/* ── View Nav Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {[
           { id: "reports" as ReportView, icon: <ShieldAlert className="w-5 h-5" />, label: "Reports", sub: "View reported users and vendors" },
           { id: "report_user" as ReportView, icon: <Flag className="w-5 h-5" />, label: "Report a User", sub: "Submit a report to the community" },
@@ -736,12 +736,12 @@ export default function SafetyPage() {
       </div>
 
       {/* ── Alert Banner ── */}
-      <div className="flex items-center justify-between bg-green-50 border border-green-300 dark:bg-emerald-900/20 dark:border-emerald-800/40 rounded-xl px-4 py-3">
+      <div className="flex flex-col md:flex-row items-center justify-between bg-green-50 border border-green-300 dark:bg-emerald-900/20 dark:border-emerald-800/40 rounded-xl px-4 py-3 gap-3">
         <div className="flex items-center gap-2 text-sm text-green-800 dark:text-emerald-300">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           <span>Reports are community-submitted. <span className="font-semibold">Please verify details and use your best judgment.</span></span>
         </div>
-        <button className="text-xs text-green-700 hover:text-green-900 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1 flex-shrink-0 ml-4 transition-colors">
+        <button className="text-xs text-green-700 hover:text-green-900 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1 flex-shrink-0 transition-colors">
           Learn how it works <ArrowRight className="w-3 h-3" />
         </button>
       </div>
@@ -766,8 +766,8 @@ export default function SafetyPage() {
         </div>
       ) : (
         /* ── Reports List View ── */
-        <div className="flex gap-6 items-start">
-          <div className="flex-1 min-w-0 space-y-4">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          <div className="w-full flex-1 min-w-0 space-y-4">
             {/* Search */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -798,14 +798,16 @@ export default function SafetyPage() {
                   {f.label}
                 </button>
               ))}
-              <button className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-white border-gray-200 text-gray-500 hover:text-gray-700 dark:bg-[#0d1f17] dark:border-emerald-900/40 dark:text-slate-400 flex items-center gap-1">
-                Country <ChevronDown className="w-3 h-3" />
-              </button>
-              <button className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-white border-gray-200 text-gray-500 hover:text-gray-700 dark:bg-[#0d1f17] dark:border-emerald-900/40 dark:text-slate-400 flex items-center gap-1">
-                State/Province <ChevronDown className="w-3 h-3" />
-              </button>
-              <div className="ml-auto">
-                <button className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-white border-gray-200 text-gray-500 hover:text-gray-700 dark:bg-[#0d1f17] dark:border-emerald-900/40 dark:text-slate-400 flex items-center gap-1">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium border bg-white border-gray-200 text-gray-500 hover:text-gray-700 dark:bg-[#0d1f17] dark:border-emerald-900/40 dark:text-slate-400 flex items-center justify-center gap-1">
+                  Country <ChevronDown className="w-3 h-3" />
+                </button>
+                <button className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium border bg-white border-gray-200 text-gray-500 hover:text-gray-700 dark:bg-[#0d1f17] dark:border-emerald-900/40 dark:text-slate-400 flex items-center justify-center gap-1">
+                  State/Province <ChevronDown className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="sm:ml-auto w-full sm:w-auto">
+                <button className="w-full sm:w-auto px-3 py-1.5 rounded-lg text-xs font-medium border bg-white border-gray-200 text-gray-500 hover:text-gray-700 dark:bg-[#0d1f17] dark:border-emerald-900/40 dark:text-slate-400 flex items-center justify-center gap-1">
                   Sort: Most Reported <ChevronDown className="w-3 h-3" />
                 </button>
               </div>
@@ -888,7 +890,7 @@ export default function SafetyPage() {
           </div>
 
           {/* ── Right Sidebar ── */}
-          <div className="w-72 flex-shrink-0 space-y-4">
+          <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
             <div className={`${cardClass} p-5`}>
               <div className="flex items-center gap-2 mb-1">
                 <ShieldCheck className="w-4 h-4 text-green-600 dark:text-emerald-400" />

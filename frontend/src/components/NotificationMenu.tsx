@@ -147,7 +147,7 @@ export default function NotificationMenu() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-card border-border rounded-lg shadow-xl border z-[1100] overflow-hidden">
+        <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 bg-card border-border rounded-lg shadow-xl border z-[1100] overflow-hidden">
           <div className="p-3 border-b border-border flex justify-between items-center bg-muted/50">
             <h3 className="font-semibold text-sm text-foreground">
               Notifications
