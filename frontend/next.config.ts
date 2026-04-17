@@ -1,8 +1,9 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   turbopack: {
-    root: "..",
+    root: path.resolve(process.cwd(), ".."),
   },
   images: {
     unoptimized: true, // Bypass SSRF protection for localhost images

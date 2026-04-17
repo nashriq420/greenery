@@ -163,45 +163,45 @@ export default function PrivacyPage() {
             <h2 className="text-2xl font-semibold mb-4 text-foreground">
               8. Your rights regarding the use of your personal information
             </h2>
-            <p>
+            <div className="space-y-4">
               <strong>Marketing Communications & Opt-Out</strong>
               <p>You have the right at any time to opt out of receiving marketing or promotional communications from BudPlug (the “Company”).</p>
               <p>If you receive promotional emails from us, you may unsubscribe by following the instructions provided within each email. You may also manage your communication preferences directly through the “Settings” section of the Site.</p>
               <p>Please note that even if you opt out of marketing communications, BudPlug may continue to send you non-promotional, administrative communications. These may include important service-related messages such as account notifications, security alerts, and updates to our Terms of Service or Privacy Policy.</p>
-            </p>
+            </div>
           </section>
                     <section>
             <h2 className="text-2xl font-semibold mb-4 text-foreground">
               9. Links to other websites
             </h2>
-            <p>
+            <div className="space-y-4">
               <strong>Third-Party Websites & Services</strong>
              <p>As part of the Services, BudPlug (the “Company”) may provide links to, integrations with, or compatibility with third-party websites, applications, or services.</p> 
             <p>Please note that the Company is not responsible for the privacy practices, policies, or content of such third-party platforms. This Privacy Policy applies solely to information collected by BudPlug through the Site and Services and does not extend to any external websites or applications.
              If you choose to access or use any third-party services through links or integrations on our platform, your interactions will be governed by the respective privacy policies and terms of those third parties.
              We strongly encourage users to review the privacy policies of any external websites or applications before providing any personal information or engaging with their services.</p> 
-            </p>
+            </div>
           </section>
           
           <section>
             <h2 className="text-2xl font-semibold mb-4 text-foreground">
-              9. Links to other websites
+              10. Changes to our policy
             </h2>
-            <p>
+            <div className="space-y-4">
               <strong>Changes to our policy</strong>
               <p>BudPlug (the “Company”) reserves the right to update or modify this Privacy Policy and its Terms of Service at any time.
                 Where changes are considered significant, the Company will make reasonable efforts to  notify users, which may include sending a notice to the primary email address associated with your account or displaying a prominent notice on the Site. Such changes will become effective thirty (30) days after notification. Non-material updates, clarifications, or administrative changes will take effect immediately upon posting. We encourage you to review this Privacy Policy periodically to stay informed about how your information is collected, used, and protected.</p>
-            </p>
+            </div>
           </section>
 
           <section>
             <h2 className="text-2xl font-semibold mb-4 text-foreground">
-              10. Contact Us
+              11. Contact Us
             </h2>
-            <p>
+            <div className="space-y-4">
               <strong>Contact Us</strong>
               <p>If you have any questions regarding this Privacy Policy or the practices of the Site, please contact us at: <b>support@budplug.com</b></p>
-            </p>
+            </div>
           </section>
           <section className="mt-8 pt-6 border-t border-border">
             <p className="text-sm text-muted-foreground">
