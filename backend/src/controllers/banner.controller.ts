@@ -59,7 +59,7 @@ export const uploadBanner = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error("Upload banner error:", error);
     if (error instanceof ZodError) {
-      return res.status(400).json({ errors: error.errors });
+      return res.status(400).json({ errors: (error as any).errors });
     }
     res.status(500).json({ message: "Error uploading banner" });
   }

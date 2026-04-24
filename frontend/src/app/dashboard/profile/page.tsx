@@ -6,6 +6,7 @@ import { Upload, Trash2, AlertTriangle, X, Check } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -806,8 +807,7 @@ export default function ProfilePage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Current Password</Label>
-                <Input
-                  type="password"
+                <PasswordInput
                   value={passwordData.currentPassword}
                   onChange={(e) =>
                     setPasswordData({
@@ -819,8 +819,7 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-2">
                 <Label>New Password</Label>
-                <Input
-                  type="password"
+                <PasswordInput
                   value={passwordData.newPassword}
                   onChange={(e) =>
                     setPasswordData({
@@ -1636,9 +1635,8 @@ export default function ProfilePage() {
 
               <div className="space-y-2">
                 <Label htmlFor="delete-password">Confirm Password</Label>
-                <Input
+                <PasswordInput
                   id="delete-password"
-                  type="password"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   placeholder="Enter your password"

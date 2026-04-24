@@ -36,7 +36,7 @@ export const createReport = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error creating blacklist report:", error);
     if (error instanceof ZodError) {
-      return res.status(400).json({ errors: error.errors });
+      return res.status(400).json({ errors: (error as any).errors });
     }
     res.status(500).json({ message: "Error creating report" });
   }
@@ -237,7 +237,7 @@ export const updateReportStatus = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error updating report status:", error);
     if (error instanceof ZodError) {
-      return res.status(400).json({ errors: error.errors });
+      return res.status(400).json({ errors: (error as any).errors });
     }
     res.status(500).json({ message: "Error updating report" });
   }
