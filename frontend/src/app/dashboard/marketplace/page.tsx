@@ -445,7 +445,7 @@ export default function MarketplacePage() {
         {/* Main Listings Area */}
         <div className="lg:col-span-3 space-y-6 order-2 lg:order-1">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 animate-pulse">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>
               ))}
@@ -453,7 +453,7 @@ export default function MarketplacePage() {
           ) : (
             <>
               {viewMode === "grid" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                   {sortedListings.length === 0 ? (
                     <div className="col-span-full flex flex-col items-center justify-center text-center py-24 bg-card rounded-2xl border border-dashed border-border/80 px-6 shadow-sm">
                       <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-5">
@@ -494,9 +494,7 @@ export default function MarketplacePage() {
                               </div>
                             )}
                             {listing.imageUrl ? (
-                              <div
-                                className={`w-full relative ${listing.seller.subscription?.status === "ACTIVE" ? "h-64" : "h-52"} bg-muted`}
-                              >
+                              <div className="w-full relative aspect-square bg-muted">
                                 <img
                                   src={listing.imageUrl}
                                   alt={listing.title}
@@ -504,9 +502,7 @@ export default function MarketplacePage() {
                                 />
                               </div>
                             ) : (
-                              <div
-                                className={`w-full ${listing.seller.subscription?.status === "ACTIVE" ? "h-64" : "h-52"} flex items-center justify-center text-muted-foreground bg-muted`}
-                              >
+                              <div className="w-full aspect-square flex items-center justify-center text-muted-foreground bg-muted">
                                 <span className="opacity-50 text-sm">
                                   No Image Available
                                 </span>
