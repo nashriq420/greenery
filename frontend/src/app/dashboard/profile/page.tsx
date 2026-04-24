@@ -1269,7 +1269,7 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setNewListing({ ...newListing, sku: e.target.value })
                       }
-                      placeholder="Auto-generate if blank"
+                      placeholder="Leave blank for automatic SKU"
                     />
                   </div>
                 </div>

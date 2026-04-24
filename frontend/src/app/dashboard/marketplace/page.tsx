@@ -1034,7 +1034,7 @@ export default function MarketplacePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, sku: e.target.value })
                     }
-                    placeholder="Auto-generated"
+                    placeholder="Automatic"
                   />
                 </div>
               </div>
