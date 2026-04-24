@@ -1,9 +1,18 @@
 import { Request, Response } from "express";
 import { prisma } from "../utils/prisma";
+import { z, ZodError } from "zod";
+
+const createReportSchema = z.object({
+  username: z.string().min(1),
+  region: z.string().optional(),
+  contactInfo: z.string().optional(),
+  description: z.string().optional(),
+});
 
 export const createReport = async (req: Request, res: Response) => {
   try {
-    const { username, region, contactInfo, description } = req.body;
+    const validated = createReportSchema.parse(req.body);
+    const { username, region, contactInfo, description } = validated;
     let evidenceUrl = req.body.evidenceUrl;
     if (req.file) {
       evidenceUrl = `/uploads/evidence/${req.file.filename}`;
@@ -26,6 +35,9 @@ export const createReport = async (req: Request, res: Response) => {
     res.status(201).json(report);
   } catch (error) {
     console.error("Error creating blacklist report:", error);
+    if (error instanceof ZodError) {
+      return res.status(400).json({ errors: error.errors });
+    }
     res.status(500).json({ message: "Error creating report" });
   }
 };
@@ -186,10 +198,15 @@ export const getUserReports = async (req: Request, res: Response) => {
   }
 };
 
+const updateReportSchema = z.object({
+  status: z.enum(["PENDING", "APPROVED", "REJECTED"]),
+  adminComment: z.string().optional(),
+});
+
 export const updateReportStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { status, adminComment } = req.body;
+    const { status, adminComment } = updateReportSchema.parse(req.body);
     const adminId = (req as any).user?.id;
 
     const report = await prisma.blacklistReport.update({
@@ -219,6 +236,9 @@ export const updateReportStatus = async (req: Request, res: Response) => {
     res.json(report);
   } catch (error) {
     console.error("Error updating report status:", error);
+    if (error instanceof ZodError) {
+      return res.status(400).json({ errors: error.errors });
+    }
     res.status(500).json({ message: "Error updating report" });
   }
 };

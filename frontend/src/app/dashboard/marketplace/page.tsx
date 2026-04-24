@@ -6,7 +6,7 @@ import { calculateDistance } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { MapPin, Check, Search, Filter, X, Star, Store } from "lucide-react";
+import { MapPin, Check, Search, Filter, X, Star, Store, Award } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
@@ -96,14 +96,24 @@ export default function MarketplacePage() {
   );
 
   // Process Sellers
+  const vendorOfTheWeek = nearbySellers.length > 0 
+    ? [...nearbySellers].sort((a, b) => {
+        // Prefer premium sellers, then highest rating
+        if (a.subscriptionStatus === "ACTIVE" && b.subscriptionStatus !== "ACTIVE") return -1;
+        if (b.subscriptionStatus === "ACTIVE" && a.subscriptionStatus !== "ACTIVE") return 1;
+        return (b.averageRating || 0) - (a.averageRating || 0);
+      })[0] 
+    : null;
+
   const premiumSellers = nearbySellers
-    .filter((s) => s.subscriptionStatus === "ACTIVE")
+    .filter((s) => s.subscriptionStatus === "ACTIVE" && s.id !== vendorOfTheWeek?.id)
     .slice(0, 5);
 
   const topRatedSellers = nearbySellers
     .filter(
       (s) =>
         s.subscriptionStatus !== "ACTIVE" &&
+        s.id !== vendorOfTheWeek?.id &&
         s.averageRating &&
         s.averageRating > 0,
     )
@@ -637,6 +647,72 @@ export default function MarketplacePage() {
 
         {/* Right Sidebar: Vendor Near You / Top Vendors */}
         <div className="lg:col-span-1 space-y-6 order-1 lg:order-2">
+          {/* Vendor of the Week Card */}
+          {vendorOfTheWeek && !sellersLoading && (
+            <div className="bg-linear-to-br from-primary/20 via-card to-card border border-primary/30 rounded-2xl p-1 shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
+              <div className="bg-card/80 backdrop-blur-sm rounded-xl p-5 border border-white/10 dark:border-white/5 h-full relative z-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-primary/20 p-2 rounded-lg text-primary">
+                    <Award size={20} className="drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                  </div>
+                  <h2 className="font-bold text-lg bg-clip-text text-transparent bg-linear-to-r from-primary to-emerald-600 dark:to-emerald-400">
+                    Vendor of the Week
+                  </h2>
+                </div>
+                
+                <Link href={`/dashboard/seller/${vendorOfTheWeek.userId}`} className="block group/link">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 rounded-full bg-muted overflow-hidden border-2 border-primary/30 shadow-md shrink-0 relative">
+                       {vendorOfTheWeek.subscriptionStatus === "ACTIVE" && (
+                          <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-0.5 border-2 border-card z-10">
+                            <Check size={12} strokeWidth={3} />
+                          </div>
+                       )}
+                       {vendorOfTheWeek.profilePicture ? (
+                        <img
+                          src={vendorOfTheWeek.profilePicture}
+                          alt={vendorOfTheWeek.name}
+                          className="w-full h-full object-cover transition-transform group-hover/link:scale-110 duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground font-bold text-xl bg-primary/5">
+                          {vendorOfTheWeek.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xl text-foreground group-hover/link:text-primary transition-colors line-clamp-1">
+                        {vendorOfTheWeek.name}
+                      </h3>
+                      <div className="flex items-center text-sm text-muted-foreground gap-1.5 mt-1">
+                        {vendorOfTheWeek.averageRating && vendorOfTheWeek.averageRating > 0 ? (
+                          <span className="flex items-center gap-0.5 text-yellow-600 dark:text-yellow-500 font-bold">
+                            <Star size={14} fill="currentColor" /> {Number(vendorOfTheWeek.averageRating).toFixed(1)}
+                          </span>
+                        ) : (
+                          <span className="font-medium">New Vendor</span>
+                        )}
+                        <span>•</span>
+                        <span className="truncate">{vendorOfTheWeek.city || "Unknown"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {vendorOfTheWeek.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+                      "{vendorOfTheWeek.description}"
+                    </p>
+                  )}
+                  
+                  <div className="w-full py-2 bg-primary/10 group-hover/link:bg-primary/20 text-primary text-center rounded-lg font-bold text-sm transition-colors duration-300">
+                    Visit Storefront
+                  </div>
+                </Link>
+              </div>
+            </div>
+          )}
+
           <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm p-5 sticky top-24">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-lg flex items-center gap-2">

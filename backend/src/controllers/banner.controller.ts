@@ -2,10 +2,16 @@ import { Request, Response } from "express";
 import { prisma } from "../utils/prisma";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { logActivity } from "../utils/audit";
+import { z, ZodError } from "zod";
+
+const uploadBannerSchema = z.object({
+  listingId: z.string().uuid(),
+  title: z.string().optional(),
+});
 
 export const uploadBanner = async (req: AuthRequest, res: Response) => {
   try {
-    const { listingId, title } = req.body;
+    const { listingId, title } = uploadBannerSchema.parse(req.body);
     const sellerId = req.user?.id;
 
     if (!sellerId) {
@@ -52,6 +58,9 @@ export const uploadBanner = async (req: AuthRequest, res: Response) => {
     res.status(201).json(banner);
   } catch (error) {
     console.error("Upload banner error:", error);
+    if (error instanceof ZodError) {
+      return res.status(400).json({ errors: error.errors });
+    }
     res.status(500).json({ message: "Error uploading banner" });
   }
 };
