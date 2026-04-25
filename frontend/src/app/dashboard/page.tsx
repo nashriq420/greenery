@@ -26,6 +26,8 @@ import {
   ChevronDown,
   Heart,
 } from "lucide-react";
+import { useCurrencyStore } from "@/hooks/useCurrency";
+import { getBaseUrl } from "@/lib/config";
 
 const MapComponent = dynamic(() => import("@/components/Map"), { ssr: false });
 
@@ -97,8 +99,7 @@ function checkIsOpen(openingHoursStr?: string | null) {
 function getBannerUrl(url?: string | null) {
   if (!url) return "https://images.unsplash.com/photo-1603908866179-8d145eb5b290?auto=format&fit=crop&q=80&w=400&h=200";
   if (url.startsWith("http")) return url;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL === "/api" ? "http://localhost:4000" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
-  return `${baseUrl}${url}`;
+  return `${getBaseUrl()}${url}`;
 }
 
 export default function DashboardPage() {
@@ -114,6 +115,7 @@ export default function DashboardPage() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showVendorsOfWeek, setShowVendorsOfWeek] = useState(true);
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
 
   const { sellers, loading: loadingSellers } = useSellers(userLocation?.lat, userLocation?.lng, 50);
 
@@ -226,7 +228,7 @@ export default function DashboardPage() {
       icon: MapPin,
       label: "Nearby Sellers",
       subLabel: "Find items close to you",
-      href: "/dashboard/marketplace", // Could add ?nearby=true later
+      href: "/dashboard/vendors",
       color: "text-purple-500",
       bgClass: "bg-purple-500/10",
       hoverClass: "group-hover:bg-purple-500/20"
@@ -276,7 +278,7 @@ export default function DashboardPage() {
                 <h2 className="text-lg font-bold text-foreground">Vendors Near You</h2>
                 <p className="text-sm text-muted-foreground font-medium">Discover verified sellers close to your location.</p>
              </div>
-             <Link href="/dashboard/marketplace" className="text-sm font-bold text-primary hover:underline flex items-center gap-1">
+             <Link href="/dashboard/vendors" className="text-sm font-bold text-primary hover:underline flex items-center gap-1">
                 View all vendors <ArrowRight className="w-4 h-4" />
              </Link>
           </div>
@@ -484,7 +486,7 @@ export default function DashboardPage() {
                           <ChevronDown className={`w-4 h-4 text-foreground/80 transition-transform duration-300 ${showVendorsOfWeek ? 'rotate-180' : ''}`} />
                        </div>
                     </button>
-                     <Link href="/dashboard/marketplace" className="text-xs font-bold text-primary bg-background/80 backdrop-blur-md px-3 py-1 rounded-full shadow-sm hover:underline flex items-center gap-1">
+                     <Link href="/dashboard/vendors" className="text-xs font-bold text-primary bg-background/80 backdrop-blur-md px-3 py-1 rounded-full shadow-sm hover:underline flex items-center gap-1">
                         View all <ArrowRight className="w-3 h-3" />
                      </Link>
                   </div>
@@ -524,7 +526,7 @@ export default function DashboardPage() {
                     </div>
                     <h3 className="text-xl font-extrabold text-foreground mb-2">Explore the List</h3>
                     <p className="text-muted-foreground max-w-sm mb-6">Switch to the marketplace tab to view the full directory of sellers near {userLocation ? "your location" : "you"}.</p>
-                    <Link href="/dashboard/marketplace" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl font-bold shadow-sm transition-all focus:ring-4 focus:ring-primary/20 flex items-center gap-2">
+                    <Link href="/dashboard/vendors" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl font-bold shadow-sm transition-all focus:ring-4 focus:ring-primary/20 flex items-center gap-2">
                        Browse Vendors <ArrowRight className="w-4 h-4" />
                     </Link>
                  </div>
@@ -619,7 +621,7 @@ export default function DashboardPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                  <p className="font-bold text-sm truncate text-foreground group-hover:text-primary transition-colors">{listing.title}</p>
-                                 <p className="text-sm font-extrabold text-foreground mt-0.5">RM {listing.price}</p>
+                                 <p className="text-sm font-extrabold text-foreground mt-0.5">{formatPrice(listing.price)}</p>
                                  <span className={`inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full font-extrabold uppercase tracking-widest ${
                                     listing.status === "ACTIVE" ? "bg-green-500/10 text-green-600 border border-green-500/20" : 
                                     listing.status === "PENDING" ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" : 

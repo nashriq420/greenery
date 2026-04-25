@@ -37,6 +37,13 @@ export default function MobileMenu({
             Marketplace
           </Link>
           <Link
+            href="/dashboard/vendors"
+            onClick={() => setIsOpen(false)}
+            className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400 p-2 border-b dark:border-gray-800"
+          >
+            Vendors
+          </Link>
+          <Link
             href="/dashboard/community"
             onClick={() => setIsOpen(false)}
             className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400 p-2 border-b dark:border-gray-800"

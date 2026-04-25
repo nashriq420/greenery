@@ -22,6 +22,8 @@ import EditListingModal from "@/components/marketplace/EditListingModal";
 import { Listing } from "@/hooks/useMarketplace";
 import SubscriptionTab from "@/components/profile/SubscriptionTab";
 import AnalyticsTab from "@/components/dashboard/AnalyticsTab";
+import { useCurrencyStore } from "@/hooks/useCurrency";
+import { getBaseUrl } from "@/lib/config";
 
 interface UserProfile {
   name: string;
@@ -60,6 +62,8 @@ const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
 
 export default function ProfilePage() {
   const { user, token } = useAuthStore();
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
+  const currencySymbol = useCurrencyStore((state) => state.currencySymbol);
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
     email: "",
@@ -1239,7 +1243,7 @@ export default function ProfilePage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>Price ($)</Label>
+                    <Label>Price ({currencySymbol})</Label>
                     <Input
                       type="number"
                       value={newListing.price}
@@ -1418,7 +1422,7 @@ export default function ProfilePage() {
                               {listing.title}
                             </h3>
                             <p className="text-muted-foreground font-medium">
-                              ${listing.price}
+                              {formatPrice(listing.price)}
                             </p>
                             <div className="mt-1">
                               <span
@@ -1504,7 +1508,7 @@ export default function ProfilePage() {
                                 {listing.title}
                               </h3>
                               <p className="text-muted-foreground/70 font-medium">
-                                ${listing.price}
+                                {formatPrice(listing.price)}
                               </p>
                               <div className="mt-1">
                                 <span className="inline-block text-xs px-2 py-1 rounded-full font-bold bg-accent text-accent-foreground border border-border">
@@ -1689,13 +1693,10 @@ function BannersTab({ token }: { token: string | null }) {
     if (!path) return "";
     if (path.startsWith("http")) return path;
 
-    let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    let baseUrl = getBaseUrl();
 
     // Remove trailing slash if present
     if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
-
-    // Handle case where API_URL is just '/api' (proxy)
-    if (baseUrl === "/api") baseUrl = "http://localhost:4000";
 
     // For uploads, we need the server root, not the API root
     if (path.startsWith("/uploads") && baseUrl.endsWith("/api")) {

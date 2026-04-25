@@ -19,6 +19,7 @@ export interface Seller {
   subscriptionStatus?: string | null;
   openingHours?: string | null;
   bannerUrl?: string | null;
+  productCount?: number;
 }
 
 export function useSellers(

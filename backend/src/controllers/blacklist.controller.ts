@@ -242,3 +242,40 @@ export const updateReportStatus = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error updating report" });
   }
 };
+
+export const getBlacklistStats = async (req: Request, res: Response) => {
+  try {
+    const totalReports = await prisma.blacklistReport.count({
+      where: { status: "APPROVED" },
+    });
+
+    // We'll count high risk as reports with 3 or more confirmations
+    const reportsWithConfirmations = await prisma.blacklistReport.findMany({
+      where: { status: "APPROVED" },
+      include: {
+        _count: {
+          select: { confirmations: true }
+        }
+      }
+    });
+
+    const highRisk = reportsWithConfirmations.filter(r => r._count.confirmations >= 3).length;
+
+    // Resolved percentage could be the percentage of reports that have at least one confirmation
+    // or we could define it as approved / (approved + pending) but that doesn't fit "Resolved by community"
+    // Let's use: (Reports with >= 1 confirmation / total reports) * 100
+    const confirmedCount = reportsWithConfirmations.filter(r => r._count.confirmations >= 1).length;
+    const resolvedPercentage = totalReports > 0 
+      ? Math.round((confirmedCount / totalReports) * 100) 
+      : 100;
+
+    res.json({
+      totalReports,
+      highRisk,
+      resolvedPercentage
+    });
+  } catch (error) {
+    console.error("Error fetching blacklist stats:", error);
+    res.status(500).json({ message: "Error fetching stats" });
+  }
+};

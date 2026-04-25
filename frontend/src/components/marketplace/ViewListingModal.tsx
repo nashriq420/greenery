@@ -1,4 +1,5 @@
 import { Listing } from "@/hooks/useMarketplace";
+import { useCurrencyStore } from "@/hooks/useCurrency";
 
 interface ViewListingModalProps {
   listing: Listing | null;
@@ -9,6 +10,8 @@ export default function ViewListingModal({
   listing,
   onClose,
 }: ViewListingModalProps) {
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
+  
   if (!listing) return null;
 
   return (
@@ -88,7 +91,7 @@ export default function ViewListingModal({
             </div>
             <div className="flex items-center gap-2 mt-1">
               <p className="text-xl font-bold text-green-600">
-                RM {listing.price}
+                {formatPrice(listing.price)}
               </p>
             </div>
 

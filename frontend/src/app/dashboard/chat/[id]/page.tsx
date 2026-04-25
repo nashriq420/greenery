@@ -21,12 +21,14 @@ import { Button } from "@/components/ui/button";
 import PrivacyWarning from "../components/PrivacyWarning";
 import { toast } from "react-hot-toast";
 import { playNotificationSound } from "@/lib/sound";
+import { useCurrencyStore } from "@/hooks/useCurrency";
 
 export default function ChatRoomPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
   const { token, user } = useAuthStore();
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
 
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -355,14 +357,14 @@ export default function ChatRoomPage() {
                               isMe ? "text-white/80" : "text-primary"
                             }`}
                           >
-                            RM {msg.listing.price}
+                            {formatPrice(msg.listing.price)}
                           </p>
                         </div>
                       </div>
                       {/* View Listing CTA */}
                       <div className={`border-t ${isMe ? "border-white/20" : "border-border"} px-2.5 py-2`}>
                         <a
-                          href={`/dashboard/marketplace`}
+                          href={`/dashboard/marketplace/${msg.listing.id}`}
                           className={`flex items-center justify-center gap-1.5 text-xs font-semibold rounded-lg py-1.5 transition-all ${
                             isMe
                               ? "bg-white/20 hover:bg-white/30 text-white"
@@ -497,7 +499,7 @@ export default function ChatRoomPage() {
                                 {l.title}
                               </p>
                               <p className="text-xs text-primary font-bold">
-                                RM {l.price}
+                                {formatPrice(l.price)}
                               </p>
                             </div>
                           </div>

@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { useCurrencyStore } from "@/hooks/useCurrency";
 
 // Dummy Data mapped to Premium Cannabis feel (placeholder images)
 const DUMMY_LISTINGS = [
@@ -43,6 +46,9 @@ const DUMMY_LISTINGS = [
 ];
 
 export default function LandingMarketplace() {
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
+  const isLoaded = useCurrencyStore((state) => state.isLoaded);
+
   return (
     <section className="py-24 bg-secondary">
       <div className="container mx-auto px-6">
@@ -90,7 +96,7 @@ export default function LandingMarketplace() {
                     {listing.title}
                   </h3>
                   <span className="font-semibold text-foreground">
-                    {listing.price}
+                    {isLoaded ? formatPrice(listing.price) : listing.price}
                   </span>
                 </div>
                 <div className="mt-auto pt-4 flex items-center justify-between text-caption border-t border-border/50">

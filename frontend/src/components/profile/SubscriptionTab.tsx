@@ -9,6 +9,7 @@ import {
   CalendarHeart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCurrencyStore } from "@/hooks/useCurrency";
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ export default function SubscriptionTab({
 }: {
   subscription?: { status: string; endDate?: string };
 }) {
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
   const isActive = subscription?.status === "ACTIVE";
   const endDateStr = subscription?.endDate
     ? new Date(subscription.endDate).toLocaleDateString("en-GB", {
@@ -66,10 +68,10 @@ export default function SubscriptionTab({
             {!isActive && (
               <div className="text-center mb-8">
                 <span className="text-5xl font-black text-foreground">
-                  $350
+                  {formatPrice(350)}
                 </span>
                 <span className="text-muted-foreground font-medium ml-2">
-                  USD / month
+                  / month
                 </span>
               </div>
             )}

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, X, Save } from "lucide-react";
+import { useCurrencyStore } from "@/hooks/useCurrency";
 
 interface EditListingModalProps {
   listing: Listing | null;
@@ -20,6 +21,7 @@ export default function EditListingModal({
   onUpdate,
 }: EditListingModalProps) {
   const { token } = useAuthStore();
+  const currencySymbol = useCurrencyStore((state) => state.currencySymbol);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -237,7 +239,7 @@ export default function EditListingModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price">Price ($)</Label>
+              <Label htmlFor="price">Price ({currencySymbol})</Label>
               <Input
                 id="price"
                 type="number"

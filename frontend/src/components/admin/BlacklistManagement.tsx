@@ -30,6 +30,7 @@ interface BlacklistReport {
 }
 
 import EvidenceModal from "@/components/EvidenceModal";
+import { getBaseUrl } from "@/lib/config";
 
 export default function BlacklistManagement() {
   const { token } = useAuthStore();
@@ -74,7 +75,7 @@ export default function BlacklistManagement() {
   const historyReports = reports.filter((r) => r.status !== "PENDING");
 
   const getFullEvidenceUrl = (url: string) => {
-    return `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:4000"}${url}`;
+    return `${getBaseUrl()}${url}`;
   };
 
   return (

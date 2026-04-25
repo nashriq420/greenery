@@ -13,9 +13,11 @@ import {
 import { api } from "@/lib/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCurrencyStore } from "@/hooks/useCurrency";
 
 export default function SubscriptionPage() {
   const { user } = useAuthStore();
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -56,7 +58,7 @@ export default function SubscriptionPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold mb-4">
-              $0{" "}
+              {formatPrice(0)}{" "}
               <span className="text-sm font-normal text-gray-500">/year</span>
             </div>
             <ul className="space-y-2 text-sm text-gray-600">
@@ -84,7 +86,7 @@ export default function SubscriptionPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold mb-4">
-              $29{" "}
+              {formatPrice(29)}{" "}
               <span className="text-sm font-normal text-gray-500">/year</span>
             </div>
             <ul className="space-y-2 text-sm text-gray-600">

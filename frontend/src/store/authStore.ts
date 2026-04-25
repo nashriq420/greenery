@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getApiUrl } from "@/lib/config";
 
 interface User {
   id: string;
@@ -60,29 +61,8 @@ export const useAuthStore = create<AuthState>()(
           // But prevent circular imports.
           // Use the environment variable or default to localhost
           // Construct URL safely
-          const baseUrl =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
-          const endpoint = "/auth/me";
-
-          // If baseUrl ends with '/api' and we append '/auth/me', it's properly '/api/auth/me'
-          // But if baseUrl is just '/api' (from env), it becomes '/api/auth/me' (Correct for proxy)
-          // If baseUrl is 'http://localhost:4000', we need to ensure /api is there?
-          // Verify logic:
-          // If env is /api -> /api/auth/me -> Proxy Correct.
-          // If env missing -> http://localhost:4000/api/auth/me -> Direct Correct.
-
-          // Wait, if I want to be 100% safe against the "double api" issue seen in Map.tsx (which was /api + /api/banners),
-          // here we are appending /auth/me.
-          // So if baseUrl is /api, we get /api/auth/me. Correct.
-          // If baseUrl is http://localhost:4000, we get http://localhost:4000/auth/me. MISSING /api?
-          // The default above has /api. So http://localhost:4000/api/auth/me. Correct.
-
-          // So URL construction seems okay, but maybe headers are the issue.
-
-          let url = `${baseUrl}/auth/me`;
-          if (process.env.NEXT_PUBLIC_API_URL === "/api") {
-            url = `/api/auth/me`;
-          }
+          const baseUrl = getApiUrl();
+          const url = `${baseUrl}/auth/me`;
 
           const res = await fetch(url, {
             headers: {

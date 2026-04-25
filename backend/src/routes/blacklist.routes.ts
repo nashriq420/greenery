@@ -7,6 +7,7 @@ import {
   getAllReports,
   updateReportStatus,
   getUserReports,
+  getBlacklistStats,
 } from "../controllers/blacklist.controller";
 import {
   authenticateToken,
@@ -25,6 +26,7 @@ router.post(
   createReport
 );
 router.get("/", authenticateOptional, getPublicReports);
+router.get("/stats", getBlacklistStats);
 router.get("/my-reports", authenticateToken, getUserReports);
 
 // Admin routes must come BEFORE /:id wildcard

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { api } from "@/lib/api";
 import Link from "next/link";
+import { useCurrencyStore } from "@/hooks/useCurrency";
 
 // I'll fetch directly or use a hook. existing useMarketplace might need update.
 // For now, I'll implement fetch logic here for speed, or update hook later.
@@ -60,6 +61,7 @@ export default function ListingDetailsPage() {
   const [error, setError] = useState("");
   const [startingChat, setStartingChat] = useState(false);
   const router = useRouter();
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
 
   // Review Form State
   const [rating, setRating] = useState(5);
@@ -195,7 +197,7 @@ export default function ListingDetailsPage() {
             </div>
             <div className="flex flex-col items-end gap-2">
               <div className="text-2xl font-bold text-green-700 dark:text-green-400">
-                RM {listing.price}
+                {formatPrice(listing.price)}
               </div>
               {!isOwner && (
                 <button
