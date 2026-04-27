@@ -6,6 +6,8 @@ import { Icon, DivIcon } from "leaflet";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useCurrencyStore } from "@/hooks/useCurrency";
+import { getBaseUrl } from "@/lib/config";
 
 // Fix for default marker icon in Next.js
 const customIcon = new Icon({
@@ -53,6 +55,7 @@ export default function ListingMap({
   userLocation,
 }: ListingMapProps) {
   const [mounted, setMounted] = useState(false);
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
 
   useEffect(() => {
     setMounted(true);
@@ -69,11 +72,7 @@ export default function ListingMap({
   const getImageUrl = (path: string) => {
     if (!path) return "";
     if (path.startsWith("http")) return path;
-    const baseUrl =
-      process.env.NEXT_PUBLIC_API_URL === "/api"
-        ? "http://localhost:4000"
-        : process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    return `${baseUrl}${path}`;
+    return `${getBaseUrl()}${path}`;
   };
 
   return (
@@ -127,7 +126,7 @@ export default function ListingMap({
                       }}
                     />
                     <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded text-xs font-bold text-green-700 shadow-sm">
-                      RM {listing.price}
+                      {formatPrice(listing.price)}
                     </div>
                   </div>
                   <div className="px-2 pb-2 text-gray-900">

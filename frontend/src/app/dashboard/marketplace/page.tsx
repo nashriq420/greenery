@@ -11,6 +11,7 @@ import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useCurrencyStore } from "@/hooks/useCurrency";
 
 const PRODUCT_TYPES = [
   "Concentrates",
@@ -33,6 +34,8 @@ export default function MarketplacePage() {
   const { user, isAuthenticated } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false); // Modal for missing location
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
+  const currencySymbol = useCurrencyStore((state) => state.currencySymbol);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -514,7 +517,7 @@ export default function MarketplacePage() {
                                 </div>
                               )}
                               <div className="bg-primary/90 backdrop-blur-md text-primary-foreground px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border border-primary/20">
-                                ${listing.price}
+                                {formatPrice(listing.price)}
                               </div>
                             </div>
                           </div>
@@ -997,7 +1000,7 @@ export default function MarketplacePage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-foreground">
-                    Price ($) <span className="text-primary">*</span>
+                    Price ({currencySymbol}) <span className="text-primary">*</span>
                   </label>
                   <Input
                     required

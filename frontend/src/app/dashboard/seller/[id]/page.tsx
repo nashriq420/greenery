@@ -16,6 +16,7 @@ import {
   Store,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useCurrencyStore } from "@/hooks/useCurrency";
 
 const SellerLocationMap = dynamic(
   () => import("@/components/SellerLocationMap"),
@@ -31,6 +32,7 @@ export default function SellerProfilePage() {
   const params = useParams();
   const id = params?.id as string;
   const { user } = useAuthStore();
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
 
   const [seller, setSeller] = useState<any>(null);
   const [listings, setListings] = useState<any[]>([]);
@@ -366,7 +368,7 @@ export default function SellerProfilePage() {
                           </p>
                           <div className="flex justify-between items-center mt-auto">
                             <p className="text-foreground font-bold text-lg">
-                              ${Number(listing.price).toFixed(2)}
+                              {formatPrice(listing.price)}
                             </p>
                             {listing.minQuantity > 1 && (
                               <span className="text-[10px] font-bold uppercase tracking-wider bg-muted px-2 py-1 rounded-md border border-border">

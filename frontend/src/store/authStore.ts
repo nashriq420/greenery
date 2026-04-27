@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getApiUrl } from "@/lib/config";
 
 interface User {
   id: string;
@@ -66,11 +67,9 @@ export const useAuthStore = create<AuthState>()(
 
       refreshUser: async () => {
         try {
-          const baseUrl = API_URL;
-          let url = `${baseUrl}/auth/me`;
-          if (process.env.NEXT_PUBLIC_API_URL === "/api") {
-            url = `/api/auth/me`;
-          }
+          const baseUrl = getApiUrl();
+          const url = `${baseUrl}/auth/me`;
+
 
           // No Authorization header needed — browser sends cookie automatically
           const res = await fetch(url, {

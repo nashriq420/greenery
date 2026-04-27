@@ -619,6 +619,7 @@ export default function SafetyPage() {
   const [page, setPage] = useState(1);
   const [selectedReport, setSelectedReport] = useState<{ report: BlacklistReport; idx: number } | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [stats, setStats] = useState({ totalReports: 0, highRisk: 0, resolvedPercentage: 100 });
   const PER_PAGE = 6;
 
   useEffect(() => {
@@ -637,7 +638,19 @@ export default function SafetyPage() {
     }
   }, [isAuthenticated]);
 
-  useEffect(() => { fetchReports(); }, [fetchReports]);
+  const fetchStats = useCallback(async () => {
+    try {
+      const data = await api.get("/blacklist/stats");
+      setStats(data);
+    } catch {
+      // silent
+    }
+  }, []);
+
+  useEffect(() => { 
+    fetchReports();
+    fetchStats();
+  }, [fetchReports, fetchStats]);
 
   const handleConfirm = async (id: string) => {
     if (!isAuthenticated || confirmingId) return;
@@ -678,8 +691,8 @@ export default function SafetyPage() {
   const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const totalReports = reports.length;
-  const highRisk = Math.round(totalReports * 0.29) || 36;
-  const resolved = 78;
+  const highRisk = stats.highRisk;
+  const resolved = stats.resolvedPercentage;
   const cardClass = "bg-white border border-gray-200 dark:bg-[#0d1f17] dark:border-emerald-900/40 rounded-2xl";
 
   return (
@@ -897,17 +910,17 @@ export default function SafetyPage() {
               <p className="text-xs text-gray-500 dark:text-slate-500 mb-4">Community reports help protect everyone.</p>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-red-500 dark:text-red-400">{totalReports || 124}</div>
+                  <div className="text-2xl font-bold text-red-500 dark:text-red-400">{stats.totalReports}</div>
                   <div className="text-[10px] text-gray-500 dark:text-slate-500 mt-0.5">Total Reports</div>
                   <div className="text-[10px] text-gray-400 dark:text-slate-600">This month</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{highRisk}</div>
+                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.highRisk}</div>
                   <div className="text-[10px] text-gray-500 dark:text-slate-500 mt-0.5">High Risk</div>
                   <div className="text-[10px] text-gray-400 dark:text-slate-600">Require caution</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-green-600 dark:text-emerald-400">{resolved}%</div>
+                  <div className="text-2xl font-bold text-green-600 dark:text-emerald-400">{stats.resolvedPercentage}%</div>
                   <div className="text-[10px] text-gray-500 dark:text-slate-500 mt-0.5">Resolved</div>
                   <div className="text-[10px] text-gray-400 dark:text-slate-600">By community</div>
                 </div>
@@ -921,15 +934,15 @@ export default function SafetyPage() {
               </div>
               <p className="text-xs text-gray-500 dark:text-slate-500 mb-4">New reports from the past 7 days.</p>
               <div className="space-y-3">
-                {RECENTLY_REPORTED.map((u) => (
-                  <div key={u.username} className="flex items-center justify-between">
+                {reports.slice(0, 3).map((u) => (
+                  <div key={u.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-gray-700 dark:text-white">
                         {getInitials(u.username)}
                       </div>
                       <div>
                         <div className="text-xs font-medium text-gray-900 dark:text-white">{u.username}</div>
-                        <div className="text-[10px] text-gray-500 dark:text-slate-500">{u.country} • {u.date}</div>
+                        <div className="text-[10px] text-gray-500 dark:text-slate-500">{u.region || "Global"} • {timeAgo(u.updatedAt)}</div>
                       </div>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-600 border border-red-300 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30">SCAMMER</span>

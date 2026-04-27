@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
+import { getBaseUrl } from "@/lib/config";
 
 export default function AdminBannersPage() {
   const [banners, setBanners] = useState<any[]>([]);
@@ -15,10 +16,9 @@ export default function AdminBannersPage() {
     if (!path) return "";
     if (path.startsWith("http")) return path;
 
-    let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    let baseUrl = getBaseUrl();
 
     if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
-    if (baseUrl === "/api") baseUrl = "http://localhost:4000";
 
     if (path.startsWith("/uploads") && baseUrl.endsWith("/api")) {
       baseUrl = baseUrl.slice(0, -4);

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useSellers } from "@/hooks/useMarketplace";
 import Link from "next/link";
 import { Star, Clock, MapPin, Check } from "lucide-react";
+import { getBaseUrl } from "@/lib/config";
 
 // Custom Weed/Green Theme Marker
 const createCustomIcon = (isPremium: boolean = false) => {
@@ -95,13 +96,7 @@ export default function MapComponent() {
 
     // URL Construction helper
     const getApiUrl = (endpoint: string) => {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      // If baseUrl is '/api', avoid double prefix (e.g. /api/api/...)
-      if (baseUrl === "/api") {
-        return `/api${endpoint}`; // endpoint should start with /
-      }
-      return `${baseUrl}/api${endpoint}`;
+      return `${getBaseUrl()}/api${endpoint}`;
     };
 
     // Fetch active banner
@@ -118,11 +113,7 @@ export default function MapComponent() {
   const getImageUrl = (path: string) => {
     if (!path) return "";
     if (path.startsWith("http")) return path;
-    const baseUrl =
-      process.env.NEXT_PUBLIC_API_URL === "/api"
-        ? "http://localhost:4000"
-        : process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    return `${baseUrl}${path}`;
+    return `${getBaseUrl()}${path}`;
   };
 
   // Helper to format last seen

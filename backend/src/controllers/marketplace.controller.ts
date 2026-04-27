@@ -100,6 +100,11 @@ export const getSellersNearby = async (req: Request, res: Response) => {
                         JOIN "Listing" l ON r."listingId" = l.id
                         WHERE l."sellerId" = u.id
                     ) as "reviewCount",
+                    (
+                        SELECT CAST(COUNT(l.id) AS INTEGER)
+                        FROM "Listing" l
+                        WHERE l."sellerId" = u.id AND l.active = true AND l.status = 'ACTIVE'
+                    ) as "productCount",
                     ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) AS distance
                 FROM "SellerProfile" s
                 JOIN "User" u ON s."userId" = u.id
@@ -138,7 +143,12 @@ export const getSellersNearby = async (req: Request, res: Response) => {
                         FROM "Review" r
                         JOIN "Listing" l ON r."listingId" = l.id
                         WHERE l."sellerId" = u.id
-                    ) as "reviewCount"
+                    ) as "reviewCount",
+                    (
+                        SELECT CAST(COUNT(l.id) AS INTEGER)
+                        FROM "Listing" l
+                        WHERE l."sellerId" = u.id AND l.active = true AND l.status = 'ACTIVE'
+                    ) as "productCount"
                 FROM "SellerProfile" s
                 JOIN "User" u ON s."userId" = u.id
                 LEFT JOIN "Subscription" sub ON u.id = sub."userId"

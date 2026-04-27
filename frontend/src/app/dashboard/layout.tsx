@@ -9,6 +9,7 @@ import MobileMenu from "@/components/MobileMenu";
 import ProfileMenu from "@/components/ProfileMenu";
 import ChatIcon from "@/components/ChatIcon";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import Footer from "@/components/Footer";
 
 export default function DashboardLayout({
   children,
@@ -57,6 +58,12 @@ export default function DashboardLayout({
             Marketplace
           </Link>
           <Link
+            href="/dashboard/vendors"
+            className="text-sm font-medium hover:text-green-600"
+          >
+            Vendors
+          </Link>
+          <Link
             href="/dashboard/community"
             className="text-sm font-medium hover:text-green-600"
           >
@@ -94,6 +101,7 @@ export default function DashboardLayout({
       >
         {children}
       </main>
+      {!isChatRoute && <Footer />}
     </div>
   );
 }

@@ -5,12 +5,15 @@ import { useMyListings } from "@/hooks/useMarketplace";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
+import { useCurrencyStore } from "@/hooks/useCurrency";
+import { getBaseUrl } from "@/lib/config";
 
 export default function SellerBannerPage() {
   const { listings, loading: listingsLoading } = useMyListings();
   const [banners, setBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const formatPrice = useCurrencyStore((state) => state.formatPrice);
 
   const { isAuthenticated } = useAuthStore();
 
@@ -19,10 +22,9 @@ export default function SellerBannerPage() {
     if (!path) return "";
     if (path.startsWith("http")) return path;
 
-    let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    let baseUrl = getBaseUrl();
 
     if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
-    if (baseUrl === "/api") baseUrl = "http://localhost:4000";
 
     if (path.startsWith("/uploads") && baseUrl.endsWith("/api")) {
       baseUrl = baseUrl.slice(0, -4);
@@ -122,7 +124,7 @@ export default function SellerBannerPage() {
               <option value="">-- Select Listing --</option>
               {listings.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.title} (${l.price})
+                  {l.title} ({formatPrice(l.price)})
                 </option>
               ))}
             </select>
