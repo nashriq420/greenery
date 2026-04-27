@@ -121,6 +121,8 @@ export const login = async (req: Request, res: Response) => {
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
     });
+    const needsLocationSetup =
+      !lastLogin && user.role !== "ADMIN" && user.role !== "SUPERADMIN";
 
     // Record this login
     await prisma.loginHistory.create({
@@ -197,6 +199,7 @@ export const login = async (req: Request, res: Response) => {
         sellerProfile: fullUser!.sellerProfile,
         subscription: fullUser!.subscription,
         _count: fullUser!._count,
+        needsLocationSetup,
       },
     });
   } catch (error) {

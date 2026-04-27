@@ -69,8 +69,10 @@ function AuthForm() {
       });
       if (res.user) {
         login(res.user);
-        if (res.user.role === "ADMIN") {
+        if (res.user.role === "ADMIN" || res.user.role === "SUPERADMIN") {
           router.push("/dashboard/admin");
+        } else if (res.user.needsLocationSetup) {
+          router.push("/dashboard/profile?setup=location");
         } else {
           router.push("/dashboard");
         }

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { useAuthStore } from "@/store/authStore";
 import { api } from "@/lib/api";
+import { useSearchParams } from "next/navigation";
 import EditListingModal from "@/components/marketplace/EditListingModal";
 import { Listing } from "@/hooks/useMarketplace";
 import SubscriptionTab from "@/components/profile/SubscriptionTab";
@@ -62,6 +63,8 @@ const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuthStore();
+  const searchParams = useSearchParams();
+  const isLocationSetup = searchParams?.get("setup") === "location";
   const formatPrice = useCurrencyStore((state) => state.formatPrice);
   const currencySymbol = useCurrencyStore((state) => state.currencySymbol);
   const [profile, setProfile] = useState<UserProfile>({
@@ -223,11 +226,12 @@ export default function ProfilePage() {
         country: profile.country,
       };
 
-      await api.put("/user/me", payload);
+      const updatedProfile = await api.put("/user/me", payload);
+      let updatedSellerProfile = user?.sellerProfile;
 
       // Also update seller profile if applicable to prevent user confusion
       if (profile.role === "SELLER") {
-        await api.put("/user/me/location", sellerProfile);
+        updatedSellerProfile = await api.put("/user/me/location", sellerProfile);
       }
 
       // Update local auth store
@@ -235,12 +239,15 @@ export default function ProfilePage() {
         useAuthStore.getState().login(
           {
             ...user,
-            name: profile.name,
-            username: profile.username,
-            profilePicture: profile.profilePicture,
-            district: profile.district,
-            state: profile.state,
-            country: profile.country,
+            name: updatedProfile.name ?? profile.name,
+            username: updatedProfile.username ?? profile.username,
+            profilePicture:
+              updatedProfile.profilePicture ?? profile.profilePicture,
+            district: updatedProfile.district ?? profile.district,
+            state: updatedProfile.state ?? profile.state,
+            country: updatedProfile.country ?? profile.country,
+            sellerProfile: updatedSellerProfile,
+            needsLocationSetup: false,
           });
       }
 
@@ -529,6 +536,19 @@ export default function ProfilePage() {
           </span>
         )}
       </div>
+
+      {isLocationSetup && (
+        <div className="flex items-start gap-3 rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-900">
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-semibold">Set your location to get started</p>
+            <p className="text-green-800">
+              Save your location here so BudPlug can show nearby vendors,
+              listings, and marketplace options that match where you are.
+            </p>
+          </div>
+        </div>
+      )}
 
       <Tabs defaultValue="profile" className="w-full">
         <div className="flex flex-col lg:flex-row gap-8">

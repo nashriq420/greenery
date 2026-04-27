@@ -9,6 +9,7 @@ interface User {
   username?: string;
   profilePicture?: string;
   role: "CUSTOMER" | "SELLER" | "ADMIN" | "SUPERADMIN";
+  needsLocationSetup?: boolean;
   district?: string;
   state?: string;
   country?: string;
