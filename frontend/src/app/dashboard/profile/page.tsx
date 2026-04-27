@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import { Upload, Trash2, AlertTriangle, X, Check } from "lucide-react";
+import { Upload, Trash2, AlertTriangle, X, Check, User, MapPin, ShoppingBag, Tag, BarChart, CreditCard, UserX, Store } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -531,18 +531,66 @@ export default function ProfilePage() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="flex w-full overflow-x-auto justify-start sm:justify-center">
-          <TabsTrigger value="profile">Profile & Location</TabsTrigger>
-          {profile.role === "SELLER" && (
-            <>
-              <TabsTrigger value="listings">My Listings</TabsTrigger>
-              <TabsTrigger value="promotions">My Promotions</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="subscription">Subscription</TabsTrigger>
-            </>
-          )}
-          <TabsTrigger value="deletion">Deletion</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-col lg:flex-row gap-8">
+          <aside className="w-full lg:w-64 shrink-0">
+            <TabsList className="flex flex-col h-auto bg-transparent gap-2 items-stretch p-0">
+              <TabsTrigger
+                value="profile"
+                className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+              >
+                <User className="w-4 h-4" />
+                Profile & Location
+              </TabsTrigger>
+              {profile.role === "SELLER" && (
+                <>
+                  <TabsTrigger
+                    value="listings"
+                    className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    My Listings
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="promotions"
+                    className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+                  >
+                    <Tag className="w-4 h-4" />
+                    My Promotions
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="analytics"
+                    className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+                  >
+                    <BarChart className="w-4 h-4" />
+                    Analytics
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="subscription"
+                    className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Subscription
+                  </TabsTrigger>
+                </>
+              )}
+                  <TabsTrigger
+                    value="shop"
+                    className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+                  >
+                    <Store className="w-4 h-4" />
+                    Shop Setting
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="deletion"
+                    className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-destructive/10 data-[state=active]:text-destructive border border-transparent data-[state=active]:border-destructive/20 transition-all"
+                  >
+                    <UserX className="w-4 h-4" />
+                    Deletion
+                  </TabsTrigger>
+            </TabsList>
+          </aside>
+
+          <div className="flex-1 min-w-0">
 
         <TabsContent value="profile" className="space-y-6">
           <Card>
@@ -688,109 +736,215 @@ export default function ProfilePage() {
                 <Input value={profile.email} disabled />
               </div>
 
-              <div className="space-y-2 pt-4 border-t">
-                <Label className="text-base font-semibold">Location</Label>
-                <div className="space-y-4 relative">
-                  <div className="flex gap-2">
-                    <div className="flex-1 relative">
-                      <Input
-                        placeholder="Search for your location to autofill..."
-                        value={customerLocationQuery}
-                        onChange={(e) => {
-                          setCustomerLocationQuery(e.target.value);
-                          setShowSuggestions(true);
-                        }}
-                        onFocus={() => {
-                          if (customerLocationSuggestions.length > 0) {
-                            setShowSuggestions(true);
-                          }
+              {profile.role === "SELLER" ? (
+                <div className="space-y-4 pt-4 border-t">
+                  <Label className="text-base font-semibold">
+                    Shop & Business Location
+                  </Label>
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <Label>Location Search & Map Picker</Label>
+                      <LocationPicker
+                        initialLat={sellerProfile.lat || 51.505}
+                        initialLng={sellerProfile.lng || -0.09}
+                        onLocationSelect={(data) => {
+                          setSellerProfile((prev) => ({
+                            ...prev,
+                            lat: data.lat,
+                            lng: data.lng,
+                            address: data.address,
+                            city: data.city,
+                            state: data.state,
+                            country: data.country,
+                          }));
+                          // Sync with general profile location
+                          setProfile((prev) => ({
+                            ...prev,
+                            district: data.city,
+                            state: data.state,
+                            country: data.country,
+                          }));
                         }}
                       />
-                      {customerLocationLoading && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                      )}
+                      <div className="text-xs text-muted-foreground flex gap-4">
+                        <span>Lat: {sellerProfile.lat.toFixed(6)}</span>
+                        <span>Lng: {sellerProfile.lng.toFixed(6)}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Detailed Address</Label>
+                        <Input
+                          value={sellerProfile.address}
+                          onChange={(e) =>
+                            setSellerProfile({
+                              ...sellerProfile,
+                              address: e.target.value,
+                            })
+                          }
+                          placeholder="Full street address"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>City / District</Label>
+                          <Input
+                            value={sellerProfile.city}
+                            onChange={(e) => {
+                              setSellerProfile({
+                                ...sellerProfile,
+                                city: e.target.value,
+                              });
+                              setProfile({
+                                ...profile,
+                                district: e.target.value,
+                              });
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>State</Label>
+                          <Input
+                            value={sellerProfile.state}
+                            onChange={(e) => {
+                              setSellerProfile({
+                                ...sellerProfile,
+                                state: e.target.value,
+                              });
+                              setProfile({ ...profile, state: e.target.value });
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Country</Label>
+                          <Input
+                            value={sellerProfile.country}
+                            onChange={(e) => {
+                              setSellerProfile({
+                                ...sellerProfile,
+                                country: e.target.value,
+                              });
+                              setProfile({
+                                ...profile,
+                                country: e.target.value,
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2 pt-4 border-t">
+                    <Label className="text-base font-semibold">Location</Label>
+                    <div className="space-y-4 relative">
+                      <div className="flex gap-2">
+                        <div className="flex-1 relative">
+                          <Input
+                            placeholder="Search for your location to autofill..."
+                            value={customerLocationQuery}
+                            onChange={(e) => {
+                              setCustomerLocationQuery(e.target.value);
+                              setShowSuggestions(true);
+                            }}
+                            onFocus={() => {
+                              if (customerLocationSuggestions.length > 0) {
+                                setShowSuggestions(true);
+                              }
+                            }}
+                          />
+                          {customerLocationLoading && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                          )}
+                        </div>
+                      </div>
+
+                      {showSuggestions &&
+                        customerLocationSuggestions.length > 0 && (
+                          <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                            {customerLocationSuggestions.map(
+                              (suggestion, index) => (
+                                <div
+                                  key={index}
+                                  className="px-4 py-2 hover:bg-muted cursor-pointer text-sm border-b last:border-0"
+                                  onClick={() =>
+                                    handleSelectLocation(suggestion)
+                                  }
+                                >
+                                  {suggestion.display_name}
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        )}
                     </div>
                   </div>
 
-                  {showSuggestions &&
-                    customerLocationSuggestions.length > 0 && (
-                      <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                        {customerLocationSuggestions.map(
-                          (suggestion, index) => (
-                            <div
-                              key={index}
-                              className="px-4 py-2 hover:bg-muted cursor-pointer text-sm border-b last:border-0"
-                              onClick={() => handleSelectLocation(suggestion)}
-                            >
-                              {suggestion.display_name}
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>District / City</Label>
-                  <Input
-                    list="district-options"
-                    value={profile.district || ""}
-                    onChange={(e) =>
-                      setProfile({ ...profile, district: e.target.value })
-                    }
-                    placeholder="e.g. Subang Jaya"
-                  />
-                  <datalist id="district-options">
-                    <option value="Central" />
-                    <option value="North" />
-                    <option value="South" />
-                    <option value="East" />
-                    <option value="West" />
-                  </datalist>
-                </div>
-                <div className="space-y-2">
-                  <Label>State</Label>
-                  <Input
-                    list="state-options"
-                    value={profile.state || ""}
-                    onChange={(e) =>
-                      setProfile({ ...profile, state: e.target.value })
-                    }
-                    placeholder="e.g. Selangor"
-                  />
-                  <datalist id="state-options">
-                    <option value="Kuala Lumpur" />
-                    <option value="Selangor" />
-                    <option value="Johor" />
-                    <option value="Penang" />
-                    <option value="Sabah" />
-                    <option value="Sarawak" />
-                  </datalist>
-                </div>
-                <div className="space-y-2">
-                  <Label>Country</Label>
-                  <Input
-                    list="country-options"
-                    value={profile.country || ""}
-                    onChange={(e) =>
-                      setProfile({ ...profile, country: e.target.value })
-                    }
-                    placeholder="e.g. Malaysia"
-                  />
-                  <datalist id="country-options">
-                    <option value="Malaysia" />
-                    <option value="Singapore" />
-                    <option value="Indonesia" />
-                    <option value="Brunei" />
-                    <option value="Thailand" />
-                    <option value="United States" />
-                    <option value="United Kingdom" />
-                    <option value="Australia" />
-                  </datalist>
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>District / City</Label>
+                      <Input
+                        list="district-options"
+                        value={profile.district || ""}
+                        onChange={(e) =>
+                          setProfile({ ...profile, district: e.target.value })
+                        }
+                        placeholder="e.g. Subang Jaya"
+                      />
+                      <datalist id="district-options">
+                        <option value="Central" />
+                        <option value="North" />
+                        <option value="South" />
+                        <option value="East" />
+                        <option value="West" />
+                      </datalist>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>State</Label>
+                      <Input
+                        list="state-options"
+                        value={profile.state || ""}
+                        onChange={(e) =>
+                          setProfile({ ...profile, state: e.target.value })
+                        }
+                        placeholder="e.g. Selangor"
+                      />
+                      <datalist id="state-options">
+                        <option value="Kuala Lumpur" />
+                        <option value="Selangor" />
+                        <option value="Johor" />
+                        <option value="Penang" />
+                        <option value="Sabah" />
+                        <option value="Sarawak" />
+                      </datalist>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Country</Label>
+                      <Input
+                        list="country-options"
+                        value={profile.country || ""}
+                        onChange={(e) =>
+                          setProfile({ ...profile, country: e.target.value })
+                        }
+                        placeholder="e.g. Malaysia"
+                      />
+                      <datalist id="country-options">
+                        <option value="Malaysia" />
+                        <option value="Singapore" />
+                        <option value="Indonesia" />
+                        <option value="Brunei" />
+                        <option value="Thailand" />
+                        <option value="United States" />
+                        <option value="United Kingdom" />
+                        <option value="Australia" />
+                      </datalist>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <Button onClick={handleUpdateProfile}>Update Profile</Button>
             </CardContent>
@@ -831,262 +985,182 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {profile.role === "SELLER" && (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Location Details</CardTitle>
-                  <CardDescription>
-                    Update your physical location to be visible on the map.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-4 pb-4">
-                    <Label>Location Search & Map</Label>
-                    <LocationPicker
-                      initialLat={sellerProfile.lat || 51.505}
-                      initialLng={sellerProfile.lng || -0.09}
-                      onLocationSelect={(data) => {
-                        setSellerProfile((prev) => ({
-                          ...prev,
-                          lat: data.lat,
-                          lng: data.lng,
-                          address: data.address,
-                          city: data.city,
-                          state: data.state,
-                          country: data.country,
-                        }));
-                      }}
-                    />
-                    <div className="text-xs text-gray-500 flex gap-4">
-                      <span>
-                        Selected Latitude: {sellerProfile.lat.toFixed(6)}
-                      </span>
-                      <span>
-                        Selected Longitude: {sellerProfile.lng.toFixed(6)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Address</Label>
-                    <Input
-                      value={sellerProfile.address}
-                      onChange={(e) =>
-                        setSellerProfile({
-                          ...sellerProfile,
-                          address: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>City</Label>
-                      <Input
-                        value={sellerProfile.city}
-                        onChange={(e) =>
-                          setSellerProfile({
-                            ...sellerProfile,
-                            city: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>State</Label>
-                      <Input
-                        value={sellerProfile.state}
-                        onChange={(e) =>
-                          setSellerProfile({
-                            ...sellerProfile,
-                            state: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="pt-2">
-                    <Button onClick={handleUpdateLocation}>
-                      Save Location
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Shop Branding</CardTitle>
-                  <CardDescription>
-                    Manage your shop's appearance, hours, and description.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <Label className="text-base font-semibold">
-                      Opening Hours
-                    </Label>
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                          (day) => (
-                            <button
-                              key={day}
-                              type="button"
-                              onClick={() => {
-                                setOpeningDays((prev) =>
-                                  prev.includes(day)
-                                    ? prev.filter((d: string) => d !== day)
-                                    : [...prev, day],
-                                );
-                              }}
-                              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
-                                openingDays.includes(day)
-                                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                                  : "bg-card text-foreground border-border hover:bg-muted"
-                              }`}
-                            >
-                              {day}
-                            </button>
-                          ),
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="grid gap-1.5">
-                          <Label
-                            htmlFor="openTime"
-                            className="text-xs text-muted-foreground"
-                          >
-                            Open
-                          </Label>
-                          <Input
-                            type="time"
-                            id="openTime"
-                            value={openTime}
-                            onChange={(e) => setOpenTime(e.target.value)}
-                            className="w-32"
-                          />
-                        </div>
-                        <span className="pt-6 text-muted-foreground">-</span>
-                        <div className="grid gap-1.5">
-                          <Label
-                            htmlFor="closeTime"
-                            className="text-xs text-muted-foreground"
-                          >
-                            Close
-                          </Label>
-                          <Input
-                            type="time"
-                            id="closeTime"
-                            value={closeTime}
-                            onChange={(e) => setCloseTime(e.target.value)}
-                            className="w-32"
-                          />
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Preview: {sellerProfile.openingHours || "Closed"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 pt-4 border-t">
-                    <Label className="text-base font-semibold">
-                      Shop Banner
-                    </Label>
-                    <div className="space-y-4">
-                      <div className="relative w-full aspect-4/1 bg-muted rounded-xl border border-border overflow-hidden shadow-sm group">
-                        {sellerProfile.bannerUrl ? (
-                          <img
-                            src={sellerProfile.bannerUrl}
-                            alt="Banner Preview"
-                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center w-full h-full text-muted-foreground">
-                            <Upload className="w-10 h-10 opacity-20 mb-2" />
-                            <span className="text-sm opacity-50">
-                              No banner uploaded
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">
-                          Recommended size: 1200x300px. JPG, PNG or WebP.
-                        </p>
-
-                        <div className="flex gap-2">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={async (e) => {
-                              if (e.target.files && e.target.files[0]) {
-                                const file = e.target.files[0];
-                                const uploadData = new FormData();
-                                uploadData.append("image", file);
-                                try {
-                                  const res = await api.upload(
-                                    "/upload/image",
-                                    uploadData);
-                                  if (res.url) {
-                                    setSellerProfile((prev) => ({
-                                      ...prev,
-                                      bannerUrl: res.url,
-                                    }));
-                                  }
-                                } catch (err) {
-                                  console.error("Banner upload failed", err);
-                                }
-                              }
-                            }}
-                            className="hidden"
-                            id="banner-upload"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() =>
-                              document.getElementById("banner-upload")?.click()
-                            }
-                          >
-                            <Upload className="w-4 h-4 mr-2" />
-                            {sellerProfile.bannerUrl
-                              ? "Change Banner"
-                              : "Upload Banner"}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-4 border-t">
-                    <Label className="text-base font-semibold">
-                      About Your Shop
-                    </Label>
-                    <Textarea
-                      value={sellerProfile.description}
-                      onChange={(e) =>
-                        setSellerProfile({
-                          ...sellerProfile,
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder="Tell buyers about your shop..."
-                      rows={4}
-                    />
-                  </div>
-
-                  <div className="pt-2">
-                    <Button onClick={handleUpdateLocation}>
-                      Save Branding Info
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </TabsContent>
+
+        {profile.role === "SELLER" && (
+          <TabsContent value="shop" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Shop Branding</CardTitle>
+                <CardDescription>
+                  Manage your shop's appearance, hours, and description.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">
+                    Opening Hours
+                  </Label>
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                        (day) => (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => {
+                              setOpeningDays((prev) =>
+                                prev.includes(day)
+                                  ? prev.filter((d: string) => d !== day)
+                                  : [...prev, day],
+                              );
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+                              openingDays.includes(day)
+                                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                                : "bg-card text-foreground border-border hover:bg-muted"
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        ),
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="grid gap-1.5">
+                        <Label
+                          htmlFor="openTime"
+                          className="text-xs text-muted-foreground"
+                        >
+                          Open
+                        </Label>
+                        <Input
+                          type="time"
+                          id="openTime"
+                          value={openTime}
+                          onChange={(e) => setOpenTime(e.target.value)}
+                          className="w-32"
+                        />
+                      </div>
+                      <span className="pt-6 text-muted-foreground">-</span>
+                      <div className="grid gap-1.5">
+                        <Label
+                          htmlFor="closeTime"
+                          className="text-xs text-muted-foreground"
+                        >
+                          Close
+                        </Label>
+                        <Input
+                          type="time"
+                          id="closeTime"
+                          value={closeTime}
+                          onChange={(e) => setCloseTime(e.target.value)}
+                          className="w-32"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Preview: {sellerProfile.openingHours || "Closed"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t">
+                  <Label className="text-base font-semibold">Shop Banner</Label>
+                  <div className="space-y-4">
+                    <div className="relative w-full aspect-4/1 bg-muted rounded-xl border border-border overflow-hidden shadow-sm group">
+                      {sellerProfile.bannerUrl ? (
+                        <img
+                          src={sellerProfile.bannerUrl}
+                          alt="Banner Preview"
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center w-full h-full text-muted-foreground">
+                          <Upload className="w-10 h-10 opacity-20 mb-2" />
+                          <span className="text-sm opacity-50">
+                            No banner uploaded
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        Recommended size: 1200x300px. JPG, PNG or WebP.
+                      </p>
+
+                      <div className="flex gap-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              const file = e.target.files[0];
+                              const uploadData = new FormData();
+                              uploadData.append("image", file);
+                              try {
+                                const res = await api.upload(
+                                  "/upload/image",
+                                  uploadData,
+                                );
+                                if (res.url) {
+                                  setSellerProfile((prev) => ({
+                                    ...prev,
+                                    bannerUrl: res.url,
+                                  }));
+                                }
+                              } catch (err) {
+                                console.error("Banner upload failed", err);
+                              }
+                            }
+                          }}
+                          className="hidden"
+                          id="banner-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() =>
+                            document.getElementById("banner-upload")?.click()
+                          }
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          {sellerProfile.bannerUrl
+                            ? "Change Banner"
+                            : "Upload Banner"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-4 border-t">
+                  <Label className="text-base font-semibold">
+                    About Your Shop
+                  </Label>
+                  <Textarea
+                    value={sellerProfile.description}
+                    onChange={(e) =>
+                      setSellerProfile({
+                        ...sellerProfile,
+                        description: e.target.value,
+                      })
+                    }
+                    placeholder="Tell buyers about your shop..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <Button onClick={handleUpdateLocation}>
+                    Save Shop Settings
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="listings" className="space-y-6">
           <Card>
@@ -1598,6 +1672,8 @@ export default function ProfilePage() {
         <TabsContent value="subscription" className="space-y-6">
           <SubscriptionTab subscription={profile.subscription} />
         </TabsContent>
+          </div>
+        </div>
       </Tabs>
 
       {isDeleteModalOpen && (
