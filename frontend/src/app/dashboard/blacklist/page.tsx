@@ -129,10 +129,10 @@ interface DetailModalProps {
   onClose: () => void;
   onConfirm: (id: string) => void;
   confirming: boolean;
-  token: string | null;
+  isAuthenticated?: boolean;
 }
 
-function DetailModal({ report, idx, onClose, onConfirm, confirming, token }: DetailModalProps) {
+function DetailModal({ report, idx, onClose, onConfirm, confirming, isAuthenticated }: DetailModalProps) {
   const risk = MOCK_RISKS[idx % MOCK_RISKS.length];
   const tags = MOCK_TAGS[idx % MOCK_TAGS.length];
   const role = MOCK_ROLES[idx % MOCK_ROLES.length];
@@ -176,7 +176,7 @@ function DetailModal({ report, idx, onClose, onConfirm, confirming, token }: Det
         <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
           {/* Identity */}
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-bold text-base flex-shrink-0`}>
+            <div className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-bold text-base shrink-0`}>
               {getInitials(report.username)}
             </div>
             <div>
@@ -213,7 +213,7 @@ function DetailModal({ report, idx, onClose, onConfirm, confirming, token }: Det
           <div className="space-y-3 bg-gray-50 dark:bg-black/20 rounded-xl p-4 border border-gray-100 dark:border-emerald-900/30">
             {/* Date */}
             <div className="flex items-start gap-3 text-sm">
-              <Calendar className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 flex-shrink-0" />
+              <Calendar className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 shrink-0" />
               <div>
                 <div className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Date Reported</div>
                 <span className="text-gray-700 dark:text-slate-300">{formatDate(report.updatedAt)}</span>
@@ -223,7 +223,7 @@ function DetailModal({ report, idx, onClose, onConfirm, confirming, token }: Det
             {/* Location */}
             {(report.region || loc.to) && (
               <div className="flex items-start gap-3 text-sm">
-                <MapPin className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 shrink-0" />
                 <div>
                   <div className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Location</div>
                   <span className="text-gray-700 dark:text-slate-300">
@@ -236,7 +236,7 @@ function DetailModal({ report, idx, onClose, onConfirm, confirming, token }: Det
             {/* Contact */}
             {report.contactInfo && (
               <div className="flex items-start gap-3 text-sm">
-                <Phone className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 flex-shrink-0" />
+                <Phone className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 shrink-0" />
                 <div className="flex-1">
                   <div className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Contact / Telegram</div>
                   <div className="flex items-center gap-2">
@@ -255,7 +255,7 @@ function DetailModal({ report, idx, onClose, onConfirm, confirming, token }: Det
             {/* Description */}
             {report.description && (
               <div className="flex items-start gap-3 text-sm">
-                <FileText className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 flex-shrink-0" />
+                <FileText className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 shrink-0" />
                 <div>
                   <div className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Description</div>
                   <p className="text-gray-700 dark:text-slate-300 leading-relaxed">{report.description}</p>
@@ -266,7 +266,7 @@ function DetailModal({ report, idx, onClose, onConfirm, confirming, token }: Det
             {/* Evidence */}
             {report.evidenceUrl && (
               <div className="flex items-start gap-3 text-sm">
-                <ImageIcon className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 flex-shrink-0" />
+                <ImageIcon className="w-4 h-4 text-gray-400 dark:text-slate-500 mt-0.5 shrink-0" />
                 <div>
                   <div className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Evidence</div>
                   <a
@@ -314,7 +314,7 @@ function DetailModal({ report, idx, onClose, onConfirm, confirming, token }: Det
           >
             Close
           </button>
-          {token && (
+          {isAuthenticated && (
             <button
               onClick={() => onConfirm(report.id)}
               disabled={confirming}
@@ -389,10 +389,10 @@ interface ReportCardProps {
   onViewDetails: () => void;
   onConfirm: (id: string) => void;
   confirming: boolean;
-  token: string | null;
+  isAuthenticated?: boolean;
 }
 
-function ReportCard({ report, idx, onViewDetails, onConfirm, confirming, token }: ReportCardProps) {
+function ReportCard({ report, idx, onViewDetails, onConfirm, confirming, isAuthenticated }: ReportCardProps) {
   const risk = MOCK_RISKS[idx % MOCK_RISKS.length];
   const tags = MOCK_TAGS[idx % MOCK_TAGS.length];
   const role = MOCK_ROLES[idx % MOCK_ROLES.length];
@@ -405,7 +405,7 @@ function ReportCard({ report, idx, onViewDetails, onConfirm, confirming, token }
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className={`w-9 h-9 rounded-full ${avatarColor} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+          <div className={`w-9 h-9 rounded-full ${avatarColor} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
             {getInitials(report.username)}
           </div>
           <div>
@@ -417,7 +417,7 @@ function ReportCard({ report, idx, onViewDetails, onConfirm, confirming, token }
             </div>
           </div>
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-600 border border-red-300 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30 flex-shrink-0">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-600 border border-red-300 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30 shrink-0">
           SCAMMER
         </span>
       </div>
@@ -472,7 +472,7 @@ function ReportCard({ report, idx, onViewDetails, onConfirm, confirming, token }
         >
           View Details
         </button>
-        {token ? (
+        {isAuthenticated ? (
           <button
             onClick={() => onConfirm(report.id)}
             disabled={confirming}
@@ -501,7 +501,7 @@ function ReportCard({ report, idx, onViewDetails, onConfirm, confirming, token }
 
 // ─── Report Form ──────────────────────────────────────────────────────────────
 
-function ReportForm({ token }: { token: string | null }) {
+function ReportForm({}) {
   const [formData, setFormData] = useState({ username: "", region: "", contactInfo: "", description: "" });
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -523,7 +523,7 @@ function ReportForm({ token }: { token: string | null }) {
         if (evidenceFile.size > 10 * 1024 * 1024) throw new Error("File size must be less than 10MB");
         data.append("evidence", evidenceFile);
       }
-      await api.upload("/blacklist", data, token || undefined);
+      await api.upload("/blacklist", data);
       setSubmitStatus("success");
       setFormData({ username: "", region: "", contactInfo: "", description: "" });
       setEvidenceFile(null);
@@ -592,7 +592,7 @@ function ReportForm({ token }: { token: string | null }) {
       </div>
       {submitStatus === "error" && (
         <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/30">
-          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <AlertTriangle className="w-4 h-4 shrink-0" />
           <span className="text-sm">{formError || "Failed to submit report. Please try again."}</span>
         </div>
       )}
@@ -608,7 +608,7 @@ function ReportForm({ token }: { token: string | null }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function SafetyPage() {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const searchParams = useSearchParams();
 
   const [reports, setReports] = useState<BlacklistReport[]>([]);
@@ -628,22 +628,22 @@ export default function SafetyPage() {
 
   const fetchReports = useCallback(async () => {
     try {
-      const data = await api.get("/blacklist", token || undefined);
+      const data = await api.get("/blacklist");
       setReports(data);
     } catch {
       // silent
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
   const handleConfirm = async (id: string) => {
-    if (!token || confirmingId) return;
+    if (!isAuthenticated || confirmingId) return;
     setConfirmingId(id);
     try {
-      const res = await api.post(`/blacklist/${id}/confirm`, {}, token);
+      const res = await api.post(`/blacklist/${id}/confirm`, {});
       // Update local state
       setReports((prev) =>
         prev.map((r) =>
@@ -692,13 +692,12 @@ export default function SafetyPage() {
           onClose={() => setSelectedReport(null)}
           onConfirm={handleConfirm}
           confirming={confirmingId === selectedReport.report.id}
-          token={token}
         />
       )}
 
       {/* ── Page Header ── */}
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-green-100 border border-green-300 dark:bg-emerald-700/30 dark:border-emerald-700/50 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-green-100 border border-green-300 dark:bg-emerald-700/30 dark:border-emerald-700/50 flex items-center justify-center shrink-0">
           <ShieldCheck className="w-5 h-5 text-green-700 dark:text-emerald-400" />
         </div>
         <div>
@@ -724,7 +723,7 @@ export default function SafetyPage() {
                 ? "bg-green-50 border-green-400 dark:bg-emerald-700/30 dark:border-emerald-600/60"
                 : "bg-white border-gray-200 hover:border-green-300 dark:bg-[#0d1f17] dark:border-emerald-900/40 dark:hover:border-emerald-800/60"
             }`}>
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
               view === v.id ? "bg-green-100 text-green-700 dark:bg-emerald-600/40 dark:text-emerald-300" : "bg-gray-100 text-gray-500 dark:bg-slate-800/60 dark:text-slate-500"
             }`}>{v.icon}</div>
             <div>
@@ -738,10 +737,10 @@ export default function SafetyPage() {
       {/* ── Alert Banner ── */}
       <div className="flex flex-col md:flex-row items-center justify-between bg-green-50 border border-green-300 dark:bg-emerald-900/20 dark:border-emerald-800/40 rounded-xl px-4 py-3 gap-3">
         <div className="flex items-center gap-2 text-sm text-green-800 dark:text-emerald-300">
-          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>Reports are community-submitted. <span className="font-semibold">Please verify details and use your best judgment.</span></span>
         </div>
-        <button className="text-xs text-green-700 hover:text-green-900 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1 flex-shrink-0 transition-colors">
+        <button className="text-xs text-green-700 hover:text-green-900 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1 shrink-0 transition-colors">
           Learn how it works <ArrowRight className="w-3 h-3" />
         </button>
       </div>
@@ -754,7 +753,7 @@ export default function SafetyPage() {
             </h2>
             <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">Submit details about a potential scammer. Your report will be reviewed before being listed.</p>
           </div>
-          <ReportForm token={token} />
+          <ReportForm />
         </div>
       ) : view === "safe_vendors" ? (
         <div className={`${cardClass} p-12 flex flex-col items-center justify-center text-center gap-4`}>
@@ -845,7 +844,6 @@ export default function SafetyPage() {
                       onViewDetails={() => setSelectedReport({ report, idx: globalIdx })}
                       onConfirm={handleConfirm}
                       confirming={confirmingId === report.id}
-                      token={token}
                     />
                   );
                 })}
@@ -890,7 +888,7 @@ export default function SafetyPage() {
           </div>
 
           {/* ── Right Sidebar ── */}
-          <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
+          <div className="w-full lg:w-72 shrink-0 space-y-4">
             <div className={`${cardClass} p-5`}>
               <div className="flex items-center gap-2 mb-1">
                 <ShieldCheck className="w-4 h-4 text-green-600 dark:text-emerald-400" />
@@ -952,7 +950,7 @@ export default function SafetyPage() {
               <ul className="space-y-2.5">
                 {GUIDELINES.map((g) => (
                   <li key={g} className="flex items-start gap-2 text-xs text-gray-700 dark:text-slate-300">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500 dark:text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500 dark:text-emerald-500 shrink-0 mt-0.5" />
                     <span>{g}</span>
                   </li>
                 ))}

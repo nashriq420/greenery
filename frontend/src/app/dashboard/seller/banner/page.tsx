@@ -12,7 +12,7 @@ export default function SellerBannerPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   // Helper for image URLs
   const getImageUrl = (path: string) => {
@@ -38,9 +38,9 @@ export default function SellerBannerPage() {
   const [message, setMessage] = useState("");
 
   const fetchBanners = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
-      const res = await api.get("/banners", token);
+      const res = await api.get("/banners");
       setBanners(res); // api returns parsed json
     } catch (err) {
       console.error(err);
@@ -50,10 +50,10 @@ export default function SellerBannerPage() {
   };
 
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated) {
       fetchBanners();
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +61,7 @@ export default function SellerBannerPage() {
       setMessage("Please select a listing and an image.");
       return;
     }
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     const formData = new FormData();
     formData.append("listingId", selectedListing);
@@ -72,7 +72,7 @@ export default function SellerBannerPage() {
     setMessage("");
 
     try {
-      await api.upload("/banners/upload", formData, token);
+      await api.upload("/banners/upload", formData);
       setMessage("Banner uploaded successfully! Waiting for approval.");
       setSelectedListing("");
       setTitle("");

@@ -75,7 +75,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function CommunityPage() {
-  const { user, token } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -97,7 +97,7 @@ export default function CommunityPage() {
       const url = selectedTag
         ? `/community/feed?tag=${selectedTag}`
         : "/community/feed";
-      const data = await api.get(url, token || undefined);
+      const data = await api.get(url);
       if (Array.isArray(data)) {
         setPosts(data);
       }
@@ -106,7 +106,7 @@ export default function CommunityPage() {
     } finally {
       setLoading(false);
     }
-  }, [token, selectedTag]);
+  }, [isAuthenticated, selectedTag]);
 
   useEffect(() => {
     fetchFeed();
@@ -128,7 +128,7 @@ export default function CommunityPage() {
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newContent.trim() && !selectedFile) return;
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     setIsPosting(true);
     try {
@@ -138,7 +138,7 @@ export default function CommunityPage() {
         const formData = new FormData();
         formData.append("image", selectedFile);
 
-        const uploadData = await api.upload("/upload/image", formData, token);
+        const uploadData = await api.upload("/upload/image", formData);
         uploadedImageUrl = uploadData.url;
       }
 
@@ -148,9 +148,7 @@ export default function CommunityPage() {
           content: newContent,
           imageUrl: uploadedImageUrl || undefined,
           tag: selectedPostTag,
-        },
-        token,
-      );
+        });
 
       setNewContent("");
       setSelectedFile(null);

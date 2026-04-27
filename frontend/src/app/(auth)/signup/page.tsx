@@ -52,8 +52,8 @@ export default function SignupPage() {
         role,
       });
 
-      if (res.token) {
-        login(res.user, res.token);
+      if (res.user) {
+        login(res.user);
         router.push("/dashboard");
       } else {
         setError(res.message || "Signup failed");

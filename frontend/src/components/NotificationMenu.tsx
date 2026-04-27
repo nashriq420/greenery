@@ -27,7 +27,7 @@ interface Notification {
 }
 
 export default function NotificationMenu() {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -37,9 +37,9 @@ export default function NotificationMenu() {
   const previousUnreadCountRef = useRef(0);
 
   const fetchNotifications = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
-      const data = await api.get("/notifications", token);
+      const data = await api.get("/notifications");
       setNotifications(data.notifications);
       setUnreadCount(data.unreadCount);
 
@@ -70,7 +70,7 @@ export default function NotificationMenu() {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000); // 30 seconds
     return () => clearInterval(interval);
-  }, [token]);
+  }, [isAuthenticated]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -87,9 +87,9 @@ export default function NotificationMenu() {
   }, [dropdownRef]);
 
   const handleMarkAsRead = async (id: string, link?: string) => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
-      await api.put(`/notifications/${id}/read`, {}, token);
+      await api.put(`/notifications/${id}/read`, {});
       // Optimistic update
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
@@ -106,10 +106,10 @@ export default function NotificationMenu() {
   };
 
   const handleMarkAllAsRead = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     setLoading(true);
     try {
-      await api.put("/notifications/read-all", {}, token);
+      await api.put("/notifications/read-all", {});
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {

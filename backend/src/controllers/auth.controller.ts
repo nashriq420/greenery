@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../utils/prisma";
 import { z, ZodError } from "zod";
-import { logger } from "../utils/logger";
+import { logger, maskIp } from "../utils/logger";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { logActivity } from "../utils/audit";
 
@@ -111,9 +111,9 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // --- Login History & Notification ---
-    const ip = req.ip || req.socket.remoteAddress || "unknown";
+    const rawIp = req.ip || req.socket.remoteAddress || "unknown";
+    const ip = maskIp(String(rawIp)); // Mask PII before storing
     const userAgent = req.headers["user-agent"] || "unknown";
-    // Simple location mock or use an API if available (omitted for now, just storing "unknown" or doing a basic check)
     const location = "Unknown Location";
 
     // Check last login
@@ -126,7 +126,7 @@ export const login = async (req: Request, res: Response) => {
     await prisma.loginHistory.create({
       data: {
         userId: user.id,
-        ip: String(ip),
+        ip: ip,
         location: location,
         device: userAgent,
       },
@@ -137,7 +137,7 @@ export const login = async (req: Request, res: Response) => {
       user.id,
       "LOGIN",
       {
-        ip,
+        ip: maskIp(String(req.ip || req.socket.remoteAddress || "unknown")),
         device: userAgent,
         location: location,
       },
@@ -145,8 +145,8 @@ export const login = async (req: Request, res: Response) => {
     );
     // ------------------
 
-    // Notify if IP changed (simple logic)
-    if (lastLogin && lastLogin.ip !== String(ip)) {
+    // Notify if IP changed (simple logic, compare masked IPs)
+    if (lastLogin && lastLogin.ip !== maskIp(String(req.ip || "unknown"))) {
       await prisma.notification.create({
         data: {
           userId: user.id,
@@ -176,8 +176,17 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: "1d" },
     );
 
+    const isProd = process.env.NODE_ENV === "production";
+    // Set the JWT as an HTTP-only cookie — JavaScript cannot read this
+    res.cookie("token", token, {
+      httpOnly: true,            // Invisible to JS — blocks XSS token theft
+      secure: isProd,            // HTTPS-only in production
+      sameSite: "strict",        // Blocks CSRF for same-domain deployments
+      maxAge: 24 * 60 * 60 * 1000, // 1 day in ms
+      path: "/",
+    });
+
     res.json({
-      token,
       user: {
         id: fullUser!.id,
         name: fullUser!.name,
@@ -235,4 +244,15 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     logger.error("Get me error", error);
     res.status(500).json({ message: "Internal server error" });
   }
+};
+
+// Logout — clear the HTTP-only token cookie
+export const logout = (_req: Request, res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+  });
+  res.json({ message: "Logged out successfully" });
 };

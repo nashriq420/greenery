@@ -19,15 +19,15 @@ import {
 } from "lucide-react";
 
 export default function AnalyticsTab() {
-  const { token, user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!token) return;
+      if (!isAuthenticated) return;
       try {
-        const res = await api.get("/analytics/seller", token);
+        const res = await api.get("/analytics/seller");
         setMetrics(res.metrics);
       } catch (error) {
         console.error("Failed to load analytics", error);
@@ -41,7 +41,7 @@ export default function AnalyticsTab() {
     } else {
       setLoading(false);
     }
-  }, [token, user]);
+  }, [isAuthenticated, user]);
 
   if (!user || user.subscription?.status !== "ACTIVE") {
     return (

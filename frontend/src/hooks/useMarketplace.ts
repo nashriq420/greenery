@@ -28,10 +28,10 @@ export function useSellers(
 ) {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(false);
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     const fetchSellers = async () => {
       setLoading(true);
@@ -45,7 +45,7 @@ export function useSellers(
         ) {
           url += `&lat=${lat}&lng=${lng}`;
         }
-        const data = await api.get(url, token);
+        const data = await api.get(url);
         if (Array.isArray(data)) {
           setSellers(data);
         }
@@ -58,7 +58,7 @@ export function useSellers(
 
     const timeout = setTimeout(fetchSellers, 500); // Debounce
     return () => clearTimeout(timeout);
-  }, [lat, lng, radius, token]);
+  }, [lat, lng, radius, isAuthenticated]);
 
   return { sellers, loading };
 }
@@ -117,7 +117,6 @@ export interface ListingFilters {
 export function useListings(filters: ListingFilters = {}) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const { token } = useAuthStore();
 
   const fetchListings = async () => {
     setLoading(true);
@@ -149,8 +148,8 @@ export function useListings(filters: ListingFilters = {}) {
         url += `?${params.toString()}`;
       }
 
-      // Public endpoint, but allows token usage
-      const data = await api.get(url, token || undefined);
+      // Cookie is sent automatically via credentials: include in api.ts
+      const data = await api.get(url);
       if (Array.isArray(data)) {
         setListings(data);
       }
@@ -165,7 +164,7 @@ export function useListings(filters: ListingFilters = {}) {
     setLoading(true);
     const timeout = setTimeout(fetchListings, 500);
     return () => clearTimeout(timeout);
-  }, [token, JSON.stringify(filters)]);
+  }, [JSON.stringify(filters)]);
 
   return { listings, loading, refetch: fetchListings };
 }
@@ -173,13 +172,13 @@ export function useListings(filters: ListingFilters = {}) {
 export function useMyListings() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(false);
-  const { token, user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   const fetchListings = async () => {
-    if (!token || user?.role !== "SELLER") return;
+    if (!isAuthenticated || user?.role !== "SELLER") return;
     setLoading(true);
     try {
-      const data = await api.get("/marketplace/my-listings", token);
+      const data = await api.get("/marketplace/my-listings");
       if (Array.isArray(data)) {
         setListings(data);
       }
@@ -192,28 +191,25 @@ export function useMyListings() {
 
   useEffect(() => {
     fetchListings();
-  }, [token]);
+  }, [isAuthenticated]);
 
   return { listings, loading, refetch: fetchListings };
 }
 
-export const createListing = async (
-  data: {
-    title: string;
-    description: string;
-    price: number;
-    imageUrl?: string;
-    sku?: string;
-    deliveryAvailable?: boolean;
-    minQuantity?: number;
-    strainType?: string;
-    thcContent?: number;
-    cbdContent?: number;
-    type?: string;
-    flavors?: string;
-    effects?: string;
-  },
-  token: string,
-) => {
-  return await api.post("/marketplace/listings", data, token);
+export const createListing = async (data: {
+  title: string;
+  description: string;
+  price: number;
+  imageUrl?: string;
+  sku?: string;
+  deliveryAvailable?: boolean;
+  minQuantity?: number;
+  strainType?: string;
+  thcContent?: number;
+  cbdContent?: number;
+  type?: string;
+  flavors?: string;
+  effects?: string;
+}) => {
+  return await api.post("/marketplace/listings", data);
 };

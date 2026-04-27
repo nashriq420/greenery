@@ -30,7 +30,7 @@ const SellerLocationMap = dynamic(
 export default function SellerProfilePage() {
   const params = useParams();
   const id = params?.id as string;
-  const { token, user } = useAuthStore();
+  const { user } = useAuthStore();
 
   const [seller, setSeller] = useState<any>(null);
   const [listings, setListings] = useState<any[]>([]);
@@ -45,12 +45,10 @@ export default function SellerProfilePage() {
         setLoading(true);
         const sellerData = await api.get(
           `/marketplace/sellers/${id}`,
-          token || undefined,
         );
         setSeller(sellerData);
         const allListings = await api.get(
           "/marketplace/listings",
-          token || undefined,
         );
         if (Array.isArray(allListings)) {
           const sellerListings = allListings.filter(
@@ -60,7 +58,6 @@ export default function SellerProfilePage() {
         }
         const sellerReviews = await api.get(
           `/reviews/seller/${id}`,
-          token || undefined,
         );
         setReviews(sellerReviews);
       } catch (e) {
@@ -71,7 +68,7 @@ export default function SellerProfilePage() {
     };
 
     fetchData();
-  }, [id, token]);
+  }, [id]);
 
   // ...
 
@@ -181,12 +178,11 @@ export default function SellerProfilePage() {
                   {user?.id !== id && (
                     <button
                       onClick={async () => {
-                        if (!token) return alert("Please login to chat");
+                        if (!user) return alert("Please login to chat");
                         try {
                           const chat = await api.post(
                             "/chat",
                             { participantId: id },
-                            token,
                           );
                           window.location.href = `/dashboard/chat/${chat.id}`;
                         } catch (e) {

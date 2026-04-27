@@ -16,8 +16,11 @@ export const authenticateToken = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  // 1. Try HTTP-only cookie (primary — XSS-safe)
+  // 2. Fall back to Authorization header (for API clients like Postman)
+  const token =
+    req.cookies?.token ||
+    (req.headers["authorization"]?.split(" ")[1] ?? null);
 
   if (!token) {
     return res.status(401).json({ message: "Authentication required" });
@@ -48,13 +51,17 @@ export const authenticateToken = async (
     return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
+
 export const authenticateOptional = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  // 1. Try HTTP-only cookie (primary — XSS-safe)
+  // 2. Fall back to Authorization header (for API clients like Postman)
+  const token =
+    req.cookies?.token ||
+    (req.headers["authorization"]?.split(" ")[1] ?? null);
 
   if (!token) {
     return next();

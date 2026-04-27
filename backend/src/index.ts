@@ -5,6 +5,8 @@ import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
+import { logger } from "./utils/logger";
 import authRoutes from "./routes/auth.routes";
 import marketplaceRoutes from "./routes/marketplace.routes";
 import subscriptionRoutes from "./routes/subscription.routes";
@@ -23,6 +25,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
     origin: process.env.NODE_ENV === "production" 
@@ -45,6 +48,14 @@ app.use(
 );
 app.use(morgan("dev"));
 app.use(compression());
+
+// Cache-Control: prevent caching of all private API responses
+app.use("/api", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  next();
+});
 
 // Global Rate Limiting
 const limiter = rateLimit({
@@ -103,7 +114,11 @@ app.use(
         .json({ message: "File is too large. Maximum size is 5MB." });
     }
 
-    require("fs").appendFileSync("error2.log", `[GLOBAL ERROR] ${err.message}\n${err.stack}\n`);
+    // Sanitize stack trace before logging — strip potential credential patterns
+    const safeStack = (err.stack || "")
+      .replace(/(?:password|secret|key|token)=[^\s&]*/gi, "[REDACTED]")
+      .replace(/\/\/[^:]+:[^@]+@/g, "//[REDACTED]@"); // strip DB URLs
+    logger.error(`[GLOBAL ERROR] ${err.message}`, { stack: safeStack });
     res
       .status(500)
       .json({ message: "Internal Server Error", error: err.message });

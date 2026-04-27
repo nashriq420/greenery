@@ -19,7 +19,7 @@ export default function EditListingModal({
   onClose,
   onUpdate,
 }: EditListingModalProps) {
-  const { token } = useAuthStore();
+  const {} = useAuthStore(); // auth via cookie — no isAuthenticated needed
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -122,7 +122,7 @@ export default function EditListingModal({
         const uploadData = new FormData();
         uploadData.append("image", selectedFile);
 
-        const uploadRes = await api.upload("/upload/image", uploadData, token!);
+        const uploadRes = await api.upload("/upload/image", uploadData);
         if (uploadRes.url) {
           finalImageUrl = uploadRes.url;
         }
@@ -135,7 +135,6 @@ export default function EditListingModal({
         const uploadRes = await api.uploadVideo(
           "/upload/video",
           uploadData,
-          token!,
         );
         if (uploadRes.url) {
           finalVideoUrl = uploadRes.url;
@@ -157,7 +156,6 @@ export default function EditListingModal({
           imageUrl: finalImageUrl,
           videoUrl: finalVideoUrl,
         },
-        token!,
       );
 
       onUpdate();

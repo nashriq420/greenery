@@ -30,7 +30,7 @@ const PRODUCT_TYPES = [
 ];
 
 export default function MarketplacePage() {
-  const { user, token } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false); // Modal for missing location
 
@@ -186,7 +186,7 @@ export default function MarketplacePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     setSubmitting(true);
     try {
@@ -209,9 +209,7 @@ export default function MarketplacePage() {
           flavors: formData.flavors || undefined,
           effects: formData.effects || undefined,
           sku: formData.sku || undefined,
-        },
-        token,
-      );
+        });
 
       setIsModalOpen(false);
       setFormData({
@@ -1130,7 +1128,6 @@ export default function MarketplacePage() {
                             const res = await api.upload(
                               "/upload/image",
                               uploadData,
-                              token || undefined,
                             );
                             setFormData((prev) => ({
                               ...prev,

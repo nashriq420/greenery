@@ -31,7 +31,7 @@ export default function ChatSidebar({
 }: {
   className?: string;
 }) {
-  const { token, user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [chats, setChats] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [search, setSearch] = useState("");
@@ -43,9 +43,9 @@ export default function ChatSidebar({
   const previousLatestUpdateRef = useRef<number>(0);
 
   const fetchChats = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
-      const data = await api.get("/chat", token);
+      const data = await api.get("/chat");
       if (Array.isArray(data)) {
         const sorted = data.sort(
           (a, b) =>
@@ -89,7 +89,7 @@ export default function ChatSidebar({
     fetchChats();
     const interval = setInterval(fetchChats, 5000);
     return () => clearInterval(interval);
-  }, [token]);
+  }, [isAuthenticated]);
 
   // Client-side search filter
   useEffect(() => {

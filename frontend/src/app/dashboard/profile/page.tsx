@@ -59,7 +59,7 @@ const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
 });
 
 export default function ProfilePage() {
-  const { user, token } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
     email: "",
@@ -137,19 +137,19 @@ export default function ProfilePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated) {
       fetchProfile();
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    if (token && user?.role === "SELLER") {
+    if (user?.role === "SELLER") {
       fetchMyListings();
     }
-  }, [token, user]);
+  }, [isAuthenticated, user]);
   const fetchProfile = async () => {
     try {
-      const res = await api.get("/user/me", token || undefined);
+      const res = await api.get("/user/me");
       if (res) {
         setProfile({
           name: res.name || "",
@@ -199,7 +199,7 @@ export default function ProfilePage() {
 
   const fetchMyListings = async () => {
     try {
-      const res = await api.get("/marketplace/my-listings", token || undefined);
+      const res = await api.get("/marketplace/my-listings");
       if (Array.isArray(res)) {
         setMyListings(res);
       }
@@ -219,15 +219,15 @@ export default function ProfilePage() {
         country: profile.country,
       };
 
-      await api.put("/user/me", payload, token || undefined);
+      await api.put("/user/me", payload);
 
       // Also update seller profile if applicable to prevent user confusion
       if (profile.role === "SELLER") {
-        await api.put("/user/me/location", sellerProfile, token || undefined);
+        await api.put("/user/me/location", sellerProfile);
       }
 
       // Update local auth store
-      if (user && token) {
+      if (user && isAuthenticated) {
         useAuthStore.getState().login(
           {
             ...user,
@@ -237,9 +237,7 @@ export default function ProfilePage() {
             district: profile.district,
             state: profile.state,
             country: profile.country,
-          },
-          token,
-        );
+          });
       }
 
       alert("Profile and settings updated successfully!");
@@ -259,7 +257,7 @@ export default function ProfilePage() {
       return;
     }
     try {
-      await api.put("/user/me/password", passwordData, token || undefined);
+      await api.put("/user/me/password", passwordData);
       alert("Password updated");
       setPasswordData({ currentPassword: "", newPassword: "" });
     } catch (err: any) {
@@ -335,7 +333,7 @@ export default function ProfilePage() {
 
   const handleUpdateLocation = async () => {
     try {
-      await api.put("/user/me/location", sellerProfile, token || undefined);
+      await api.put("/user/me/location", sellerProfile);
 
       // Refresh user data in store to reflect changes in dashboard
       const { refreshUser } = useAuthStore.getState();
@@ -375,7 +373,6 @@ export default function ProfilePage() {
           effects: newListing.effects || undefined,
           sku: newListing.sku || undefined,
         },
-        token || undefined,
       );
       alert("Listing created");
       fetchMyListings();
@@ -408,7 +405,7 @@ export default function ProfilePage() {
   const handleDeleteListing = async (id: string) => {
     try {
       if (!confirm("Are you sure?")) return;
-      await api.delete(`/marketplace/listings/${id}`, token || undefined);
+      await api.delete(`/marketplace/listings/${id}`);
       alert("Listing deleted");
       fetchMyListings();
       // Refresh listing count in dashboard
@@ -430,7 +427,6 @@ export default function ProfilePage() {
       await api.put(
         `/marketplace/listings/${id}/delist`,
         {},
-        token || undefined,
       );
       alert("Listing delisted");
       fetchMyListings();
@@ -447,7 +443,6 @@ export default function ProfilePage() {
       await api.put(
         `/marketplace/listings/${id}/relist`,
         {},
-        token || undefined,
       );
       alert("Listing relisted");
       fetchMyListings();
@@ -467,7 +462,6 @@ export default function ProfilePage() {
         const res = await api.upload(
           "/upload/image",
           formData,
-          token || undefined,
         );
         setNewListing({ ...newListing, imageUrl: res.url });
       } catch (err) {
@@ -489,7 +483,6 @@ export default function ProfilePage() {
         const res = await api.uploadVideo(
           "/upload/video",
           formData,
-          token || undefined,
         );
         setNewListing({ ...newListing, videoUrl: res.url });
       } catch (err: any) {
@@ -505,7 +498,7 @@ export default function ProfilePage() {
     }
 
     try {
-      await api.delete("/user/me", token!, { password: deletePassword });
+      await api.delete("/user/me");
       useAuthStore.getState().logout();
       window.location.href = "/";
     } catch (err: any) {
@@ -612,7 +605,6 @@ export default function ProfilePage() {
                               const res = await api.upload(
                                 "/upload/image",
                                 formData,
-                                token || undefined,
                               );
                               // Set local state immediately for fast feedback
                               setProfile((prev) => ({
@@ -1032,9 +1024,7 @@ export default function ProfilePage() {
                                 try {
                                   const res = await api.upload(
                                     "/upload/image",
-                                    uploadData,
-                                    token!,
-                                  );
+                                    uploadData);
                                   if (res.url) {
                                     setSellerProfile((prev) => ({
                                       ...prev,
@@ -1557,7 +1547,7 @@ export default function ProfilePage() {
 
         {profile.role === "SELLER" && (
           <TabsContent value="promotions" className="space-y-6">
-            <BannersTab token={token} />
+            <BannersTab />
           </TabsContent>
         )}
 
@@ -1665,18 +1655,19 @@ export default function ProfilePage() {
     </div>
   );
 }
-function BannersTab({ token }: { token: string | null }) {
+function BannersTab({}) {
+  const { isAuthenticated } = useAuthStore();
   const [banners, setBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     api
-      .get("/banners", token)
+      .get("/banners")
       .then((res) => setBanners(Array.isArray(res) ? res : []))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [isAuthenticated]);
 
   const pendingBanners = banners.filter((b) => b.status === "PENDING");
   const approvedBanners = banners.filter((b) => b.status === "APPROVED");

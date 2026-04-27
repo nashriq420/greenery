@@ -8,7 +8,7 @@ export default function AdminBannersPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("PENDING"); // PENDING, APPROVED, REJECTED
 
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   // Helper for image URLs
   const getImageUrl = (path: string) => {
@@ -32,11 +32,11 @@ export default function AdminBannersPage() {
   const [startDate, setStartDate] = useState("");
 
   const fetchBanners = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     setLoading(true);
     try {
       const apiStatus = statusFilter === "EXPIRED" ? "APPROVED" : statusFilter;
-      const res = await api.get(`/banners?status=${apiStatus}`, token);
+      const res = await api.get(`/banners?status=${apiStatus}`);
       setBanners(res || []);
     } catch (err) {
       console.error(err);
@@ -46,10 +46,10 @@ export default function AdminBannersPage() {
   };
 
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated) {
       fetchBanners();
     }
-  }, [statusFilter, token]);
+  }, [statusFilter, isAuthenticated]);
 
   const handleApproveClick = (banner: any) => {
     setApprovingBanner(banner);
@@ -58,13 +58,11 @@ export default function AdminBannersPage() {
   };
 
   const confirmApprove = async () => {
-    if (!startDate || !token) return;
+    if (!startDate || !isAuthenticated) return;
     try {
       await api.put(
         `/banners/${approvingBanner.id}/approve`,
-        { startDate },
-        token,
-      );
+        { startDate });
       setApprovingBanner(null);
       fetchBanners();
       alert("Banner approved successfully!");
@@ -75,10 +73,10 @@ export default function AdminBannersPage() {
   };
 
   const handleReject = async (id: string) => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     if (!confirm("Reject this banner?")) return;
     try {
-      await api.put(`/banners/${id}/reject`, {}, token);
+      await api.put(`/banners/${id}/reject`, {});
       fetchBanners();
     } catch (err) {
       console.error(err);
@@ -95,7 +93,7 @@ export default function AdminBannersPage() {
   };
 
   const confirmEditSchedule = async () => {
-    if (!startDate || !token) return;
+    if (!startDate || !isAuthenticated) return;
     try {
       const start = new Date(startDate);
       const end = new Date(start);
@@ -106,9 +104,7 @@ export default function AdminBannersPage() {
         {
           startDate: start.toISOString(),
           endDate: end.toISOString(),
-        },
-        token,
-      );
+        });
 
       setEditingSchedule(null);
       fetchBanners();

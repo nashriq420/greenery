@@ -25,7 +25,6 @@ const handleResponse = async (res: Response) => {
       `API request failed: ${res.status} ${res.statusText}`;
 
     if (data.errors && Array.isArray(data.errors)) {
-      // Drop the path prefix if it's just the field name, use the custom message primarily
       errorMessage = data.errors.map((e: any) => `• ${e.message}`).join("\n");
     }
 
@@ -35,44 +34,37 @@ const handleResponse = async (res: Response) => {
 };
 
 export const api = {
-  get: async (endpoint: string, token?: string) => {
+  // credentials: "include" sends the HTTP-only cookie automatically on every request
+  get: async (endpoint: string) => {
     const res = await fetch(`${API_URL}${endpoint}`, {
-      headers: {
-        ...defaultHeaders,
-        Authorization: token ? `Bearer ${token}` : "",
-      },
+      credentials: "include",
+      headers: defaultHeaders,
     });
     return handleResponse(res);
   },
-  post: async (endpoint: string, body: any, token?: string) => {
+  post: async (endpoint: string, body: any) => {
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",
-      headers: {
-        ...defaultHeaders,
-        Authorization: token ? `Bearer ${token}` : "",
-      },
+      credentials: "include",
+      headers: defaultHeaders,
       body: JSON.stringify(body),
     });
     return handleResponse(res);
   },
-  put: async (endpoint: string, body: any, token?: string) => {
+  put: async (endpoint: string, body: any) => {
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: "PUT",
-      headers: {
-        ...defaultHeaders,
-        Authorization: token ? `Bearer ${token}` : "",
-      },
+      credentials: "include",
+      headers: defaultHeaders,
       body: JSON.stringify(body),
     });
     return handleResponse(res);
   },
-  delete: async (endpoint: string, token?: string, body?: any) => {
+  delete: async (endpoint: string, body?: any) => {
     const options: RequestInit = {
       method: "DELETE",
-      headers: {
-        ...defaultHeaders,
-        Authorization: token ? `Bearer ${token}` : "",
-      },
+      credentials: "include",
+      headers: defaultHeaders,
     };
     if (body) {
       options.body = JSON.stringify(body);
@@ -80,24 +72,20 @@ export const api = {
     const res = await fetch(`${API_URL}${endpoint}`, options);
     return handleResponse(res);
   },
-  upload: async (endpoint: string, formData: FormData, token?: string) => {
+  upload: async (endpoint: string, formData: FormData) => {
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",
-      headers: {
-        "Bypass-Tunnel-Reminder": "true",
-        Authorization: token ? `Bearer ${token}` : "",
-      },
+      credentials: "include",
+      headers: { "Bypass-Tunnel-Reminder": "true" },
       body: formData,
     });
     return handleResponse(res);
   },
-  uploadVideo: async (endpoint: string, formData: FormData, token?: string) => {
+  uploadVideo: async (endpoint: string, formData: FormData) => {
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",
-      headers: {
-        "Bypass-Tunnel-Reminder": "true",
-        Authorization: token ? `Bearer ${token}` : "",
-      },
+      credentials: "include",
+      headers: { "Bypass-Tunnel-Reminder": "true" },
       body: formData,
     });
     return handleResponse(res);

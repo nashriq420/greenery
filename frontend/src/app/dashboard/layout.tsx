@@ -23,8 +23,8 @@ export default function DashboardLayout({
   const isChatRoute = pathname?.startsWith("/dashboard/chat");
 
   useEffect(() => {
-    const token = useAuthStore.getState().token;
-    if (!token) {
+    const isAuthenticated = useAuthStore.getState().isAuthenticated;
+    if (!isAuthenticated) {
       router.push("/login");
     }
   }, [router]);
@@ -37,7 +37,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="border-b border-border h-16 flex items-center px-4 md:px-6 justify-between bg-white dark:bg-[#0B3D2E] sticky top-0 z-1000">
-        <div className="font-bold text-lg md:text-xl text-green-700 flex items-center gap-2 flex-shrink-0">
+        <div className="font-bold text-lg md:text-xl text-green-700 flex items-center gap-2 shrink-0">
           <img src="/logo.png" alt="BudPlug Logo" className="h-7 w-7 md:h-8 md:w-8 object-contain rounded-full" />
           <span className="hidden sm:inline">BudPlug</span>
         </div>

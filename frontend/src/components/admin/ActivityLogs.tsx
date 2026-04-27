@@ -34,7 +34,7 @@ type Log = {
   };
 };
 
-export default function ActivityLogs({ token }: { token: string | null }) {
+export default function ActivityLogs({}) {
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -68,7 +68,7 @@ export default function ActivityLogs({ token }: { token: string | null }) {
       const queryString = queryParams.toString();
       const endpoint = `/admin/logs${queryString ? `?${queryString}` : ""}`;
 
-      const res: any = await api.get(endpoint, token || undefined);
+      const res: any = await api.get(endpoint);
 
       // Check if response is paginated object or array (backward compatibility check though we just changed backend)
       if (res && res.logs && Array.isArray(res.logs)) {
@@ -95,7 +95,7 @@ export default function ActivityLogs({ token }: { token: string | null }) {
       fetchLogs();
     }, 500); // Debounce search
     return () => clearTimeout(timeout);
-  }, [search, startDate, endDate, token, currentPage]);
+  }, [search, startDate, endDate, currentPage]);
 
   // Reset page on filter change
   useEffect(() => {

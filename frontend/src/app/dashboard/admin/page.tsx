@@ -73,7 +73,7 @@ type Listing = {
 };
 
 export default function AdminPage() {
-  const { token, user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   const router = useRouter();
 
@@ -121,7 +121,6 @@ export default function AdminPage() {
           message: warningMessage,
           listingId: selectedUserForWarning.listingId,
         },
-        token || undefined,
       );
       alert("Warning sent successfully"); // Replaced toast with alert for now as toast setup is unknown
       setWarningOpen(false);
@@ -144,14 +143,14 @@ export default function AdminPage() {
       if (mainTab === "overview") {
         const [custRes, sellRes, listRes, comRes] = await Promise.all([
           api
-            .get("/admin/users?role=CUSTOMER", token || undefined)
+            .get("/admin/users?role=CUSTOMER")
             .catch(() => []),
           api
-            .get("/admin/users?role=SELLER", token || undefined)
+            .get("/admin/users?role=SELLER")
             .catch(() => []),
-          api.get("/admin/listings", token || undefined).catch(() => []),
+          api.get("/admin/listings").catch(() => []),
           api
-            .get("/admin/community/reports", token || undefined)
+            .get("/admin/community/reports")
             .catch(() => []),
         ]);
         if (Array.isArray(custRes)) setCustomers(custRes);
@@ -160,19 +159,19 @@ export default function AdminPage() {
         if (Array.isArray(comRes)) setCommunityReports(comRes);
       } else if (mainTab === "customers") {
         const url = `/admin/users?role=CUSTOMER${search ? `&search=${search}` : ""}`;
-        const res = await api.get(url, token || undefined);
+        const res = await api.get(url);
         if (Array.isArray(res)) setCustomers(res);
       } else if (mainTab === "sellers") {
         const url = `/admin/users?role=SELLER${search ? `&search=${search}` : ""}`;
-        const res = await api.get(url, token || undefined);
+        const res = await api.get(url);
         if (Array.isArray(res)) setSellers(res);
       } else if (mainTab === "listings") {
         const url = `/admin/listings?${search ? `search=${search}` : ""}`;
-        const res = await api.get(url, token || undefined);
+        const res = await api.get(url);
         if (Array.isArray(res)) setListings(res);
       } else if (mainTab === "community") {
         const url = `/admin/community/reports${search ? `?search=${search}` : ""}`;
-        const res = await api.get(url, token || undefined);
+        const res = await api.get(url);
         if (Array.isArray(res)) setCommunityReports(res);
       }
     } catch (err) {
@@ -183,18 +182,17 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (token && mainTab) {
+    if (mainTab) {
       const timeout = setTimeout(fetchData, 500); // Debounce
       return () => clearTimeout(timeout);
     }
-  }, [token, mainTab, search]);
+  }, [isAuthenticated, mainTab, search]);
 
   const handleUserStatusUpdate = async (userId: string, newStatus: string) => {
     try {
       await api.put(
         `/admin/users/${userId}/status`,
         { status: newStatus },
-        token || undefined,
       );
       fetchData();
     } catch (err) {
@@ -210,7 +208,6 @@ export default function AdminPage() {
       await api.put(
         `/admin/listings/${listingId}/status`,
         { status: newStatus },
-        token || undefined,
       );
       fetchData();
     } catch (err) {
@@ -223,7 +220,6 @@ export default function AdminPage() {
       await api.put(
         `/admin/posts/${postId}/status`,
         { status: newStatus },
-        token || undefined,
       );
       fetchData();
     } catch (err) {
@@ -559,7 +555,7 @@ export default function AdminPage() {
 
           {mainTab === "logs" && (
             <div className="space-y-6">
-              <ActivityLogs token={token} />
+              <ActivityLogs />
             </div>
           )}
         </div>

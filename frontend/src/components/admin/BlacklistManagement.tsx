@@ -32,7 +32,7 @@ interface BlacklistReport {
 import EvidenceModal from "@/components/EvidenceModal";
 
 export default function BlacklistManagement() {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [reports, setReports] = useState<BlacklistReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export default function BlacklistManagement() {
 
   const fetchReports = async () => {
     try {
-      const data = await api.get("/blacklist/admin", token || undefined);
+      const data = await api.get("/blacklist/admin");
       setReports(data);
     } catch (error) {
       console.error("Failed to fetch admin blacklist reports:", error);
@@ -59,7 +59,7 @@ export default function BlacklistManagement() {
   ) => {
     setProcessing(id);
     try {
-      await api.put(`/blacklist/admin/${id}`, { status }, token || undefined);
+      await api.put(`/blacklist/admin/${id}`, { status });
       // Update local state
       setReports(reports.map((r) => (r.id === id ? { ...r, status } : r)));
     } catch (error) {

@@ -48,7 +48,7 @@ export default function PostCard({
   onLikeToggle,
   onDelete,
 }: PostCardProps) {
-  const { user, token } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likesCount);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -79,7 +79,7 @@ export default function PostCard({
   const isAuthor = user?.id === post.author.id;
 
   const handleLike = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
@@ -91,7 +91,7 @@ export default function PostCard({
     }
 
     try {
-      await api.post(`/community/posts/${post.id}/like`, {}, token);
+      await api.post(`/community/posts/${post.id}/like`, {});
       onLikeToggle();
     } catch (error) {
       setIsLiked(!newLikedState);
@@ -108,9 +108,7 @@ export default function PostCard({
         {
           content: editContent,
           imageUrl: post.imageUrl,
-        },
-        token!,
-      );
+        });
 
       setCurrentContent(editContent);
       setIsEditing(false);
@@ -125,7 +123,7 @@ export default function PostCard({
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this post?")) return;
     try {
-      await api.delete(`/community/posts/${post.id}`, token!);
+      await api.delete(`/community/posts/${post.id}`);
       if (onDelete) onDelete(post.id);
     } catch (error) {
       alert("Failed to delete post");
@@ -149,16 +147,14 @@ export default function PostCard({
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !token) return;
+    if (!newComment.trim() || !isAuthenticated) return;
 
     try {
       const comment = await api.post(
         `/community/posts/${post.id}/comments`,
         {
           content: newComment,
-        },
-        token,
-      );
+        });
 
       setComments((prev) => [...prev, comment]);
       setNewComment("");
@@ -170,7 +166,7 @@ export default function PostCard({
 
   const handleReport = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (!isAuthenticated) return;
     setIsReporting(true);
     try {
       await api.post(
@@ -178,9 +174,7 @@ export default function PostCard({
         {
           reason: reportReason,
           details: reportDetails,
-        },
-        token,
-      );
+        });
       alert("Post reported successfully");
       setShowReportModal(false);
       setReportDetails("");
@@ -485,7 +479,7 @@ export default function PostCard({
               </div>
             )}
 
-            {token && (
+            {isAuthenticated && (
               <div className="relative pt-2">
                 <div className="absolute top-6 -left-[23px] w-2.5 h-2.5 bg-primary border-2 border-border rounded-full z-10 shadow-[0_0_8px_rgb(34,197,94,0.4)]"></div>
                 <form

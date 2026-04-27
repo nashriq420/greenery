@@ -27,14 +27,14 @@ interface BlacklistReport {
 }
 
 export default function MyReportsPage() {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [reports, setReports] = useState<BlacklistReport[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const data = await api.get("/blacklist/my-reports", token || undefined);
+        const data = await api.get("/blacklist/my-reports");
         setReports(data);
       } catch (error) {
         console.error("Failed to fetch user reports:", error);
@@ -43,10 +43,10 @@ export default function MyReportsPage() {
       }
     };
 
-    if (token) {
+    if (isAuthenticated) {
       fetchReports();
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   return (
     <div className="space-y-6">

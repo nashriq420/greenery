@@ -25,7 +25,6 @@ export default function SubscriptionPage() {
       await api.post(
         "/subscription/upgrade",
         {},
-        useAuthStore.getState().token!,
       );
       alert(
         "Subscription upgraded! You can now access Chat and Seller features.",

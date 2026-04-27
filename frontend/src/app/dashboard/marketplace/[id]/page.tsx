@@ -54,7 +54,7 @@ interface ListingDetails {
 
 export default function ListingDetailsPage() {
   const { id } = useParams();
-  const { token, user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [listing, setListing] = useState<ListingDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -73,13 +73,12 @@ export default function ListingDetailsPage() {
 
   useEffect(() => {
     fetchListing();
-  }, [id, token]);
+  }, [id]);
 
   const fetchListing = async () => {
     try {
       const data = await api.get(
         `/marketplace/listings/${id}`,
-        token || undefined,
       );
       setListing(data);
     } catch (err: any) {
@@ -92,10 +91,10 @@ export default function ListingDetailsPage() {
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (!isAuthenticated) return;
     setSubmittingReview(true);
     try {
-      await api.post("/reviews", { listingId: id, rating, comment }, token);
+      await api.post("/reviews", { listingId: id, rating, comment });
       // Reload
       fetchListing();
       setComment("");
@@ -108,10 +107,10 @@ export default function ListingDetailsPage() {
   };
 
   const handleReply = async (reviewId: string) => {
-    if (!replyText.trim() || !token) return;
+    if (!replyText.trim() || !isAuthenticated) return;
     setSubmittingReply(true);
     try {
-      await api.post(`/reviews/${reviewId}/reply`, { reply: replyText }, token);
+      await api.post(`/reviews/${reviewId}/reply`, { reply: replyText });
       fetchListing();
       setReplyingTo(null);
       setReplyText("");
@@ -123,7 +122,7 @@ export default function ListingDetailsPage() {
   };
 
   const handleChat = async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       router.push("/login");
       return;
     }
@@ -132,9 +131,7 @@ export default function ListingDetailsPage() {
     try {
       const chat = await api.post(
         "/chat",
-        { participantId: listing.sellerId },
-        token,
-      );
+        { participantId: listing.sellerId });
       router.push(`/dashboard/chat/${chat.id}`);
     } catch (err: any) {
       alert(err.message || "Failed to start chat");

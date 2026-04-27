@@ -12,7 +12,7 @@ export default function BroadcastModal({
   isOpen,
   onClose,
 }: BroadcastModalProps) {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [resultMsg, setResultMsg] = useState("");
@@ -20,9 +20,9 @@ export default function BroadcastModal({
   const [selectedListingId, setSelectedListingId] = useState<string>("");
 
   useEffect(() => {
-    if (isOpen && token) {
+    if (isOpen && isAuthenticated) {
       api
-        .get("/marketplace/my-listings", token)
+        .get("/marketplace/my-listings")
         .then((data) => {
           if (Array.isArray(data)) {
             setListings(data.filter((l) => l.status === "ACTIVE" || l.active));
@@ -32,7 +32,7 @@ export default function BroadcastModal({
           console.error("Failed to load listings for broadcast", err),
         );
     }
-  }, [isOpen, token]);
+  }, [isOpen, isAuthenticated]);
 
   if (!isOpen) return null;
 
@@ -44,7 +44,7 @@ export default function BroadcastModal({
       const payload: any = { content };
       if (selectedListingId) payload.listingId = selectedListingId;
 
-      const res = await api.post("/chat/broadcast", payload, token!);
+      const res = await api.post("/chat/broadcast", payload);
       setResultMsg(`Success: ${res.sentCount} message(s) sent.`);
       setTimeout(() => {
         onClose();

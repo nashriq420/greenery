@@ -67,8 +67,8 @@ function AuthForm() {
         email: loginEmail,
         password: loginPassword,
       });
-      if (res.token) {
-        login(res.user, res.token);
+      if (res.user) {
+        login(res.user);
         if (res.user.role === "ADMIN") {
           router.push("/dashboard/admin");
         } else {
@@ -102,8 +102,8 @@ function AuthForm() {
 
       const res = await api.post("/auth/signup", payload);
 
-      if (res.token) {
-        login(res.user, res.token);
+      if (res.user) {
+        login(res.user);
         router.push("/dashboard");
       } else if (res.message) {
         // Pending approval case

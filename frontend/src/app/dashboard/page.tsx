@@ -102,7 +102,7 @@ function getBannerUrl(url?: string | null) {
 }
 
 export default function DashboardPage() {
-  const { user, token, refreshUser } = useAuthStore();
+  const { user, refreshUser, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const { listings, loading, refetch } = useMyListings();
   const [editingListing, setEditingListing] = useState<Listing | null>(null);
@@ -164,7 +164,7 @@ export default function DashboardPage() {
     const fetchFeed = async () => {
       setLoadingPosts(true);
       try {
-        const data = await api.get("/community/feed", token || undefined);
+        const data = await api.get("/community/feed");
         if (Array.isArray(data)) {
           setCommunityPosts(data.slice(0, 5));
         }
@@ -175,7 +175,7 @@ export default function DashboardPage() {
       }
     };
     fetchFeed();
-  }, [token]);
+  }, [isAuthenticated]);
 
   // Handle Location
   useEffect(() => {

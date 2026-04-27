@@ -26,7 +26,7 @@ export default function ChatRoomPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { token, user } = useAuthStore();
+  const { user } = useAuthStore();
 
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -46,7 +46,7 @@ export default function ChatRoomPage() {
 
   const fetchMessages = async () => {
     try {
-      const data = await api.get(`/chat/${id}/messages`, token || "");
+      const data = await api.get(`/chat/${id}/messages`);
       if (Array.isArray(data)) {
         setMessages(data);
 
@@ -70,7 +70,7 @@ export default function ChatRoomPage() {
           (m: any) => !m.read && m.receiverId === user?.id
         );
         if (hasUnread) {
-          await api.put(`/chat/${id}/read`, {}, token || "");
+          await api.put(`/chat/${id}/read`, {});
           window.dispatchEvent(new Event("chat-read"));
         }
       }
@@ -82,11 +82,11 @@ export default function ChatRoomPage() {
   };
 
   useEffect(() => {
-    if (!token || !id) return;
+    if (!user || !id) return;
 
     const initChat = async () => {
       try {
-        const chats = await api.get("/chat", token);
+        const chats = await api.get("/chat");
         const currentChat = chats.find((c: any) => c.id === id);
 
         if (currentChat) {
@@ -100,10 +100,10 @@ export default function ChatRoomPage() {
                 : currentChat.participant1.id;
 
           if (user?.role === "SELLER") {
-            const listings = await api.get("/marketplace/my-listings", token);
+            const listings = await api.get("/marketplace/my-listings");
             setAvailableListings(listings || []);
           } else {
-            const allListings = await api.get("/marketplace/listings", token);
+            const allListings = await api.get("/marketplace/listings");
             if (Array.isArray(allListings)) {
               setAvailableListings(
                 allListings.filter((l: any) => l.seller.id === targetSellerId)
@@ -121,7 +121,7 @@ export default function ChatRoomPage() {
 
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
-  }, [id, token, user]);
+  }, [id, user]);
 
   useEffect(() => {
     scrollToBottom();
@@ -134,7 +134,6 @@ export default function ChatRoomPage() {
       await api.post(
         `/chat/${id}/messages`,
         { content: newMessage || "Shared a listing", listingId },
-        token || ""
       );
       setNewMessage("");
       setShowListingPicker(false);
@@ -147,7 +146,7 @@ export default function ChatRoomPage() {
 
   const handleReactivate = async () => {
     try {
-      await api.put(`/chat/${id}/reactivate`, {}, token || "");
+      await api.put(`/chat/${id}/reactivate`, {});
       setChatDetails((prev: any) => ({ ...prev, isActive: true }));
       toast.success("Conversation reactivated!");
     } catch (error) {

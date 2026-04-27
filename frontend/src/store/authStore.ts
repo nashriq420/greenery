@@ -30,70 +30,62 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
-  login: (user: User, token: string) => void;
-  logout: () => void;
+  login: (user: User) => void;
+  logout: () => Promise<void>;
   updateUser: (user: User) => void;
   refreshUser: () => Promise<void>;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
-      token: null,
       isAuthenticated: false,
-      login: (user, token) => set({ user, token, isAuthenticated: true }),
-      logout: () => set({ user: null, token: null, isAuthenticated: false }),
-      updateUser: (user) => set({ user }),
-      refreshUser: async () => {
-        const { token } = get();
-        if (!token) return;
+
+      login: (user) => set({ user, isAuthenticated: true }),
+
+      logout: async () => {
         try {
-          // Cyclic dependency issue if we import api here?
-          // api imports authStore to get token.
-          // If we import api here, it might crash.
-          // Better to use fetch directly or pass api as arg?
-          // Let's rely on component calling this with data, OR implement a simple fetch here.
-          // Actually, api.ts is safe if it just uses useAuthStore.getState().
-          // But prevent circular imports.
-          // Use the environment variable or default to localhost
-          // Construct URL safely
-          const baseUrl =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
-          const endpoint = "/auth/me";
+          // Tell the backend to clear the HTTP-only cookie
+          await fetch(`${API_URL}/auth/logout`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch (e) {
+          console.warn("Logout request failed silently", e);
+        }
+        // Always clear local state regardless of network result
+        set({ user: null, isAuthenticated: false });
+      },
 
-          // If baseUrl ends with '/api' and we append '/auth/me', it's properly '/api/auth/me'
-          // But if baseUrl is just '/api' (from env), it becomes '/api/auth/me' (Correct for proxy)
-          // If baseUrl is 'http://localhost:4000', we need to ensure /api is there?
-          // Verify logic:
-          // If env is /api -> /api/auth/me -> Proxy Correct.
-          // If env missing -> http://localhost:4000/api/auth/me -> Direct Correct.
+      updateUser: (user) => set({ user }),
 
-          // Wait, if I want to be 100% safe against the "double api" issue seen in Map.tsx (which was /api + /api/banners),
-          // here we are appending /auth/me.
-          // So if baseUrl is /api, we get /api/auth/me. Correct.
-          // If baseUrl is http://localhost:4000, we get http://localhost:4000/auth/me. MISSING /api?
-          // The default above has /api. So http://localhost:4000/api/auth/me. Correct.
-
-          // So URL construction seems okay, but maybe headers are the issue.
-
+      refreshUser: async () => {
+        try {
+          const baseUrl = API_URL;
           let url = `${baseUrl}/auth/me`;
           if (process.env.NEXT_PUBLIC_API_URL === "/api") {
             url = `/api/auth/me`;
           }
 
+          // No Authorization header needed — browser sends cookie automatically
           const res = await fetch(url, {
+            credentials: "include",
             headers: {
-              Authorization: `Bearer ${token}`,
               "Bypass-Tunnel-Reminder": "true",
               "Content-Type": "application/json",
             },
           });
           if (res.ok) {
             const user = await res.json();
-            set({ user });
+            set({ user, isAuthenticated: true });
+          } else {
+            // Cookie is invalid/expired — log out
+            set({ user: null, isAuthenticated: false });
           }
         } catch (e) {
           console.error("Failed to refresh user", e);
@@ -102,6 +94,8 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
+      // Only persist the user object — isAuthenticated is in an HTTP-only cookie, not JS
+      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
     },
   ),
 );

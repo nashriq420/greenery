@@ -8,14 +8,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function ChatIcon() {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [unreadCount, setUnreadCount] = useState(0);
   const pathname = usePathname();
 
   const fetchUnreadCount = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
-      const data = await api.get("/chat/unread/count", token);
+      const data = await api.get("/chat/unread/count");
       setUnreadCount(data.unreadCount || 0);
     } catch (error) {
       console.error("Failed to fetch unread chat count", error);
@@ -27,14 +27,14 @@ export default function ChatIcon() {
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 30000); // 30 seconds
     return () => clearInterval(interval);
-  }, [token]);
+  }, [isAuthenticated]);
 
   // Listen for cross-component read events
   useEffect(() => {
     const handleChatRead = () => fetchUnreadCount();
     window.addEventListener("chat-read", handleChatRead);
     return () => window.removeEventListener("chat-read", handleChatRead);
-  }, [token]);
+  }, [isAuthenticated]);
 
   // Fast refresh when navigating away from chat
   useEffect(() => {
