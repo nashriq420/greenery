@@ -606,6 +606,7 @@ export const getSellerById = async (req: Request, res: Response) => {
             listings: { where: { active: true, status: "ACTIVE" } },
           },
         },
+        role: true,
         subscription: {
           select: {
             status: true,

@@ -22,6 +22,8 @@ export default function DashboardLayout({
 
   // Detect chat routes — chat manages its own full-height layout, no outer padding needed
   const isChatRoute = pathname?.startsWith("/dashboard/chat");
+  const isAdminRoute = pathname?.startsWith("/dashboard/admin");
+  const hasFullBleedLayout = isChatRoute || isAdminRoute;
 
   useEffect(() => {
     const isAuthenticated = useAuthStore.getState().isAuthenticated;
@@ -96,12 +98,12 @@ export default function DashboardLayout({
       </header>
       <main
         className={`flex-1 bg-gray-50 dark:bg-background overflow-hidden ${
-          isChatRoute ? "p-0" : "p-6"
+          hasFullBleedLayout ? "p-0" : "p-6"
         }`}
       >
         {children}
       </main>
-      {!isChatRoute && <Footer />}
+      {!hasFullBleedLayout && <Footer />}
     </div>
   );
 }

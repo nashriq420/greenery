@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useAuthStore } from "@/store/authStore";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -31,12 +29,12 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"CUSTOMER" | "SELLER">("CUSTOMER");
   const [error, setError] = useState("");
-  const login = useAuthStore((state) => state.login);
-  const router = useRouter();
+  const [success, setSuccess] = useState("");
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     try {
       // Basic validation
@@ -52,14 +50,16 @@ export default function SignupPage() {
         role,
       });
 
-      if (res.user) {
-        login(res.user);
-        router.push("/dashboard");
+      if (res.message) {
+        setSuccess(res.message);
+        setName("");
+        setEmail("");
+        setPassword("");
       } else {
         setError(res.message || "Signup failed");
       }
-    } catch (err) {
-      setError("An error occurred");
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
     }
   };
 
@@ -113,6 +113,11 @@ export default function SignupPage() {
                 required
               />
             </div>
+            {success && (
+              <p className="rounded border border-blue-200 bg-blue-50 p-2 text-sm text-blue-800">
+                {success}
+              </p>
+            )}
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <Button type="submit" className="w-full">
               Sign Up

@@ -14,6 +14,7 @@ import {
   Search,
   Check,
   Store,
+  User,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useCurrencyStore } from "@/hooks/useCurrency";
@@ -38,7 +39,7 @@ export default function SellerProfilePage() {
   const [listings, setListings] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("Menus");
+  const [activeTab, setActiveTab] = useState("Home");
 
   useEffect(() => {
     if (!id) return;
@@ -224,18 +225,20 @@ export default function SellerProfilePage() {
                   <span>Joined {joinedDate}</span>
                 </div>
 
-                {openingHours ? (
-                  <div className="flex items-center gap-2 text-foreground font-medium">
-                    <Clock className="w-4 h-4 text-green-500" />
-                    <span>{days}</span>
-                    <span className="text-muted-foreground">•</span>
-                    <span>{timeRange}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 italic">
-                    <Clock className="w-4 h-4" />
-                    <span>Hours not set</span>
-                  </div>
+                {seller.sellerProfile && (
+                  openingHours ? (
+                    <div className="flex items-center gap-2 text-foreground font-medium">
+                      <Clock className="w-4 h-4 text-green-500" />
+                      <span>{days}</span>
+                      <span className="text-muted-foreground">•</span>
+                      <span>{timeRange}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 italic">
+                      <Clock className="w-4 h-4" />
+                      <span>Hours not set</span>
+                    </div>
+                  )
                 )}
               </div>
             </div>
@@ -244,7 +247,9 @@ export default function SellerProfilePage() {
 
         <div className="border-b border-border mt-8">
           <nav className="flex -mb-px space-x-8 overflow-x-auto custom-scrollbar">
-            {["Home", "Menus", "Reviews", "Show on Map"].map((tab) => (
+            {["Home", "Menus", "Reviews", "Show on Map"]
+              .filter(tab => seller.sellerProfile || (tab !== "Menus" && tab !== "Show on Map"))
+              .map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -269,7 +274,11 @@ export default function SellerProfilePage() {
             <div className="max-w-3xl space-y-6">
               <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
                 <h3 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Store className="w-5 h-5 text-primary" /> About the Seller
+                  {seller.role === "SELLER" || seller.role === "ADMIN" ? (
+                    <><Store className="w-5 h-5 text-primary" /> About the Seller</>
+                  ) : (
+                    <><User className="w-5 h-5 text-primary" /> About the User</>
+                  )}
                 </h3>
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {seller.sellerProfile?.description ||

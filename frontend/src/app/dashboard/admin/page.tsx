@@ -85,6 +85,7 @@ export default function AdminPage() {
   const [sellers, setSellers] = useState<User[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
   const [communityReports, setCommunityReports] = useState<any[]>([]);
+  const [blacklistReports, setBlacklistReports] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -141,7 +142,7 @@ export default function AdminPage() {
       // Fetch everything in parallel or smart fetch based on tab?
       // For simplicity and small scale, let's fetch based on group
       if (mainTab === "overview") {
-        const [custRes, sellRes, listRes, comRes] = await Promise.all([
+        const [custRes, sellRes, listRes, comRes, blacklistRes] = await Promise.all([
           api
             .get("/admin/users?role=CUSTOMER")
             .catch(() => []),
@@ -152,11 +153,13 @@ export default function AdminPage() {
           api
             .get("/admin/community/reports")
             .catch(() => []),
+          api.get("/blacklist/admin").catch(() => []),
         ]);
         if (Array.isArray(custRes)) setCustomers(custRes);
         if (Array.isArray(sellRes)) setSellers(sellRes);
         if (Array.isArray(listRes)) setListings(listRes);
         if (Array.isArray(comRes)) setCommunityReports(comRes);
+        if (Array.isArray(blacklistRes)) setBlacklistReports(blacklistRes);
       } else if (mainTab === "customers") {
         const url = `/admin/users?role=CUSTOMER${search ? `&search=${search}` : ""}`;
         const res = await api.get(url);
@@ -230,10 +233,23 @@ export default function AdminPage() {
   if (!user || (user.role !== "ADMIN" && user.role !== "SUPERADMIN"))
     return null;
 
+  const pendingCustomers = customers.filter((c) => c.status === "PENDING");
+  const activeCustomers = customers.filter((c) => c.status === "ACTIVE");
+  const pendingSellers = sellers.filter((s) => s.status === "PENDING");
+  const activeSellers = sellers.filter((s) => s.status === "ACTIVE");
+  const pendingCommunityReports = communityReports.filter(
+    (r) => r.status === "PENDING",
+  );
+  const pendingBlacklistReports = blacklistReports.filter(
+    (r) => r.status === "PENDING",
+  );
+  const pendingReportsCount =
+    pendingCommunityReports.length + pendingBlacklistReports.length;
+
   return (
-    <div className="flex flex-col md:flex-row min-h-[calc(100vh-4rem)] bg-background -mx-6 -my-6">
+    <div className="flex flex-col md:flex-row min-h-[calc(100vh-4rem)] bg-background">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 border-r border-border bg-card flex flex-col shrink-0 md:sticky md:top-16 md:h-[calc(100vh-4rem)] z-10 transition-colors">
+      <aside className="w-full md:w-64 border-r border-border bg-card flex flex-col shrink-0 md:sticky md:top-0 md:h-[calc(100vh-4rem)] z-10 transition-colors">
         <div className="p-6 border-b border-border relative overflow-hidden hidden md:block">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
           <div className="relative">
@@ -326,7 +342,7 @@ export default function AdminPage() {
                   title="Total Customers"
                   value={customers.length}
                   icon={Users}
-                  trend="+Active"
+                  trend={`${pendingCustomers.length} Pending / ${activeCustomers.length} Active`}
                   color="text-blue-500"
                   bgColor="bg-blue-500/10"
                 />
@@ -334,7 +350,7 @@ export default function AdminPage() {
                   title="Total Sellers"
                   value={sellers.length}
                   icon={Store}
-                  trend={`${sellers.filter((s) => s.status === "PENDING").length} Pending`}
+                  trend={`${pendingSellers.length} Pending / ${activeSellers.length} Active`}
                   color="text-purple-500"
                   bgColor="bg-purple-500/10"
                 />
@@ -348,10 +364,7 @@ export default function AdminPage() {
                 />
                 <MetricCard
                   title="Pending Reports"
-                  value={
-                    communityReports.filter((r) => r.status === "PENDING")
-                      .length
-                  }
+                  value={pendingReportsCount}
                   icon={AlertTriangle}
                   trend="Requires Action"
                   color="text-yellow-500"
@@ -381,7 +394,7 @@ export default function AdminPage() {
                     className="data-[state=active]:bg-card data-[state=active]:shadow-sm"
                   >
                     Pending Approval (
-                    {customers.filter((c) => c.status === "PENDING").length})
+                    {pendingCustomers.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="all"
@@ -392,7 +405,7 @@ export default function AdminPage() {
                 </TabsList>
                 <TabsContent value="pending" className="mt-4">
                   <UserGroupList
-                    users={customers.filter((c) => c.status === "PENDING")}
+                    users={pendingCustomers}
                     type="CUSTOMER"
                     isPending={true}
                     onUpdateStatus={handleUserStatusUpdate}
@@ -423,7 +436,7 @@ export default function AdminPage() {
                     className="data-[state=active]:bg-card data-[state=active]:shadow-sm"
                   >
                     Pending Approval (
-                    {sellers.filter((c) => c.status === "PENDING").length})
+                    {pendingSellers.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="all"
@@ -434,7 +447,7 @@ export default function AdminPage() {
                 </TabsList>
                 <TabsContent value="pending" className="mt-4">
                   <UserGroupList
-                    users={sellers.filter((c) => c.status === "PENDING")}
+                    users={pendingSellers}
                     type="SELLER"
                     isPending={true}
                     onUpdateStatus={handleUserStatusUpdate}

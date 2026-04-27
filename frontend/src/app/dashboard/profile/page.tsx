@@ -523,10 +523,14 @@ export default function ProfilePage() {
     return <div className="p-10">Please log in to view profile.</div>;
   }
 
+  const isSeller = user.role === "SELLER" && profile.role === "SELLER";
+
   return (
     <div className="container mx-auto py-10 space-y-8">
       <div className="flex items-center gap-3">
-        <h1 className="text-3xl font-bold">Profile Management</h1>
+        <h1 className="text-3xl font-bold">
+          {isSeller ? "Seller Profile" : "Customer Profile"}
+        </h1>
         {profile.subscription?.status === "ACTIVE" && (
           <span
             title="Verified Premium Seller"
@@ -554,6 +558,9 @@ export default function ProfilePage() {
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="w-full lg:w-64 shrink-0">
             <TabsList className="flex flex-col h-auto bg-transparent gap-2 items-stretch p-0">
+              <p className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Account
+              </p>
               <TabsTrigger
                 value="profile"
                 className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
@@ -561,8 +568,11 @@ export default function ProfilePage() {
                 <User className="w-4 h-4" />
                 Profile & Location
               </TabsTrigger>
-              {profile.role === "SELLER" && (
+              {isSeller && (
                 <>
+                  <p className="px-3 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Seller Tools
+                  </p>
                   <TabsTrigger
                     value="listings"
                     className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
@@ -591,8 +601,6 @@ export default function ProfilePage() {
                     <CreditCard className="w-4 h-4" />
                     Subscription
                   </TabsTrigger>
-                </>
-              )}
                   <TabsTrigger
                     value="shop"
                     className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
@@ -600,13 +608,18 @@ export default function ProfilePage() {
                     <Store className="w-4 h-4" />
                     Shop Setting
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="deletion"
-                    className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-destructive/10 data-[state=active]:text-destructive border border-transparent data-[state=active]:border-destructive/20 transition-all"
-                  >
-                    <UserX className="w-4 h-4" />
-                    Deletion
-                  </TabsTrigger>
+                </>
+              )}
+              <p className="px-3 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Security
+              </p>
+              <TabsTrigger
+                value="deletion"
+                className="justify-start gap-3 px-4 py-3 h-auto data-[state=active]:bg-destructive/10 data-[state=active]:text-destructive border border-transparent data-[state=active]:border-destructive/20 transition-all"
+              >
+                <UserX className="w-4 h-4" />
+                Deletion
+              </TabsTrigger>
             </TabsList>
           </aside>
 
@@ -756,7 +769,7 @@ export default function ProfilePage() {
                 <Input value={profile.email} disabled />
               </div>
 
-              {profile.role === "SELLER" ? (
+              {isSeller ? (
                 <div className="space-y-4 pt-4 border-t">
                   <Label className="text-base font-semibold">
                     Shop & Business Location
@@ -1007,7 +1020,7 @@ export default function ProfilePage() {
 
         </TabsContent>
 
-        {profile.role === "SELLER" && (
+        {isSeller && (
           <TabsContent value="shop" className="space-y-6">
             <Card>
               <CardHeader>
@@ -1182,6 +1195,7 @@ export default function ProfilePage() {
           </TabsContent>
         )}
 
+        {isSeller && (
         <TabsContent value="listings" className="space-y-6">
           <Card>
             <CardHeader>
@@ -1642,14 +1656,15 @@ export default function ProfilePage() {
             />
           )}
         </TabsContent>
+        )}
 
-        {profile.role === "SELLER" && (
+        {isSeller && (
           <TabsContent value="promotions" className="space-y-6">
             <BannersTab />
           </TabsContent>
         )}
 
-        {profile.role === "SELLER" && (
+        {isSeller && (
           <TabsContent value="analytics" className="space-y-6">
             <AnalyticsTab />
           </TabsContent>
@@ -1689,9 +1704,11 @@ export default function ProfilePage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="subscription" className="space-y-6">
-          <SubscriptionTab subscription={profile.subscription} />
-        </TabsContent>
+        {isSeller && (
+          <TabsContent value="subscription" className="space-y-6">
+            <SubscriptionTab subscription={profile.subscription} />
+          </TabsContent>
+        )}
           </div>
         </div>
       </Tabs>
@@ -1755,6 +1772,7 @@ export default function ProfilePage() {
     </div>
   );
 }
+
 function BannersTab({}) {
   const { isAuthenticated } = useAuthStore();
   const [banners, setBanners] = useState<any[]>([]);

@@ -4,12 +4,20 @@ import { useState, useEffect } from "react";
 import { useSellers } from "@/hooks/useMarketplace";
 import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
-import { MapPin, Search, Star, Store, Package, Clock, Check } from "lucide-react";
+import { MapPin, Search, Star, Store, Package, Clock, Check, SlidersHorizontal, X, Filter, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function VendorsPage() {
   const { user } = useAuthStore();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    search: "",
+    city: "all",
+    minRating: "0",
+    premiumOnly: false,
+  });
+  const [showFilters, setShowFilters] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
   // Use user profile location initially if available
@@ -24,32 +32,167 @@ export default function VendorsPage() {
 
   const { sellers, loading } = useSellers(userLocation?.lat, userLocation?.lng, 50);
 
-  const filteredSellers = sellers.filter((seller) => 
-    seller.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (seller.city && seller.city.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredSellers = sellers.filter((seller) => {
+    const matchesSearch = 
+      seller.name.toLowerCase().includes(filters.search.toLowerCase()) || 
+      (seller.city && seller.city.toLowerCase().includes(filters.search.toLowerCase()));
+    
+    const matchesCity = filters.city === "all" || seller.city === filters.city;
+    const matchesRating = Number(seller.averageRating || 0) >= Number(filters.minRating);
+    const matchesPremium = !filters.premiumOnly || seller.subscriptionStatus === "ACTIVE";
+    
+    return matchesSearch && matchesCity && matchesRating && matchesPremium;
+  });
+
+  const uniqueCities = Array.from(new Set(sellers.map(s => s.city).filter(Boolean))).sort() as string[];
+
+  const clearFilters = () => {
+    setFilters({
+      search: "",
+      city: "all",
+      minRating: "0",
+      premiumOnly: false,
+    });
+  };
+
+  const activeFiltersCount = [
+    filters.city !== "all",
+    filters.minRating !== "0",
+    filters.premiumOnly,
+  ].filter(Boolean).length;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Store className="text-primary" /> Vendor List
-        </h1>
-        
-        <div className="relative w-full md:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-          <Input 
-            placeholder="Search vendors..." 
-            className="pl-10 bg-card"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Store className="text-primary" /> Vendor List
+            {sellers.length > 0 && (
+              <span className="text-sm font-normal text-muted-foreground ml-2 bg-muted px-2 py-0.5 rounded-full">
+                {sellers.length} total
+              </span>
+            )}
+          </h1>
+          
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="relative grow md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <Input 
+                placeholder="Search vendors..." 
+                className="pl-10 bg-card border-border/50 focus:border-primary/50 transition-all"
+                value={filters.search}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              />
+            </div>
+            
+            <Button 
+              variant={showFilters || activeFiltersCount > 0 ? "default" : "outline"}
+              size="icon"
+              className={`relative shrink-0 ${activeFiltersCount > 0 && !showFilters ? "ring-2 ring-primary ring-offset-2" : ""}`}
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              {showFilters ? <X size={18} /> : <SlidersHorizontal size={18} />}
+              {activeFiltersCount > 0 && !showFilters && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-background">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Advanced Filters Panel */}
+        <div className={`grid transition-all duration-300 ease-in-out ${showFilters ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'}`}>
+          <div className="overflow-hidden">
+            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5 mt-2 shadow-sm space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* City Filter */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin size={12} /> Filter by City
+                  </label>
+                  <Select 
+                    value={filters.city} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, city: value }))}
+                  >
+                    <SelectTrigger className="w-full bg-background/50">
+                      <SelectValue placeholder="All Cities" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Cities</SelectItem>
+                      {uniqueCities.map(city => (
+                        <SelectItem key={city} value={city}>{city}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Rating Filter */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Star size={12} /> Minimum Rating
+                  </label>
+                  <Select 
+                    value={filters.minRating} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, minRating: value }))}
+                  >
+                    <SelectTrigger className="w-full bg-background/50">
+                      <SelectValue placeholder="Any Rating" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Any Rating</SelectItem>
+                      <SelectItem value="3">3+ Stars</SelectItem>
+                      <SelectItem value="4">4+ Stars</SelectItem>
+                      <SelectItem value="4.5">4.5+ Stars</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Premium Filter */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Check size={12} /> Vendor Type
+                  </label>
+                  <div className="flex gap-2 p-1 bg-muted/30 rounded-lg border border-border/50">
+                    <button
+                      onClick={() => setFilters(prev => ({ ...prev, premiumOnly: false }))}
+                      className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${!filters.premiumOnly ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      All Vendors
+                    </button>
+                    <button
+                      onClick={() => setFilters(prev => ({ ...prev, premiumOnly: true }))}
+                      className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${filters.premiumOnly ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      <Star size={12} fill={filters.premiumOnly ? "currentColor" : "none"} /> Premium
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {activeFiltersCount > 0 && (
+                <div className="pt-4 border-t border-border/50 flex justify-between items-center">
+                  <div className="text-xs text-muted-foreground">
+                    Showing <span className="font-bold text-foreground">{filteredSellers.length}</span> of {sellers.length} vendors
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={clearFilters}
+                    className="h-8 text-xs hover:text-destructive transition-colors flex items-center gap-1.5"
+                  >
+                    <X size={14} /> Reset Filters
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
-          {[1, 2, 3, 4, 5, 6].map(i => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
             <div key={i} className="h-64 bg-card rounded-2xl border border-border"></div>
           ))}
         </div>
@@ -64,7 +207,7 @@ export default function VendorsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredSellers.map((seller) => (
             <Link href={`/dashboard/seller/${seller.userId}`} key={seller.id} className="block group">
               <div className={`bg-card text-card-foreground border rounded-2xl overflow-hidden transition-all duration-300 h-full flex flex-col ${seller.subscriptionStatus === "ACTIVE" ? "border-primary/30 ring-1 ring-primary/20 shadow-md hover:shadow-lg hover:-translate-y-1" : "border-border hover:shadow-md hover:-translate-y-1"}`}>
@@ -122,7 +265,7 @@ export default function VendorsPage() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed flex-grow">
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed grow">
                     {seller.description || "No description provided by this vendor."}
                   </p>
 

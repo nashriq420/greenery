@@ -104,14 +104,14 @@ function AuthForm() {
 
       const res = await api.post("/auth/signup", payload);
 
-      if (res.user) {
-        login(res.user);
-        router.push("/dashboard");
-      } else if (res.message) {
+      if (res.message) {
         // Pending approval case
         setError(res.message);
         // Force switch to login tab to see the error? Or just show it here.
         // Showing it here is fine.
+        setName("");
+        setEmail("");
+        setPassword("");
       } else {
         if (res.errors) {
           // Zod errors

@@ -11,7 +11,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Search } from "lucide-react";
+import { Calendar, MapPin, PlusCircle, Search, UserRound } from "lucide-react";
 import Link from "next/link";
 
 interface BlacklistReport {
@@ -30,6 +30,16 @@ export default function MyReportsPage() {
   const { isAuthenticated } = useAuthStore();
   const [reports, setReports] = useState<BlacklistReport[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const getStatusClass = (status: BlacklistReport["status"]) => {
+    if (status === "APPROVED") {
+      return "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400";
+    }
+    if (status === "REJECTED") {
+      return "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400";
+    }
+    return "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+  };
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -90,74 +100,57 @@ export default function MyReportsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           {reports.map((report) => (
-            <Card key={report.id} className="overflow-hidden">
-              <div
-                className={`h-1.5 w-full ${
-                  report.status === "APPROVED"
-                    ? "bg-green-500"
-                    : report.status === "REJECTED"
-                      ? "bg-red-500"
-                      : "bg-yellow-400"
-                }`}
-              />
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg text-foreground">
-                      {report.username}
-                    </CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                      Reported on{" "}
-                      {new Date(report.createdAt).toLocaleDateString()}
-                    </CardDescription>
-                  </div>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      report.status === "APPROVED"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-900/50"
-                        : report.status === "REJECTED"
-                          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-900/50"
-                          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-900/50"
-                    }`}
-                  >
-                    {report.status}
+            <div
+              key={report.id}
+              className="grid gap-4 border-b border-border p-4 last:border-b-0 md:grid-cols-[minmax(220px,1fr)_minmax(220px,1.4fr)_auto] md:items-start"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <UserRound className="h-4 w-4 text-muted-foreground" />
+                  <h2 className="font-semibold text-foreground">
+                    {report.username}
+                  </h2>
+                </div>
+                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {new Date(report.createdAt).toLocaleDateString()}
                   </span>
-                </div>
-              </CardHeader>
-              <CardContent className="text-card-foreground">
-                <div className="grid sm:grid-cols-2 gap-4 text-sm mb-3">
-                  <div>
-                    <span className="font-semibold text-muted-foreground">
-                      Region:
-                    </span>{" "}
-                    {report.region}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-muted-foreground">
-                      Contact:
-                    </span>{" "}
-                    {report.contactInfo}
-                  </div>
-                </div>
-                <div className="bg-muted p-3 rounded text-sm text-foreground">
-                  <span className="font-semibold block mb-1">Description:</span>
-                  {report.description}
-                </div>
-
-                {report.adminComment && (
-                  <div className="mt-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-900/50 p-3 rounded text-sm">
-                    <span className="font-semibold text-blue-800 dark:text-blue-400 block mb-1">
-                      Admin Comment:
+                  {report.region && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {report.region}
                     </span>
-                    <p className="text-blue-700 dark:text-blue-300">
-                      {report.adminComment}
-                    </p>
+                  )}
+                </div>
+                {report.contactInfo && (
+                  <p className="text-sm text-muted-foreground">
+                    Contact:{" "}
+                    <span className="text-foreground">{report.contactInfo}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-foreground">
+                  {report.description || "No description provided."}
+                </p>
+                {report.adminComment && (
+                  <div className="rounded-md border border-blue-500/20 bg-blue-500/10 p-3 text-sm text-blue-700 dark:text-blue-300">
+                    <span className="font-semibold">Admin comment: </span>
+                    {report.adminComment}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+
+              <span
+                className={`w-fit rounded-full border px-2.5 py-1 text-xs font-semibold ${getStatusClass(report.status)}`}
+              >
+                {report.status}
+              </span>
+            </div>
           ))}
         </div>
       )}

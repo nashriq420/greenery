@@ -362,6 +362,7 @@ function TagBadge({ label }: { label: string }) {
   );
 }
 
+
 function ConfirmedAvatars({ count }: { count: number }) {
   const show = Math.min(count, 3);
   return (
@@ -474,7 +475,7 @@ function ReportCard({ report, idx, onViewDetails, onConfirm, confirming, isAuthe
         </button>
         {isAuthenticated ? (
           <button
-            onClick={() => onConfirm(report.id)}
+            onClick={onViewDetails}
             disabled={confirming}
             className={`flex-1 py-1.5 text-xs font-medium rounded-lg flex items-center justify-center gap-1 transition-colors disabled:opacity-60 ${
               report.confirmedByMe
@@ -705,6 +706,7 @@ export default function SafetyPage() {
           onClose={() => setSelectedReport(null)}
           onConfirm={handleConfirm}
           confirming={confirmingId === selectedReport.report.id}
+          isAuthenticated={isAuthenticated}
         />
       )}
 
@@ -857,6 +859,7 @@ export default function SafetyPage() {
                       onViewDetails={() => setSelectedReport({ report, idx: globalIdx })}
                       onConfirm={handleConfirm}
                       confirming={confirmingId === report.id}
+                      isAuthenticated={isAuthenticated}
                     />
                   );
                 })}
