@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Star,
@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useCurrencyStore } from "@/hooks/useCurrency";
+import FavoriteButton from "@/components/marketplace/FavoriteButton";
+import ViewListingModal from "@/components/marketplace/ViewListingModal";
 
 const SellerLocationMap = dynamic(
   () => import("@/components/SellerLocationMap"),
@@ -31,6 +33,7 @@ const SellerLocationMap = dynamic(
 
 export default function SellerProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id as string;
   const { user } = useAuthStore();
   const formatPrice = useCurrencyStore((state) => state.formatPrice);
@@ -40,6 +43,7 @@ export default function SellerProfilePage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Home");
+  const [viewingListing, setViewingListing] = useState<any>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -71,7 +75,7 @@ export default function SellerProfilePage() {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, user]);
 
   // ...
 
@@ -175,9 +179,12 @@ export default function SellerProfilePage() {
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-3 shrink-0">
-                  <button className="px-6 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-semibold rounded-xl flex items-center gap-2 transition-all shadow-sm">
-                    <Star className="w-4 h-4" /> Favorite
-                  </button>
+                  <FavoriteButton
+                    sellerId={id}
+                    variant="star"
+                    size={18}
+                    className="px-6 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-semibold rounded-xl flex items-center gap-2 transition-all shadow-sm"
+                  />
                   {user?.id !== id && (
                     <button
                       onClick={async () => {
@@ -187,9 +194,9 @@ export default function SellerProfilePage() {
                             "/chat",
                             { participantId: id },
                           );
-                          window.location.href = `/dashboard/chat/${chat.id}`;
-                        } catch (e) {
-                          alert("Failed to start chat");
+                          router.push(`/dashboard/chat/${chat.id}`);
+                        } catch (e: any) {
+                          alert(`Failed to start chat: ${e.message}`);
                         }
                       }}
                       className="px-6 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl flex items-center gap-2 hover:bg-primary/90 transition-all shadow-sm"
@@ -342,10 +349,10 @@ export default function SellerProfilePage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {listings.map((listing) => (
-                    <Link
-                      href={`/dashboard/marketplace/${listing.id}`}
+                    <div
                       key={listing.id}
-                      className="group block h-full"
+                      onClick={() => setViewingListing(listing)}
+                      className="group block h-full cursor-pointer"
                     >
                       <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col h-full hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1">
                         <div className="h-48 bg-muted relative overflow-hidden shrink-0">
@@ -387,7 +394,7 @@ export default function SellerProfilePage() {
                           </div>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}
@@ -484,12 +491,12 @@ export default function SellerProfilePage() {
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
                           Reviewed Item
                         </p>
-                        <Link
-                          href={`/dashboard/marketplace/${review.listing?.id}`}
-                          className="text-sm font-semibold text-primary hover:underline line-clamp-1"
+                        <button
+                          onClick={() => setViewingListing(review.listing)}
+                          className="text-sm font-semibold text-primary hover:underline line-clamp-1 text-left w-full"
                         >
                           {review.listing?.title}
-                        </Link>
+                        </button>
                       </div>
 
                       <p className="text-foreground/90 text-sm leading-relaxed italic">
@@ -535,6 +542,13 @@ export default function SellerProfilePage() {
           )}
         </div>
       </div>
+
+      {viewingListing && (
+        <ViewListingModal
+          listing={viewingListing}
+          onClose={() => setViewingListing(null)}
+        />
+      )}
     </div>
   );
 }

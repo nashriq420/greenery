@@ -64,6 +64,9 @@ const getListingsQuerySchema = z.object({
 
 // Get sellers nearby
 export const getSellersNearby = async (req: Request, res: Response) => {
+  const authReq = req as AuthRequest;
+  const userId = authReq.user?.id;
+
   try {
     const { lat, lng, radius } = getSellersQuerySchema.parse(req.query);
     const radiusKm = radius;
@@ -105,7 +108,8 @@ export const getSellersNearby = async (req: Request, res: Response) => {
                         FROM "Listing" l
                         WHERE l."sellerId" = u.id AND l.active = true AND l.status = 'ACTIVE'
                     ) as "productCount",
-                    ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) AS distance
+                    ( 6371 * acos( cos( radians(${lat}) ) * cos( radians( s.latitude ) ) * cos( radians( s.longitude ) - radians(${lng}) ) + sin( radians(${lat}) ) * sin( radians( s.latitude ) ) ) ) AS distance,
+                    (SELECT COUNT(*)::int FROM "FavoriteSeller" f WHERE f."userId" = ${userId || ""} AND f."sellerId" = u.id) > 0 as "isFavorited"
                 FROM "SellerProfile" s
                 JOIN "User" u ON s."userId" = u.id
                 LEFT JOIN "Subscription" sub ON u.id = sub."userId"
@@ -148,7 +152,8 @@ export const getSellersNearby = async (req: Request, res: Response) => {
                         SELECT CAST(COUNT(l.id) AS INTEGER)
                         FROM "Listing" l
                         WHERE l."sellerId" = u.id AND l.active = true AND l.status = 'ACTIVE'
-                    ) as "productCount"
+                    ) as "productCount",
+                    (SELECT COUNT(*)::int FROM "FavoriteSeller" f WHERE f."userId" = ${userId || ""} AND f."sellerId" = u.id) > 0 as "isFavorited"
                 FROM "SellerProfile" s
                 JOIN "User" u ON s."userId" = u.id
                 LEFT JOIN "Subscription" sub ON u.id = sub."userId"
@@ -157,9 +162,6 @@ export const getSellersNearby = async (req: Request, res: Response) => {
                 LIMIT 50;
             `;
     }
-
-    // Needed to handle BigInt if any, though standard float math here normally fine.
-    // Prisma returns Decimal/Floats fine usually.
 
     res.json(sellers);
   } catch (error: unknown) {

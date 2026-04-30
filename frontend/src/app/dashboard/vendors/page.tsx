@@ -8,6 +8,7 @@ import { MapPin, Search, Star, Store, Package, Clock, Check, SlidersHorizontal, 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import FavoriteButton from "@/components/marketplace/FavoriteButton";
 
 export default function VendorsPage() {
   const { user } = useAuthStore();
@@ -219,6 +220,14 @@ export default function VendorsPage() {
                       <Star size={10} fill="currentColor" /> Premium
                     </div>
                   )}
+                  <div className="absolute top-3 right-3 z-10">
+                    <FavoriteButton 
+                      sellerId={seller.userId} 
+                      initialIsFavorited={seller.isFavorited} 
+                      className="w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 hover:bg-black/60"
+                      size={14}
+                    />
+                  </div>
                   {seller.bannerUrl ? (
                     <img src={seller.bannerUrl} alt={`${seller.name} banner`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   ) : (

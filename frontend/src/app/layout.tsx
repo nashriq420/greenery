@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ToastProvider from "@/components/ToastProvider";
 import CurrencyInitializer from "@/components/CurrencyInitializer";
+import AuthInitializer from "@/components/AuthInitializer";
 import CookieConsent from "@/components/CookieConsent";
 import "./globals.css";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
         >
           <ToastProvider />
           <CurrencyInitializer />
+          <AuthInitializer />
           {children}
           <CookieConsent />
         </ThemeProvider>

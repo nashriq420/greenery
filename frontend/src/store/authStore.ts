@@ -33,6 +33,7 @@ interface User {
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  isInitialized: boolean;
   login: (user: User) => void;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
@@ -46,8 +47,9 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
+      isInitialized: false,
 
-      login: (user) => set({ user, isAuthenticated: true }),
+      login: (user) => set({ user, isAuthenticated: true, isInitialized: true }),
 
       logout: async () => {
         try {
@@ -61,7 +63,7 @@ export const useAuthStore = create<AuthState>()(
           console.warn("Logout request failed silently", e);
         }
         // Always clear local state regardless of network result
-        set({ user: null, isAuthenticated: false });
+        set({ user: null, isAuthenticated: false, isInitialized: true });
       },
 
       updateUser: (user) => set({ user }),
@@ -70,7 +72,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           const baseUrl = getApiUrl();
           const url = `${baseUrl}/auth/me`;
-
 
           // No Authorization header needed — browser sends cookie automatically
           const res = await fetch(url, {
@@ -82,20 +83,21 @@ export const useAuthStore = create<AuthState>()(
           });
           if (res.ok) {
             const user = await res.json();
-            set({ user, isAuthenticated: true });
+            set({ user, isAuthenticated: true, isInitialized: true });
           } else {
             // Cookie is invalid/expired — log out
-            set({ user: null, isAuthenticated: false });
+            set({ user: null, isAuthenticated: false, isInitialized: true });
           }
         } catch (e) {
           console.error("Failed to refresh user", e);
+          set({ isInitialized: true });
         }
       },
     }),
     {
       name: "auth-storage",
-      // Only persist the user object — isAuthenticated is in an HTTP-only cookie, not JS
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      // Only persist the user object — isAuthenticated should be verified on every session start
+      partialize: (state) => ({ user: state.user }),
     },
   ),
 );

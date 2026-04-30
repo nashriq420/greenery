@@ -6,6 +6,9 @@ import {
   updateLocation,
   updatePassword,
   deleteMe,
+  toggleFavoriteSeller,
+  getFavoriteSellers,
+  isSellerFavorited,
 } from "../controllers/user.controller";
 
 const router = Router();
@@ -15,5 +18,10 @@ router.put("/me", authenticateToken, updateMe);
 router.put("/me/location", authenticateToken, updateLocation);
 router.put("/me/password", authenticateToken, updatePassword);
 router.delete("/me", authenticateToken, deleteMe);
+
+// Favorites
+router.get("/favorites", authenticateToken, getFavoriteSellers);
+router.get("/favorites/:id", authenticateToken, isSellerFavorited);
+router.post("/favorites/toggle", authenticateToken, toggleFavoriteSeller);
 
 export default router;

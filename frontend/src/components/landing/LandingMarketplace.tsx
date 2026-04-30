@@ -63,10 +63,10 @@ export default function LandingMarketplace() {
             </p>
           </div>
           <Link
-            href="/dashboard/marketplace"
+            href="/dashboard/vendors"
             className="text-primary font-medium hover:text-primary/80 transition-colors flex items-center gap-1 group"
           >
-            View all listings
+            View all vendors
             <span className="group-hover:translate-x-1 transition-transform">
               &rarr;
             </span>

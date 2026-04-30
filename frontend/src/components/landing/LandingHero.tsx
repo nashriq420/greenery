@@ -37,10 +37,10 @@ export default function LandingHero() {
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
-              href="/dashboard/marketplace"
+              href="/dashboard/vendors"
               className="w-full sm:w-auto px-8 py-4 bg-background border border-border text-foreground rounded-xl font-semibold transition-all hover:bg-secondary/50 shadow-soft hover-lift active-scale"
             >
-              Browse Marketplace
+              Browse Vendors
             </Link>
           </div>
         </div>

@@ -248,7 +248,7 @@ export const deleteMe = async (req: AuthRequest, res: Response) => {
     const anonymizedUsername = `deleted_${userId.substring(0, 8)}`;
     const scrambledPassword = await bcrypt.hash(Math.random().toString(36), 10);
 
-    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    await prisma.$transaction(async (tx: any) => {
       // 1. Log Activity
       await tx.auditLog.create({
         data: {
@@ -301,6 +301,103 @@ export const deleteMe = async (req: AuthRequest, res: Response) => {
     res.json({ message: "Account deleted successfully" });
   } catch (error) {
     logger.error("Delete account error", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const toggleFavoriteSeller = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { sellerId } = req.body;
+
+    if (!sellerId) {
+      return res.status(400).json({ message: "Seller ID is required" });
+    }
+
+    if (userId === sellerId) {
+      return res.status(400).json({ message: "Cannot favorite yourself" });
+    }
+
+    // Check if seller exists
+    const seller = await prisma.user.findUnique({
+      where: { id: sellerId },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    // Check if already favorited
+    const existing = await prisma.favoriteSeller.findUnique({
+      where: {
+        userId_sellerId: { userId, sellerId },
+      },
+    });
+
+    if (existing) {
+      await prisma.favoriteSeller.delete({
+        where: { id: existing.id },
+      });
+      return res.json({ favorited: false, message: "Removed from favorites" });
+    } else {
+      await prisma.favoriteSeller.create({
+        data: { userId, sellerId },
+      });
+      return res.json({ favorited: true, message: "Added to favorites" });
+    }
+  } catch (error) {
+    logger.error("Toggle favorite error", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getFavoriteSellers = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const favorites = await prisma.favoriteSeller.findMany({
+      where: { userId },
+      include: {
+        seller: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profilePicture: true,
+            sellerProfile: {
+              select: {
+                city: true,
+                state: true,
+              },
+            },
+            subscription: {
+              select: { status: true },
+            },
+          },
+        },
+      },
+    });
+
+    res.json(favorites.map((f: any) => f.seller));
+  } catch (error) {
+    logger.error("Get favorites error", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const isSellerFavorited = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const sellerId = req.params.id;
+
+    const favorite = await prisma.favoriteSeller.findUnique({
+      where: {
+        userId_sellerId: { userId, sellerId: sellerId as string },
+      },
+    });
+
+    res.json({ isFavorited: !!favorite });
+  } catch (error) {
+    logger.error("Check favorite error", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

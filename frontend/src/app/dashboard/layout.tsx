@@ -16,7 +16,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated, isInitialized } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -26,11 +26,10 @@ export default function DashboardLayout({
   const hasFullBleedLayout = isChatRoute || isAdminRoute;
 
   useEffect(() => {
-    const isAuthenticated = useAuthStore.getState().isAuthenticated;
-    if (!isAuthenticated) {
+    if (isInitialized && !isAuthenticated) {
       router.push("/login");
     }
-  }, [router]);
+  }, [isInitialized, isAuthenticated, router]);
 
   const handleLogout = () => {
     logout();
@@ -52,12 +51,6 @@ export default function DashboardLayout({
             className="text-sm font-medium hover:text-green-600"
           >
             Dashboard
-          </Link>
-          <Link
-            href="/dashboard/marketplace"
-            className="text-sm font-medium hover:text-green-600"
-          >
-            Marketplace
           </Link>
           <Link
             href="/dashboard/vendors"

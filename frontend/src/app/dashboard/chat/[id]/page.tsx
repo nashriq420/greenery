@@ -22,6 +22,7 @@ import PrivacyWarning from "../components/PrivacyWarning";
 import { toast } from "react-hot-toast";
 import { playNotificationSound } from "@/lib/sound";
 import { useCurrencyStore } from "@/hooks/useCurrency";
+import ViewListingModal from "@/components/marketplace/ViewListingModal";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -41,6 +42,7 @@ export default function ChatRoomPage() {
   const [showListingPicker, setShowListingPicker] = useState(false);
   const [availableListings, setAvailableListings] = useState<any[]>([]);
   const [chatDetails, setChatDetails] = useState<any>(null);
+  const [viewingListing, setViewingListing] = useState<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -362,17 +364,17 @@ export default function ChatRoomPage() {
                       </div>
                       {/* View Listing CTA */}
                       <div className={`border-t ${isMe ? "border-white/20" : "border-border"} px-2.5 py-2`}>
-                        <a
-                          href={`/dashboard/marketplace/${msg.listing.id}`}
-                          className={`flex items-center justify-center gap-1.5 text-xs font-semibold rounded-lg py-1.5 transition-all ${
+                        <button
+                          onClick={() => setViewingListing(msg.listing)}
+                          className={`w-full flex items-center justify-center gap-1.5 text-xs font-semibold rounded-lg py-1.5 transition-all ${
                             isMe
                               ? "bg-white/20 hover:bg-white/30 text-white"
                               : "bg-primary/10 hover:bg-primary/20 text-primary"
                           }`}
                         >
                           <ExternalLink className="w-3 h-3" />
-                          View Listing
-                        </a>
+                          View Details
+                        </button>
                       </div>
                     </div>
                   )}
@@ -427,11 +429,11 @@ export default function ChatRoomPage() {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => router.push("/dashboard/marketplace")}
+                onClick={() => router.push("/dashboard/vendors")}
                 className="flex items-center gap-2 font-semibold px-6 py-2.5 rounded-xl"
               >
                 <ShoppingBag className="w-4 h-4" />
-                Browse Marketplace
+                Browse Vendors
               </Button>
             </div>
           </div>
@@ -544,6 +546,12 @@ export default function ChatRoomPage() {
           </div>
         )}
       </div>
+      {viewingListing && (
+        <ViewListingModal
+          listing={viewingListing}
+          onClose={() => setViewingListing(null)}
+        />
+      )}
     </div>
   );
 }

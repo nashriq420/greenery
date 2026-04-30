@@ -25,8 +25,10 @@ import {
   Check,
   ChevronDown,
   Heart,
+  Store,
 } from "lucide-react";
 import { useCurrencyStore } from "@/hooks/useCurrency";
+import FavoriteButton from "@/components/marketplace/FavoriteButton";
 import { getBaseUrl } from "@/lib/config";
 
 const MapComponent = dynamic(() => import("@/components/Map"), { ssr: false });
@@ -201,20 +203,11 @@ export default function DashboardPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/dashboard/marketplace?search=${encodeURIComponent(searchQuery)}`);
+      router.push(`/dashboard/vendors?search=${encodeURIComponent(searchQuery)}`);
     }
   };
 
   const quickActions = [
-    {
-      icon: ShoppingBag,
-      label: "Browse Marketplace",
-      subLabel: "Explore all vendors",
-      href: "/dashboard/marketplace",
-      color: "text-emerald-500",
-      bgClass: "bg-emerald-500/10",
-      hoverClass: "group-hover:bg-emerald-500/20"
-    },
     {
       icon: MessageSquare,
       label: "View Messages",
@@ -245,15 +238,15 @@ export default function DashboardPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-2">
             <Leaf className="w-5 h-5 opacity-90" />
-            <span className="text-sm font-semibold opacity-90 tracking-wide uppercase">BudPlug Marketplace</span>
+            <span className="text-sm font-semibold opacity-90 tracking-wide uppercase">BudPlug Dashboard</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
             Welcome back, {user?.name?.split(" ")[0] || "there"} 👋
           </h1>
           <p className="text-base opacity-80 max-w-lg font-medium">
             {user?.role === "SELLER"
-              ? "Manage your store, track listings and respond to your customers."
-              : "Discover trusted local vendors and the finest sustainable products near you."}
+              ? "Manage your store and respond to your customers."
+              : "Discover trusted local vendors and sustainable herbs near you."}
           </p>
           <form onSubmit={handleSearch} className="mt-6 flex items-center max-w-xl bg-white/10 backdrop-blur-md rounded-full p-1.5 focus-within:ring-2 focus-within:ring-white/50 shadow-lg border-0 outline-none ring-0">
             <input 
@@ -349,9 +342,12 @@ export default function DashboardPage() {
                             <Link href={`/dashboard/seller/${seller.userId}`} className="flex-1 bg-primary/10 hover:bg-primary text-primary hover:text-white text-sm font-bold py-2.5 rounded-xl text-center transition-all shadow-sm">
                                View Vendor
                             </Link>
-                            <button className="w-10 h-10 flex items-center justify-center border border-border rounded-xl text-muted-foreground hover:text-rose-500 hover:border-rose-500/50 hover:bg-rose-500/10 transition-colors">
-                               <Heart className="w-4 h-4" />
-                            </button>
+                             <FavoriteButton
+                                sellerId={seller.userId}
+                                initialIsFavorited={seller.isFavorited}
+                                className="w-10 h-10 flex items-center justify-center border border-border rounded-xl"
+                                size={18}
+                             />
                          </div>
                       </div>
                    </div>
@@ -525,7 +521,7 @@ export default function DashboardPage() {
                        <ShoppingBag className="w-10 h-10 text-primary" />
                     </div>
                     <h3 className="text-xl font-extrabold text-foreground mb-2">Explore the List</h3>
-                    <p className="text-muted-foreground max-w-sm mb-6">Switch to the marketplace tab to view the full directory of sellers near {userLocation ? "your location" : "you"}.</p>
+                    <p className="text-muted-foreground max-w-sm mb-6">Explore the directory of verified sellers near {userLocation ? "your location" : "you"}.</p>
                     <Link href="/dashboard/vendors" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl font-bold shadow-sm transition-all focus:ring-4 focus:ring-primary/20 flex items-center gap-2">
                        Browse Vendors <ArrowRight className="w-4 h-4" />
                     </Link>
@@ -636,9 +632,9 @@ export default function DashboardPage() {
                  ) : (
                     <div className="text-center py-10">
                        <p className="text-muted-foreground font-medium text-sm mb-4">No listings created yet. Start selling!</p>
-                       <Link href="/dashboard/marketplace" className="bg-primary text-white font-bold px-6 py-2.5 rounded-xl inline-flex items-center gap-2 hover:bg-primary/90 transition-colors">
-                          <ShoppingBag className="w-4 h-4" /> Create Listing
-                       </Link>
+                        <Link href="/dashboard/vendors" className="bg-primary text-white font-bold px-6 py-2.5 rounded-xl inline-flex items-center gap-2 hover:bg-primary/90 transition-colors">
+                          <Store className="w-4 h-4" /> Browse Vendors
+                        </Link>
                     </div>
                  )}
                </div>

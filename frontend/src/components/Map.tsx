@@ -13,7 +13,7 @@ import { getBaseUrl } from "@/lib/config";
 const createCustomIcon = (isPremium: boolean = false) => {
   // Bigger sizing for premium
   const bgClass = isPremium
-    ? "bg-gradient-to-br from-yellow-400 to-yellow-600 border-yellow-200"
+    ? "bg-linear-to-br from-yellow-400 to-yellow-600 border-yellow-200"
     : "bg-green-600 border-white";
   const sizeClass = isPremium ? "w-14 h-14" : "w-10 h-10";
   const iconSizeClass = isPremium ? "w-8 h-8" : "w-6 h-6";
@@ -141,21 +141,21 @@ export default function MapComponent() {
       {/* Banner Section */}
       {banner && (
         <Link
-          href={`/dashboard/marketplace/${banner.listingId}`}
+          href="/dashboard/vendors"
           className="block w-full transition-transform hover:scale-[1.01]"
         >
           <div className="w-full h-[200px] relative rounded-lg overflow-hidden shadow-md group border border-green-100">
-            <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent group-hover:from-black/60 transition-all z-10 flex flex-col justify-center px-8">
+            <div className="absolute inset-0 bg-linear-to-r from-black/50 to-transparent group-hover:from-black/60 transition-all z-10 flex flex-col justify-center px-8">
               <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg tracking-tight">
-                Product of the Week
+                Vendors of the Week
               </h1>
               {banner.title && (
                 <p className="text-white/90 text-lg font-medium drop-shadow mt-2 max-w-[60%]">
-                  {banner.title}
+                  Discover top-tier local vendors
                 </p>
               )}
               <span className="mt-4 inline-block px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-full w-fit hover:bg-green-700 transition">
-                View Deal
+                Browse Vendors
               </span>
             </div>
             <img
@@ -235,7 +235,7 @@ export default function MapComponent() {
                             )}
                           </h3>
                           {seller.subscriptionStatus === "ACTIVE" && (
-                            <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-0.5 shadow-sm shrink-0">
+                            <span className="bg-linear-to-r from-yellow-400 to-yellow-600 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-0.5 shadow-sm shrink-0">
                               <Star size={10} fill="currentColor" /> Premium
                             </span>
                           )}
@@ -275,7 +275,7 @@ export default function MapComponent() {
 
                     <Link
                       href={`/dashboard/seller/${seller.userId}`}
-                      className="flex items-center justify-center w-full py-2 bg-green-600 !text-white text-sm font-semibold rounded-md hover:bg-green-700 transition shadow-sm"
+                      className="flex items-center justify-center w-full py-2 bg-green-600 text-white! text-sm font-semibold rounded-md hover:bg-green-700 transition shadow-sm"
                     >
                       Visit Store
                     </Link>

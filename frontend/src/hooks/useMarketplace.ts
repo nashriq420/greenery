@@ -20,6 +20,7 @@ export interface Seller {
   openingHours?: string | null;
   bannerUrl?: string | null;
   productCount?: number;
+  isFavorited?: boolean;
 }
 
 export function useSellers(
